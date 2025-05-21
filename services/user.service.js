@@ -1,0 +1,618 @@
+const sendEmail = require("../util/emailService");
+const BaseService = require("./base");
+const UserModel = require("../models/user.model");
+const { empty } = require("../util");
+const validateData = require("../util/validate");
+const {
+  generateOTP,
+  verifyRefreshToken,
+  signAccessToken,
+} = require("../util/helper");
+
+class UserService extends BaseService {
+  async createUser(req, res) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+        password: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const userExists = await UserModel.findOne({ email: post.email });
+      if (!empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User exist. Please login",
+        });
+      }
+
+      userExists.isRegistrationComplete = true;
+      userExists.firstName = registerData.firstName;
+      userExists.lastName = registerData.lastName;
+      userExists.phoneNumber = registerData.phoneNumber;
+      userExists.password = registerData.password;
+      userExists.username = registerData.username;
+      if (registerData.referralCode) {
+        userExists.referralCode = registerData.referralCode;
+      }
+
+      // userExists.markModified("password");
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+         <h1>Registration successful</h1>
+          <p>Hi <strong>${email}</strong>,</p>
+          <p>Welcome to the Growe app</p>
+      `;
+      await sendEmail({
+        subject: "Registration Successful",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "Registration Successful",
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async loginUser(req, res) {
+    try {
+      const post = req.body;
+      const { email, password } = post;
+
+      const validateRule = {
+        email: "email|required",
+        password: "string|required",
+      };
+      const validateMessage = {
+        required: ":attribute is required",
+        string: ":attribute must be a string",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const userExists = await UserModel.findOne({ email });
+
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User not found. Please register as a new user",
+        });
+      }
+
+      if (!(await userExists.comparePassword(password))) {
+        return BaseService.sendFailedResponse({
+          error: "Wrong email or password",
+        });
+      }
+      const accessToken = await userExists.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET || ""
+      );
+      const refreshToken = await userExists.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET || ""
+      );
+
+      // res.cookie("growe_refresh_token", refreshToken, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV === "production",
+      //   path: "/",
+      //   maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      //   sameSite: "strict",
+      // });
+
+      res.header("Authorization", `Bearer ${accessToken}`);
+      res.header("refresh_token", `Bearer ${refreshToken}`);
+
+      return BaseService.sendSuccessResponse({ message: "Login Successful" });
+    } catch (error) {
+      console.log(error, "the error");
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async getUser(req) {
+    try {
+      const userId = req.user.id;
+
+      let userDetails = {};
+      userDetails = await UserModel.findById(userId)
+        .select("-password")
+
+      if (empty(userDetails)) {
+        return BaseService.sendFailedResponse({
+          error: "Something went wrong trying to fetch your account.",
+        });
+      }
+
+      return BaseService.sendSuccessResponse({ message: userDetails });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+
+      // Validate email
+      if (!email) {
+        return BaseService.sendFailedResponse({ error: "Email is required" });
+      }
+
+      const userExists = await UserModel.findOne({ email });
+      if (!userExists) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+      // Generate OTP
+      const otp = generateOTP();
+      userExists.otp = otp;
+      userExists.otp_expiry = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+      await userExists.save();
+      // Send OTP email
+      const emailHtml = `
+      <h1>Password Reset Request</h1>
+       <p>Hi <strong>${email}</strong>,</p>
+       <p>Your password reset code is ${otp}</p>
+    `;
+      await sendEmail({
+        subject: "Password Reset Request",
+        to: email,
+        html: emailHtml,
+      });
+      // Send response
+      return BaseService.sendSuccessResponse({
+        message: "Password Reset Request Successful",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async resetPassword(req, res) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+        password: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email, password } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User not found. Please try again later",
+        });
+      }
+
+      if (await userExists.comparePassword(password)) {
+        return BaseService.sendFailedResponse({
+          error: "New password cannot be the same as the old password",
+        });
+      }
+
+      userExists.password = password;
+      userExists.markModified("password");
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+          <h1>Password Reset</h1>
+          <p>Hi <strong>${email}</strong>,</p>
+          <p>Your Password has been reset successfully</p>
+      `;
+      await sendEmail({
+        subject: "Password Reset Confirmation",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "Password reset successfullly",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async sendOTP(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User does not exist, Please try again later",
+        });
+      }
+      const otp = generateOTP();
+
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      userExists.otp = otp;
+      userExists.otpExpiresAt = expiresAt;
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+         <h1>Verify Your Email</h1>
+      <p>Hi <strong>${email}</strong>,</p>
+      <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
+      `;
+      await sendEmail({
+        subject: "Verify Your email",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "Email sent. Please verify your email",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async verifyEmail(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (!empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: { message: "Email registered already", user: userExists },
+        });
+      }
+
+      const newPost = new UserModel({
+        email,
+      });
+
+      const otp = generateOTP();
+
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      newPost.otp = otp;
+      newPost.otpExpiresAt = expiresAt;
+      await newPost.save();
+
+      // Send OTP email
+      const emailHtml = `
+         <h1>Verify Your Email</h1>
+      <p>Hi <strong>${email}</strong>,</p>
+      <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
+      `;
+      await sendEmail({
+        subject: "Verify Your email",
+        to: email,
+        html: emailHtml,
+      });
+
+      await newPost.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Registration Successful. Please verify your email",
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async verifyOTP(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+        otp: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email, otp } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse(
+          "User not found. Please try again later"
+        );
+      }
+
+      if (empty(userExists.otp)) {
+        return BaseService.sendFailedResponse("OTP not found");
+      }
+
+      if (userExists.otp !== otp) {
+        return BaseService.sendFailedResponse("Invalid OTP");
+      }
+      if (userExists.otpExpiresAt < new Date()) {
+        return BaseService.sendFailedResponse("OTP expired");
+      }
+
+      userExists.isVerified = true;
+      userExists.otp = "";
+      userExists.otpExpiresAt = null;
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+          <h1>Your email has been verified</h1>
+          <p>Hi <strong>${email}</strong>,</p>
+          <p>You have successfully verified your account</p>
+      `;
+      await sendEmail({
+        subject: "Email Verification",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "OTP verified successfullly",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async verifyPasswordOTP(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+        otp: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email, otp } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User not found. Please try again later",
+        });
+      }
+
+      if (empty(userExists.otp)) {
+        return BaseService.sendFailedResponse({ error: "OTP not found" });
+      }
+
+      if (userExists.otp !== otp) {
+        return BaseService.sendFailedResponse({ error: "Invalid OTP" });
+      }
+      if (userExists.otpExpiresAt < new Date()) {
+        return BaseService.sendFailedResponse({ error: "OTP expired" });
+      }
+
+      userExists.otp = "";
+      userExists.otpExpiresAt = null;
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+          <h1>Your password OTP has been verified</h1>
+          <p>Hi <strong>${email}</strong>,</p>
+          <p>Please reset your password</p>
+      `;
+      await sendEmail({
+        subject: "Password Reset Verification",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "OTP verified successfullly",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async changePassword(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+        password: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email, password } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User not found. Please try again later",
+        });
+      }
+
+      userExists.password = password;
+      userExists.markModified("password");
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+          <h1>Password Reset</h1>
+          <p>Hi <strong>${email}</strong>,</p>
+          <p>Your Password has been reset successfully</p>
+      `;
+      await sendEmail({
+        subject: "Password Reset Confirmation",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "Password reset successfullly",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async refreshToken(req, res) {
+    try {
+      const refreshToken = req.headers.authorization;
+
+      if (!refreshToken) {
+        return BaseService.sendFailedResponse({ error: "No refresh token" });
+      }
+
+      if (
+        refreshToken.split(" ").filter((item) => item !== "null").length < 2
+      ) {
+        return BaseService.sendFailedResponse({ error: "Please provide a valid token to proceed" });
+      }
+
+      const token = refreshToken.split(" ")[1];
+      // check if token is provided
+      if (!token) {
+        return BaseService.sendFailedResponse({ error: "Unauthorized. Please log in" });
+      }
+
+      const decoded = verifyRefreshToken(token);
+      const newAccessToken = signAccessToken({ id: decoded.id, userType: decoded.userType,});
+
+      res.header("Authorization", `Bearer ${newAccessToken}`);
+
+      return BaseService.sendSuccessResponse({ message: "New access token sent" });
+    } catch (err) {
+      console.log(err, "the err");
+      return BaseService.sendFailedResponse({ error: "Invalid refresh token" });
+    }
+  }
+  async updateAccountDetails(req) {
+    try {
+      const post = req.body;
+      const userId = req.user.id;
+
+      const validateRule = {
+        accountNumber: "string|required",
+        accountName: "string|required",
+        bankName: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        string: ":attribute must be a string",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const user = await UserModel.findById(userId);
+      if (empty(user)) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      const accountDetails = {
+        accountName: post.accountName,
+        accountNumber: post.accountNumber,
+        bankName: post.bankName,
+      };
+
+      user.accountDetails = accountDetails;
+      await user.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Account details updated",
+      });
+    } catch (err) {
+      return BaseService.sendFailedResponse({ error: "Invalid refresh token" });
+    }
+  }
+}
+
+module.exports = UserService;
