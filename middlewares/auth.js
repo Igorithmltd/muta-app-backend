@@ -6,7 +6,7 @@ async function auth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (empty(authHeader)) {
       return res.status(401).json({
         success: false,
         data: {
@@ -23,6 +23,7 @@ async function auth(req, res, next) {
         }
       });
     }
+
 
     const token = authHeader.split(" ")[1];
 

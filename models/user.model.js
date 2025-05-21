@@ -10,38 +10,38 @@ const UserSchema = new mongoose.Schema(
     firstName: { type: String, trim: true, unique: true },
     lastName: { type: String, trim: true, unique: true },
     phoneNumber: { type: String, trim: true, unique: true },
-    accountDetails: {
-      accountNumber: { type: String },
-      bankName: { type: String },
-      accountName: { type: String },
-      status: {type: String, enum: ['verified', 'unverified'], default: 'unverified'}
-    },
+    // accountDetails: {
+    //   accountNumber: { type: String },
+    //   bankName: { type: String },
+    //   accountName: { type: String },
+    //   status: {type: String, enum: ['verified', 'unverified'], default: 'unverified'}
+    // },
     password: { type: String },
     userType: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-    referralCode: { type: String },
-    referralBonus: { type: Number, default: 0 },
-    referredUsers: {type: [mongoose.Schema.Types.ObjectId], ref: 'User'},
-    identityVerification: {
-      ninDetails: {
-        nin: { type: String },
-        ninImageUrl: String,
-      },
-      bvnDetails: {
-        bvn: String,
-        bvnImageUrl: String,
-      },
-      status: {type: String, default: 'complete', enum: ['complete', 'incomplete']},
-      isVerified: {type: Boolean, default: false},
-    },
+    // referralCode: { type: String },
+    // referralBonus: { type: Number, default: 0 },
+    // referredUsers: {type: [mongoose.Schema.Types.ObjectId], ref: 'User'},
+    // identityVerification: {
+    //   ninDetails: {
+    //     nin: { type: String },
+    //     ninImageUrl: String,
+    //   },
+    //   bvnDetails: {
+    //     bvn: String,
+    //     bvnImageUrl: String,
+    //   },
+    //   status: {type: String, default: 'complete', enum: ['complete', 'incomplete']},
+    //   isVerified: {type: Boolean, default: false},
+    // },
     isRegistrationComplete: {type: Boolean, default: false},
     otp: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
-    status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
+    // status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
   },
   { timestamps: true }
 );

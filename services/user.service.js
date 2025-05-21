@@ -37,28 +37,29 @@ class UserService extends BaseService {
         });
       }
 
-      userExists.isRegistrationComplete = true;
-      userExists.firstName = registerData.firstName;
-      userExists.lastName = registerData.lastName;
-      userExists.phoneNumber = registerData.phoneNumber;
-      userExists.password = registerData.password;
-      userExists.username = registerData.username;
-      if (registerData.referralCode) {
-        userExists.referralCode = registerData.referralCode;
-      }
+      const newUser = new UserModel(post)
+      await newUser.save()
 
       // userExists.markModified("password");
-      await userExists.save();
+      // await userExists.save();
+
+      const otp = generateOTP();
+
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      newUser.otp = otp;
+      newUser.otpExpiresAt = expiresAt;
+      await newUser.save();
 
       // Send OTP email
       const emailHtml = `
-         <h1>Registration successful</h1>
-          <p>Hi <strong>${email}</strong>,</p>
-          <p>Welcome to the Growe app</p>
+         <h1>Verify Your Email</h1>
+      <p>Hi <strong>${post.email}</strong>,</p>
+      <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
       `;
       await sendEmail({
-        subject: "Registration Successful",
-        to: email,
+        subject: "Verify Your email",
+        to: post.email,
         html: emailHtml,
       });
 
@@ -67,6 +68,70 @@ class UserService extends BaseService {
       });
     } catch (error) {
       console.log(error);
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async verifyOTP(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        email: "email|required",
+        otp: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const { email, otp } = post;
+
+      const userExists = await UserModel.findOne({ email });
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse(
+          "User not found. Please try again later"
+        );
+      }
+
+      if (empty(userExists.otp)) {
+        return BaseService.sendFailedResponse("OTP not found");
+      }
+
+      if (userExists.otp !== otp) {
+        return BaseService.sendFailedResponse("Invalid OTP");
+      }
+      if (userExists.otpExpiresAt < new Date()) {
+        return BaseService.sendFailedResponse("OTP expired");
+      }
+
+      userExists.isVerified = true;
+      userExists.otp = "";
+      userExists.otpExpiresAt = null;
+      await userExists.save();
+
+      // Send OTP email
+      const emailHtml = `
+          <h1>Your email has been verified</h1>
+          <p>Hi <strong>${email}</strong>,</p>
+          <p>You have successfully verified your account</p>
+      `;
+      await sendEmail({
+        subject: "Email Verification",
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "OTP verified successfullly",
+      });
+    } catch (error) {
       return BaseService.sendFailedResponse({ error });
     }
   }
@@ -98,6 +163,12 @@ class UserService extends BaseService {
         });
       }
 
+      if (!userExists.isVerified) {
+        return BaseService.sendFailedResponse({
+          error: "Email is not verified. Please verifiy your email",
+        });
+      }
+      
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
           error: "Wrong email or password",
@@ -118,10 +189,10 @@ class UserService extends BaseService {
       //   sameSite: "strict",
       // });
 
-      res.header("Authorization", `Bearer ${accessToken}`);
-      res.header("refresh_token", `Bearer ${refreshToken}`);
+      // res.header("Authorization", `Bearer ${accessToken}`);
+      // res.header("refresh_token", `Bearer ${refreshToken}`);
 
-      return BaseService.sendSuccessResponse({ message: "Login Successful" });
+      return BaseService.sendSuccessResponse({ message: accessToken });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse({ error });
@@ -350,77 +421,11 @@ class UserService extends BaseService {
         html: emailHtml,
       });
 
-      await newPost.save();
-
       return BaseService.sendSuccessResponse({
         message: "Registration Successful. Please verify your email",
       });
     } catch (error) {
       console.log(error, "the error");
-      return BaseService.sendFailedResponse({ error });
-    }
-  }
-  async verifyOTP(req) {
-    try {
-      const post = req.body;
-
-      const validateRule = {
-        email: "email|required",
-        otp: "string|required",
-      };
-
-      const validateMessage = {
-        required: ":attribute is required",
-        "email.email": "Please provide a valid :attribute.",
-      };
-
-      const validateResult = validateData(post, validateRule, validateMessage);
-
-      if (!validateResult.success) {
-        return BaseService.sendFailedResponse({ error: validateResult.data });
-      }
-
-      const { email, otp } = post;
-
-      const userExists = await UserModel.findOne({ email });
-      if (empty(userExists)) {
-        return BaseService.sendFailedResponse(
-          "User not found. Please try again later"
-        );
-      }
-
-      if (empty(userExists.otp)) {
-        return BaseService.sendFailedResponse("OTP not found");
-      }
-
-      if (userExists.otp !== otp) {
-        return BaseService.sendFailedResponse("Invalid OTP");
-      }
-      if (userExists.otpExpiresAt < new Date()) {
-        return BaseService.sendFailedResponse("OTP expired");
-      }
-
-      userExists.isVerified = true;
-      userExists.otp = "";
-      userExists.otpExpiresAt = null;
-      await userExists.save();
-
-      // Send OTP email
-      const emailHtml = `
-          <h1>Your email has been verified</h1>
-          <p>Hi <strong>${email}</strong>,</p>
-          <p>You have successfully verified your account</p>
-      `;
-      await sendEmail({
-        subject: "Email Verification",
-        to: email,
-        html: emailHtml,
-      });
-
-      return BaseService.sendSuccessResponse({
-        message: "OTP verified successfullly",
-      });
-    } catch (error) {
       return BaseService.sendFailedResponse({ error });
     }
   }
