@@ -10,7 +10,9 @@ class BaseController {
 	}
 
     static sendFailedResponse(res, data) {
-		res.status(400).send({success: false, data});
+		const statusCode = data.statusCode
+		delete data.statusCode
+		res.status(statusCode || 400).send({success: false, data});
 	}
 }
 

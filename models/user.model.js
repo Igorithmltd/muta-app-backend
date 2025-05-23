@@ -9,7 +9,8 @@ const UserSchema = new mongoose.Schema(
     username: { type: String, trim: true, unique: true },
     firstName: { type: String, trim: true, unique: true },
     lastName: { type: String, trim: true, unique: true },
-    phoneNumber: { type: String, trim: true, unique: true },
+    phoneNumber: { type: String, trim: true, unique: true, default: "" },
+    googleId: { type: String, unique: true, sparse: true },
     // accountDetails: {
     //   accountNumber: { type: String },
     //   bankName: { type: String },
@@ -37,10 +38,24 @@ const UserSchema = new mongoose.Schema(
     //   status: {type: String, default: 'complete', enum: ['complete', 'incomplete']},
     //   isVerified: {type: Boolean, default: false},
     // },
-    isRegistrationComplete: {type: Boolean, default: false},
+    image: {
+      type: {},
+      default: {
+        imageUrl:
+          "https://static.vecteezy.com/system/resources/previews/005/544/718/non_2x/profile-icon-design-free-vector.jpg",
+        publicId: "",
+      },
+      required: true,
+    },
+    isRegistrationComplete: { type: Boolean, default: false },
     otp: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
+    servicePlatform: {
+      type: String,
+      default: "local",
+      enum: ["local", "google"],
+    },
     // status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
   },
   { timestamps: true }
@@ -87,5 +102,4 @@ UserSchema.methods.generateRefreshToken = async function (secretToken) {
 };
 
 const UserModel = mongoose.model("User", UserSchema);
-module.exports = UserModel
-
+module.exports = UserModel;

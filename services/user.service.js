@@ -1,3 +1,4 @@
+const { OAuth2Client } = require("google-auth-library");
 const sendEmail = require("../util/emailService");
 const BaseService = require("./base");
 const UserModel = require("../models/user.model");
@@ -37,8 +38,8 @@ class UserService extends BaseService {
         });
       }
 
-      const newUser = new UserModel(post)
-      await newUser.save()
+      const newUser = new UserModel(post);
+      await newUser.save();
 
       // userExists.markModified("password");
       // await userExists.save();
@@ -69,6 +70,101 @@ class UserService extends BaseService {
     } catch (error) {
       console.log(error);
       return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async googleSignup(req, res) {
+    try {
+      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+      const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+      const post = req.body;
+
+      const validateRule = {
+        idToken: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const ticket = await client.verifyIdToken({
+        idToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY2MGVmM2I5Nzg0YmRmNTZlYmU4NTlmNTc3ZjdmYjJlOGMxY2VmZmIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3NTQxMDA5NzA3NTYtbjBvcGswMHAwZW43b2U2NnQ4OWdwODk2aDNibnRxcmEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3NTQxMDA5NzA3NTYtbjBvcGswMHAwZW43b2U2NnQ4OWdwODk2aDNibnRxcmEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDIyODUzMjE0ODk0ODQ0NzgwMDMiLCJlbWFpbCI6ImNoaW5lZHVqZXJlbWlhaDIwMDJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJyVDZmcW1xUkpBd29FN25yOGpjMGpBIiwibm9uY2UiOiJGTzAxb0pPQnpYclAtdVl0dmZ1N0NEWHNjN0NEaXgtdWRPcm5HcnFQR3RRIiwibmFtZSI6IkNoaW5lZHUgSmVyZW1pYWgiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSzRVdUU3RmZFOWRlWVptYm5CdlhZcGVfWld4UHpnRGVOOFZwd01meEc3YkV2SUMzWTQ9czk2LWMiLCJnaXZlbl9uYW1lIjoiQ2hpbmVkdSIsImZhbWlseV9uYW1lIjoiSmVyZW1pYWgiLCJpYXQiOjE3NDc5OTkwNzcsImV4cCI6MTc0ODAwMjY3N30.Tdo3Wl5-PsrdJNygUoDplVMs8pcAs0oc2YmSatNNlLzR1ycYwT8TvBHOpkd7UJsTZK8Gj8NlptT4K4uYcx7Bjvw9l7pdZcv7KhijRj-REmYhe3tC1nAunNu_3fwZfks6K3bcPu8ncsJiTukEuNl-eMA300jYidrRDZqxbKPRheuUweQqefSys303He8iO4P8pqMu3kn2VmxY-zgEYFACnvNWmmgC8-9G0-UTkgt44wmg1BOxEkJikXaS-PbGphBgylgUgCVhJZbqmUlEu0pXFsLfYeT9-_iJbUia-Uit3ZuU2tVhsd3zoCEq7n_QSH4dVeAGWDPYn-O5ri8DQ7HCKg",
+        // idToken: post.idToken,
+        // audience: GOOGLE_CLIENT_ID,
+        audience: "754100970756-n0opk00p0en7oe66t89gp896h3bntqra.apps.googleusercontent.com",
+      });
+
+      
+      const payload = ticket.getPayload();
+      const {
+        sub: googleId,
+        email,
+        name,
+        picture,
+        given_name,
+        family_name,
+      } = payload;
+      
+      const username = email ? email.split('@')[0] : name?.replace(/\s+/g, '').toLowerCase();
+      
+      const firstName = given_name || name?.split(' ')[0] || '';
+      const lastName = family_name || name?.split(' ').slice(1).join(' ') || '';
+
+      const userObject = {
+        googleId,
+        firstName,
+        lastName,
+        username,
+        email,
+        image: {imageUrl: picture, publicId: ""},
+        isVerified: true
+      }
+      
+      
+      const newUser = new UserModel(userObject)
+      
+      // Check if user exists in DB, otherwise create (pseudo code)
+      const userWithSub = await UserModel.findOne({googleId});
+
+      if (userWithSub) {
+        return BaseService.sendFailedResponse({ error: "User exist on google DB" });
+      }
+
+      await newUser.save()
+
+      // Generate your own JWT/session token
+      const accessToken = await newUser.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET || ""
+      );
+
+      const refreshToken = await newUser.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET || ""
+      );
+
+      // Send OTP email
+      const emailHtml = `
+         <h1>Registration successful</h1>
+      <p>Hi <strong>${newUser.email}</strong>,</p>
+      <p>You have successfully sign up:</p>
+      `;
+      await sendEmail({
+        subject: "Welcome to Muta App",
+        to: newUser.email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: accessToken,
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async verifyOTP(req) {
@@ -164,11 +260,14 @@ class UserService extends BaseService {
       }
 
       if (!userExists.isVerified) {
-        return BaseService.sendFailedResponse({
-          error: "Email is not verified. Please verifiy your email",
-        });
+        return BaseService.sendFailedResponse(
+          {
+            error: "Email is not verified. Please verifiy your email",
+          },
+          405
+        );
       }
-      
+
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
           error: "Wrong email or password",
@@ -203,8 +302,7 @@ class UserService extends BaseService {
       const userId = req.user.id;
 
       let userDetails = {};
-      userDetails = await UserModel.findById(userId)
-        .select("-password")
+      userDetails = await UserModel.findById(userId).select("-password");
 
       if (empty(userDetails)) {
         return BaseService.sendFailedResponse({
@@ -555,21 +653,30 @@ class UserService extends BaseService {
       if (
         refreshToken.split(" ").filter((item) => item !== "null").length < 2
       ) {
-        return BaseService.sendFailedResponse({ error: "Please provide a valid token to proceed" });
+        return BaseService.sendFailedResponse({
+          error: "Please provide a valid token to proceed",
+        });
       }
 
       const token = refreshToken.split(" ")[1];
       // check if token is provided
       if (!token) {
-        return BaseService.sendFailedResponse({ error: "Unauthorized. Please log in" });
+        return BaseService.sendFailedResponse({
+          error: "Unauthorized. Please log in",
+        });
       }
 
       const decoded = verifyRefreshToken(token);
-      const newAccessToken = signAccessToken({ id: decoded.id, userType: decoded.userType,});
+      const newAccessToken = signAccessToken({
+        id: decoded.id,
+        userType: decoded.userType,
+      });
 
       res.header("Authorization", `Bearer ${newAccessToken}`);
 
-      return BaseService.sendSuccessResponse({ message: "New access token sent" });
+      return BaseService.sendSuccessResponse({
+        message: "New access token sent",
+      });
     } catch (err) {
       console.log(err, "the err");
       return BaseService.sendFailedResponse({ error: "Invalid refresh token" });

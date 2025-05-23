@@ -51,10 +51,11 @@ class BaseService {
     }
   }
 
-  static sendFailedResponse(data) {
+  static sendFailedResponse(data, statusCode = 400) {
     const returnData = { success: false };
     if (!empty(data) || data === "0" || data === 0 || data === "") {
       returnData.data = data;
+      returnData.data.statusCode = statusCode;
     }
     return returnData;
   }

@@ -10,6 +10,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, createUser.data)
     }
+    async googleSignup(req, res){
+        const userService = new UserService()
+        const googleSignup = await userService.googleSignup(req, res)
+        if(!googleSignup.success){
+            return BaseController.sendFailedResponse(res, googleSignup.data)
+        }
+        return BaseController.sendSuccessResponse(res, googleSignup.data)
+    }
     async loginUser(req, res){
         const userService = new UserService()
         const loginUser = await userService.loginUser(req, res)
