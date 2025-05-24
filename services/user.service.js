@@ -9,6 +9,7 @@ const {
   verifyRefreshToken,
   signAccessToken,
 } = require("../util/helper");
+const { EXPIRES_AT } = require("../util/constants");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -46,7 +47,7 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      const expiresAt = EXPIRES_AT;
 
       newUser.otp = otp;
       newUser.otpExpiresAt = expiresAt;
@@ -94,10 +95,10 @@ class UserService extends BaseService {
       }
 
       const ticket = await client.verifyIdToken({
-        idToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY2MGVmM2I5Nzg0YmRmNTZlYmU4NTlmNTc3ZjdmYjJlOGMxY2VmZmIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3NTQxMDA5NzA3NTYtbjBvcGswMHAwZW43b2U2NnQ4OWdwODk2aDNibnRxcmEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3NTQxMDA5NzA3NTYtbjBvcGswMHAwZW43b2U2NnQ4OWdwODk2aDNibnRxcmEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDIyODUzMjE0ODk0ODQ0NzgwMDMiLCJlbWFpbCI6ImNoaW5lZHVqZXJlbWlhaDIwMDJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJyVDZmcW1xUkpBd29FN25yOGpjMGpBIiwibm9uY2UiOiJGTzAxb0pPQnpYclAtdVl0dmZ1N0NEWHNjN0NEaXgtdWRPcm5HcnFQR3RRIiwibmFtZSI6IkNoaW5lZHUgSmVyZW1pYWgiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSzRVdUU3RmZFOWRlWVptYm5CdlhZcGVfWld4UHpnRGVOOFZwd01meEc3YkV2SUMzWTQ9czk2LWMiLCJnaXZlbl9uYW1lIjoiQ2hpbmVkdSIsImZhbWlseV9uYW1lIjoiSmVyZW1pYWgiLCJpYXQiOjE3NDc5OTkwNzcsImV4cCI6MTc0ODAwMjY3N30.Tdo3Wl5-PsrdJNygUoDplVMs8pcAs0oc2YmSatNNlLzR1ycYwT8TvBHOpkd7UJsTZK8Gj8NlptT4K4uYcx7Bjvw9l7pdZcv7KhijRj-REmYhe3tC1nAunNu_3fwZfks6K3bcPu8ncsJiTukEuNl-eMA300jYidrRDZqxbKPRheuUweQqefSys303He8iO4P8pqMu3kn2VmxY-zgEYFACnvNWmmgC8-9G0-UTkgt44wmg1BOxEkJikXaS-PbGphBgylgUgCVhJZbqmUlEu0pXFsLfYeT9-_iJbUia-Uit3ZuU2tVhsd3zoCEq7n_QSH4dVeAGWDPYn-O5ri8DQ7HCKg",
-        // idToken: post.idToken,
-        // audience: GOOGLE_CLIENT_ID,
-        audience: "754100970756-n0opk00p0en7oe66t89gp896h3bntqra.apps.googleusercontent.com",
+        // idToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY2MGVmM2I5Nzg0YmRmNTZlYmU4NTlmNTc3ZjdmYjJlOGMxY2VmZmIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3NTQxMDA5NzA3NTYtbjBvcGswMHAwZW43b2U2NnQ4OWdwODk2aDNibnRxcmEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3NTQxMDA5NzA3NTYtbjBvcGswMHAwZW43b2U2NnQ4OWdwODk2aDNibnRxcmEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDIyODUzMjE0ODk0ODQ0NzgwMDMiLCJlbWFpbCI6ImNoaW5lZHVqZXJlbWlhaDIwMDJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJyVDZmcW1xUkpBd29FN25yOGpjMGpBIiwibm9uY2UiOiJGTzAxb0pPQnpYclAtdVl0dmZ1N0NEWHNjN0NEaXgtdWRPcm5HcnFQR3RRIiwibmFtZSI6IkNoaW5lZHUgSmVyZW1pYWgiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSzRVdUU3RmZFOWRlWVptYm5CdlhZcGVfWld4UHpnRGVOOFZwd01meEc3YkV2SUMzWTQ9czk2LWMiLCJnaXZlbl9uYW1lIjoiQ2hpbmVkdSIsImZhbWlseV9uYW1lIjoiSmVyZW1pYWgiLCJpYXQiOjE3NDc5OTkwNzcsImV4cCI6MTc0ODAwMjY3N30.Tdo3Wl5-PsrdJNygUoDplVMs8pcAs0oc2YmSatNNlLzR1ycYwT8TvBHOpkd7UJsTZK8Gj8NlptT4K4uYcx7Bjvw9l7pdZcv7KhijRj-REmYhe3tC1nAunNu_3fwZfks6K3bcPu8ncsJiTukEuNl-eMA300jYidrRDZqxbKPRheuUweQqefSys303He8iO4P8pqMu3kn2VmxY-zgEYFACnvNWmmgC8-9G0-UTkgt44wmg1BOxEkJikXaS-PbGphBgylgUgCVhJZbqmUlEu0pXFsLfYeT9-_iJbUia-Uit3ZuU2tVhsd3zoCEq7n_QSH4dVeAGWDPYn-O5ri8DQ7HCKg",
+        idToken: post.idToken,
+        audience: GOOGLE_CLIENT_ID,
+        // audience: "754100970756-n0opk00p0en7oe66t89gp896h3bntqra.apps.googleusercontent.com",
       });
 
       
@@ -442,7 +443,7 @@ class UserService extends BaseService {
       }
       const otp = generateOTP();
 
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      const expiresAt = EXPIRES_AT;
 
       userExists.otp = otp;
       userExists.otpExpiresAt = expiresAt;
@@ -501,7 +502,7 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      const expiresAt = EXPIRES_AT;
 
       newPost.otp = otp;
       newPost.otpExpiresAt = expiresAt;
