@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema(
     username: { type: String, trim: true, unique: true },
     firstName: { type: String, trim: true, unique: true },
     lastName: { type: String, trim: true, unique: true },
-    phoneNumber: { type: String, trim: true, unique: true, default: "" },
+    // phoneNumber: { type: String, trim: true, unique: true, default: "" },
     googleId: { type: String, unique: true, sparse: true },
     // accountDetails: {
     //   accountNumber: { type: String },
