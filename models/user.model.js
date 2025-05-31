@@ -11,33 +11,12 @@ const UserSchema = new mongoose.Schema(
     lastName: { type: String, trim: true, unique: true },
     // phoneNumber: { type: String, trim: true, unique: true, default: "" },
     googleId: { type: String, unique: true, sparse: true },
-    // accountDetails: {
-    //   accountNumber: { type: String },
-    //   bankName: { type: String },
-    //   accountName: { type: String },
-    //   status: {type: String, enum: ['verified', 'unverified'], default: 'unverified'}
-    // },
     password: { type: String },
     userType: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-    // referralCode: { type: String },
-    // referralBonus: { type: Number, default: 0 },
-    // referredUsers: {type: [mongoose.Schema.Types.ObjectId], ref: 'User'},
-    // identityVerification: {
-    //   ninDetails: {
-    //     nin: { type: String },
-    //     ninImageUrl: String,
-    //   },
-    //   bvnDetails: {
-    //     bvn: String,
-    //     bvnImageUrl: String,
-    //   },
-    //   status: {type: String, default: 'complete', enum: ['complete', 'incomplete']},
-    //   isVerified: {type: Boolean, default: false},
-    // },
     image: {
       type: {},
       default: {

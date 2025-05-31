@@ -93,7 +93,7 @@ class UserService extends BaseService {
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+      
       const ticket = await client.verifyIdToken({
         idToken: post.idToken,
         audience: GOOGLE_CLIENT_ID,
@@ -256,6 +256,13 @@ class UserService extends BaseService {
 
       const userExists = await UserModel.findOne({ email });
 
+      const accessToken = await userExists.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET || ""
+      );
+      const refreshToken = await userExists.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET || ""
+      );
+
       if (empty(userExists)) {
         return BaseService.sendFailedResponse({
           error: "User not found. Please register as a new user",
@@ -271,17 +278,16 @@ class UserService extends BaseService {
         );
       }
 
+      if(userExists.servicePlatform !== "local") {
+        return BaseService.sendSuccessResponse({ message: accessToken });
+      }
+
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
           error: "Wrong email or password",
         });
       }
-      const accessToken = await userExists.generateAccessToken(
-        process.env.ACCESS_TOKEN_SECRET || ""
-      );
-      const refreshToken = await userExists.generateRefreshToken(
-        process.env.REFRESH_TOKEN_SECRET || ""
-      );
+      
 
       // res.cookie("growe_refresh_token", refreshToken, {
       //   httpOnly: true,
