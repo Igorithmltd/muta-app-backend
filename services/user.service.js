@@ -256,13 +256,6 @@ class UserService extends BaseService {
 
       const userExists = await UserModel.findOne({ email });
 
-      const accessToken = await userExists.generateAccessToken(
-        process.env.ACCESS_TOKEN_SECRET || ""
-      );
-      const refreshToken = await userExists.generateRefreshToken(
-        process.env.REFRESH_TOKEN_SECRET || ""
-      );
-
       if (empty(userExists)) {
         return BaseService.sendFailedResponse({
           error: "User not found. Please register as a new user",
@@ -279,7 +272,7 @@ class UserService extends BaseService {
       }
 
       if(userExists.servicePlatform !== "local") {
-        return BaseService.sendSuccessResponse({ message: accessToken });
+        return BaseService.sendSuccessResponse({ error: `Please login using the ${userExists.servicePlatform} platform` });
       }
 
       if (!(await userExists.comparePassword(password))) {
@@ -288,7 +281,12 @@ class UserService extends BaseService {
         });
       }
       
-
+      const accessToken = await userExists.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET || ""
+      );
+      const refreshToken = await userExists.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET || ""
+      );
       // res.cookie("growe_refresh_token", refreshToken, {
       //   httpOnly: true,
       //   secure: process.env.NODE_ENV === "production",
