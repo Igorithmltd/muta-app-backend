@@ -14,6 +14,7 @@ exports.ROUTE_GET_ACCOUNT = '/get-account'
 exports.ROUTE_REGISTER_USER = '/register-user'
 exports.ROUTE_PROFILE_IMAGE_UPLOAD = '/profile-image-upload'
 exports.ROUTE_UPDATE_ACCOUNT_DETAILS = '/update-account-details'
+exports.ROUTE_COMPLETE_ONBOARDING = '/complete-onboarding'
 
 //admin
 exports.ROUTE_GET_ALL_USERS = '/get-all-users'

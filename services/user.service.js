@@ -689,20 +689,22 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: "Invalid refresh token" });
     }
   }
-  async updateAccountDetails(req) {
+  async completeOnboarding(req) {
     try {
       const post = req.body;
       const userId = req.user.id;
 
       const validateRule = {
-        accountNumber: "string|required",
-        accountName: "string|required",
-        bankName: "string|required",
+        firstName: "string|required",
+        lastName: "string|required",
+        gender: "string|required",
+        age: "int|required",
       };
 
       const validateMessage = {
         required: ":attribute is required",
         string: ":attribute must be a string",
+        int: ":attribute must be a string",
       };
 
       const validateResult = validateData(post, validateRule, validateMessage);
@@ -716,14 +718,23 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const accountDetails = {
-        accountName: post.accountName,
-        accountNumber: post.accountNumber,
-        bankName: post.bankName,
-      };
+      if(post.fitnessLevel && !["beginner", "intermediate", "advanced"].includes(post.fitnessLevel)) {
+        return BaseService.sendFailedResponse({ error: "Invalid fitness level" });
+      }
 
-      user.accountDetails = accountDetails;
-      await user.save();
+      if(post.focusArea && !Array.isArray(post.focusArea)) {
+        return BaseService.sendFailedResponse({ error: "Focus area must be an array" });
+      }
+
+      const onboardingData = {
+        age: post.age,
+        gender: post.gender,
+        firstName: post.firstName,
+        ...(post.focusArea && {focusArea: post.focusArea}),
+        ...(post.fitnessLevel && {fitnessLevel: post.fitnessLevel})
+      }
+      
+      await UserModel.findByIdAndUpdate(userId, onboardingData, {new: true});
 
       return BaseService.sendSuccessResponse({
         message: "Account details updated",

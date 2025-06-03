@@ -9,6 +9,12 @@ const UserSchema = new mongoose.Schema(
     username: { type: String, trim: true, unique: true },
     firstName: { type: String, trim: true, unique: true },
     lastName: { type: String, trim: true, unique: true },
+    gender: { type: String },
+    age: { type: Number },
+    weight: { type: Number },
+    height: { type: Number },
+    focusArea: [String],
+    fitnessLevel: {type: String, enum: ['beginner', 'intermediate', 'advanced']},
     // phoneNumber: { type: String, trim: true, unique: true, default: "" },
     googleId: { type: String, unique: true, sparse: true },
     password: { type: String },
@@ -35,7 +41,7 @@ const UserSchema = new mongoose.Schema(
       default: "local",
       enum: ["local", "google"],
     },
-    // status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
+    status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
   },
   { timestamps: true }
 );

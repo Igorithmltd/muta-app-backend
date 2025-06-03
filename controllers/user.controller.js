@@ -90,13 +90,13 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, refreshToken.data)
     }
-    async updateAccountDetails(req, res){
+    async completeOnboarding(req, res){
         const userService = new UserService()
-        const updateAccountDetails = await userService.updateAccountDetails(req, res)
-        if(!updateAccountDetails.success){
-            return BaseController.sendFailedResponse(res, updateAccountDetails.data)
+        const completeOnboarding = await userService.completeOnboarding(req, res)
+        if(!completeOnboarding.success){
+            return BaseController.sendFailedResponse(res, completeOnboarding.data)
         }
-        return BaseController.sendSuccessResponse(res, updateAccountDetails.data)
+        return BaseController.sendSuccessResponse(res, completeOnboarding.data)
     }
 }
 

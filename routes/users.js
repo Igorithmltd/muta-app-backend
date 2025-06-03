@@ -65,64 +65,74 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
     const userController = new UserController()
     return userController.profileImageUpload(req, res)
 })
-// /**
-//  * @swagger
-//  * /users/update-account-details:
-//  *   put:
-//  *     summary: Update account details
-//  *     tags:
-//  *       - Users
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             required:
-//  *               - accountName
-//  *               - bankName
-//  *               - accountNumber
-//  *             properties:
-//  *               accountName:
-//  *                 type: string
-//  *                 example: John doe
-//  *               bankName:
-//  *                 type: string
-//  *                 example: FTC Bank
-//  *               accountNumber:
-//  *                 type: string
-//  *                 example: 1234567890
-//  *     responses:
-//  *       201:
-//  *         description: Account details added successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 message:
-//  *                   type: string
-//  *                   example: Account details added successfully
-//  *                 data:
-//  *                   type: object
-//  *       400:
-//  *         description: Missing or invalid fields
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 message:
-//  *                   type: string
-//  *                   example: Please enter a valid field 
-//  *                 data:
-//  *                   type: object
-//  *       500:
-//  *         description: Internal server error
-//  */
-// router.put(ROUTE_UPDATE_ACCOUNT_DETAILS, [auth], (req, res)=>{
-//     const userController = new UserController()
-//     return userController.updateAccountDetails(req, res)
-// })
+
+/**
+ * @swagger
+ * /users/onboarding:
+ *   put:
+ *     summary: Update onboarding information
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - age
+ *               - gender
+ *               - firstName
+ *             properties:
+ *               age:
+ *                 type: integer
+ *                 description: Age of the user
+ *                 example: 28
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 description: Gender of the user
+ *                 example: female
+ *               firstName:
+ *                 type: string
+ *                 description: First name of the user
+ *                 example: Sarah
+ *               focusArea:
+ *                 type: array
+ *                 description: Optional list of fitness focus areas
+ *                 items:
+ *                   type: string
+ *                 example: ["weight loss", "muscle gain"]
+ *               fitnessLevel:
+ *                 type: string
+ *                 enum: [beginner, intermediate, advanced]
+ *                 description: Optional fitness level
+ *                 example: intermediate
+ *     responses:
+ *       200:
+ *         description: Onboarding data updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Onboarding data updated successfully
+ *       400:
+ *         description: Bad request, such as missing or invalid fields
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
+    const userController = new UserController()
+    return userController.completeOnboarding(req, res)
+})
+
+
+
 
 module.exports = router
