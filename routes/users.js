@@ -1,6 +1,6 @@
 const UserController = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS } = require('../util/page-route')
+const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -68,7 +68,7 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
 
 /**
  * @swagger
- * /users/onboarding:
+ * /users/complete-onboarding:
  *   put:
  *     summary: Update onboarding information
  *     tags:
@@ -108,6 +108,14 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
  *                 enum: [beginner, intermediate, advanced]
  *                 description: Optional fitness level
  *                 example: intermediate
+ *               weight:
+ *                 type: string
+ *                 description: Optional weight of the user
+ *                 example: "178 lbs"
+ *               height:
+ *                 type: string
+ *                 description: Optional height of the user
+ *                 example: "5'7\""
  *     responses:
  *       200:
  *         description: Onboarding data updated successfully
@@ -127,7 +135,7 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
+router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res)=>{
     const userController = new UserController()
     return userController.completeOnboarding(req, res)
 })

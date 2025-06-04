@@ -277,7 +277,7 @@ class UserService extends BaseService {
 
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
-          error: "Wrong email or password",
+          error: "Wrong email or password"
         });
       }
       
@@ -298,7 +298,7 @@ class UserService extends BaseService {
       // res.header("Authorization", `Bearer ${accessToken}`);
       // res.header("refresh_token", `Bearer ${refreshToken}`);
 
-      return BaseService.sendSuccessResponse({ message: accessToken });
+      return BaseService.sendSuccessResponse({ message: accessToken, user: userExists });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse({ error });
@@ -730,6 +730,8 @@ class UserService extends BaseService {
         age: post.age,
         gender: post.gender,
         firstName: post.firstName,
+        ...(post.weight && {weight: post.weight}),
+        ...(post.height && {height: post.height}),
         ...(post.focusArea && {focusArea: post.focusArea}),
         ...(post.fitnessLevel && {fitnessLevel: post.fitnessLevel})
       }
