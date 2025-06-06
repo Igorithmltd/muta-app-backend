@@ -690,7 +690,7 @@ class UserService extends BaseService {
       });
     } catch (err) {
       console.log(err, "the err");
-      return BaseService.sendFailedResponse({ error: "Invalid refresh token" });
+      return BaseService.sendFailedResponse({ error: "Something went wrong. Please try again later." });
     }
   }
   async completeOnboarding(req) {
@@ -702,13 +702,13 @@ class UserService extends BaseService {
         firstName: "string|required",
         lastName: "string|required",
         gender: "string|required",
-        age: "int|required",
+        age: "integer|required",
       };
 
       const validateMessage = {
         required: ":attribute is required",
         string: ":attribute must be a string",
-        int: ":attribute must be a string",
+        integer: ":attribute must be a string",
       };
 
       const validateResult = validateData(post, validateRule, validateMessage);
@@ -743,10 +743,11 @@ class UserService extends BaseService {
       await UserModel.findByIdAndUpdate(userId, onboardingData, {new: true});
 
       return BaseService.sendSuccessResponse({
-        message: "Account details updated",
+        message: "Onboarding completed successfully",
       });
     } catch (err) {
-      return BaseService.sendFailedResponse({ error: "Invalid refresh token" });
+      console.log(err)
+      return BaseService.sendFailedResponse({ error: "Something went wrong. Please try again later." });
     }
   }
 }
