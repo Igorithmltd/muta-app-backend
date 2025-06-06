@@ -114,6 +114,19 @@ class UserService extends BaseService {
       
       const firstName = given_name || name?.split(' ')[0] || '';
       const lastName = family_name || name?.split(' ').slice(1).join(' ') || '';
+      
+      // Check if user exists in DB, otherwise create (pseudo code)
+      const userWithSub = await UserModel.findOne({googleId, email});
+
+      if (userWithSub) {
+        const accessToken = await userWithSub.generateAccessToken(
+          process.env.ACCESS_TOKEN_SECRET || ""
+        );
+        const refreshToken = await userWithSub.generateRefreshToken(
+          process.env.REFRESH_TOKEN_SECRET || ""
+        );
+        return BaseService.sendSuccessResponse({message: accessToken, user: userWithSub, refreshToken})
+      }
 
       const userObject = {
         googleId,
@@ -127,17 +140,6 @@ class UserService extends BaseService {
       
       
       const newUser = new UserModel(userObject)
-      
-      // Check if user exists in DB, otherwise create (pseudo code)
-      const userWithSub = await UserModel.findOne({googleId, email});
-
-      if (userWithSub) {
-        const accessToken = await newUser.generateAccessToken(
-          process.env.ACCESS_TOKEN_SECRET || ""
-        );
-        return BaseService.sendSuccessResponse({message: accessToken})
-        // return BaseService.sendFailedResponse({ error: "User exist on google DB" });
-      }
 
       await newUser.save()
 
@@ -164,6 +166,8 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: accessToken,
+        user: newUser,
+        refreshToken
       });
     } catch (error) {
       console.log(error);
@@ -298,7 +302,7 @@ class UserService extends BaseService {
       // res.header("Authorization", `Bearer ${accessToken}`);
       // res.header("refresh_token", `Bearer ${refreshToken}`);
 
-      return BaseService.sendSuccessResponse({ message: accessToken, user: userExists });
+      return BaseService.sendSuccessResponse({ message: accessToken, user: userExists, refreshToken });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse({ error });
