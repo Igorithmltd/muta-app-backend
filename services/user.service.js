@@ -737,7 +737,8 @@ class UserService extends BaseService {
         ...(post.weight && {weight: post.weight}),
         ...(post.height && {height: post.height}),
         ...(post.focusArea && {focusArea: post.focusArea}),
-        ...(post.fitnessLevel && {fitnessLevel: post.fitnessLevel})
+        ...(post.fitnessLevel && {fitnessLevel: post.fitnessLevel}),
+        isRegistrationComplete: true,
       }
       
       await UserModel.findByIdAndUpdate(userId, onboardingData, {new: true});
