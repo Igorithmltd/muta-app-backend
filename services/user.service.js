@@ -751,6 +751,40 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: "Something went wrong. Please try again later." });
     }
   }
+  async profileImageUpload(req) {
+    try {
+      let post = req.body;
+
+      if (empty(post) || empty(post.image) || empty(post.image.imageUrl)) {
+        return BaseService.sendFailedResponse({
+          error: "Please provide your profile image",
+        });
+      }
+
+      const userExists = await UserModel.findById(req.user.id);
+      if (empty(userExists)) {
+        return BaseService.sendFailedResponse({
+          error: "User does not exist. Please register!",
+        });
+      }
+
+      if (!empty(userExists.image) && !empty(userExists.image.publicId)) {
+        await deleteImage(userExists.image.publicId);
+      }
+
+      userExists.image = post.image;
+      await userExists.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Profile image uploaded successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
 }
 
 module.exports = UserService;

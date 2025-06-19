@@ -61,6 +61,56 @@ router.get(ROUTE_GET_ACCOUNT, [auth], (req, res)=>{
     const userController = new UserController()
     return userController.getUser(req, res)
 })
+/**
+ * @swagger
+ * /users/profile-image-upload:
+ *   put:
+ *     summary: Upload or update user's image
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: object
+ *                 required:
+ *                   - imageUrl
+ *                   - publicId
+ *                 properties:
+ *                   imageUrl:
+ *                     type: string
+ *                     format: uri
+ *                     description: URL of the uploaded image
+ *                     example: "https://res.cloudinary.com/demo/image/upload/sample.jpg"
+ *                   publicId:
+ *                     type: string
+ *                     description: Public ID of the image in the storage service
+ *                     example: "sample"
+ *     responses:
+ *       200:
+ *         description: User image updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User image updated successfully
+ *       400:
+ *         description: Bad request, missing or invalid image object
+ *       500:
+ *         description: Server error
+ */
 router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
     const userController = new UserController()
     return userController.profileImageUpload(req, res)

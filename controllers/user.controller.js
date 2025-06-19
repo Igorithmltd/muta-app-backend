@@ -98,6 +98,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, completeOnboarding.data)
     }
+    async profileImageUpload(req, res){
+        const userService = new UserService()
+        const profileImageUpload = await userService.profileImageUpload(req)
+        if(!profileImageUpload.success){
+            return BaseController.sendFailedResponse(res, profileImageUpload.data)
+        }
+        return BaseController.sendSuccessResponse(res, profileImageUpload.data)
+    }
 }
 
 module.exports = UserController
