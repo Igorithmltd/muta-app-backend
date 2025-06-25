@@ -44,9 +44,15 @@ router.post(ROUTE_IMAGE_UPLOAD_MULTIPLE, auth, image_uploader.array('file'),(req
  *                 message:
  *                   type: string
  *                   example: Image uploaded successfully
- *                 imageUrl:
- *                   type: string
- *                   example: "https://yourdomain.com/uploads/image123.jpg"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     imageUrl:
+ *                       type: string
+ *                       example: "https://yourdomain.com/uploads/image123.jpg"
+ *                     publicId:
+ *                       type: string
+ *                       example: "image123"
  *       400:
  *         description: Bad request, e.g., no file uploaded or invalid file
  *         content:
@@ -63,7 +69,6 @@ router.post(ROUTE_IMAGE_UPLOAD_MULTIPLE, auth, image_uploader.array('file'),(req
  *       500:
  *         description: Server error
  */
-
 router.post(ROUTE_IMAGE_UPLOAD_SINGLE, auth, image_uploader.single('file'), (req, res)=>{
     const utilController = new UtilController()
     return utilController.uploadSingleImage(req, res)

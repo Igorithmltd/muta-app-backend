@@ -42,6 +42,10 @@ const UserSchema = new mongoose.Schema(
       enum: ["local", "google"],
     },
     status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
+    subscriptionPlan: {
+      type: String,
+      enum: ["basic", "premium"]
+    }
   },
   { timestamps: true }
 );
