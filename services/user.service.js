@@ -201,20 +201,20 @@ class UserService extends BaseService {
 
       const userExists = await UserModel.findOne({ email });
       if (empty(userExists)) {
-        return BaseService.sendFailedResponse(
-          "User not found. Please try again later"
-        );
+        return BaseService.sendFailedResponse({
+          error: "User not found. Please try again later"
+        });
       }
 
       if (empty(userExists.otp)) {
-        return BaseService.sendFailedResponse("OTP not found");
+        return BaseService.sendFailedResponse({error: "OTP not found"});
       }
 
       if (userExists.otp !== otp) {
-        return BaseService.sendFailedResponse("Invalid OTP");
+        return BaseService.sendFailedResponse({error: "Invalid OTP"});
       }
       if (userExists.otpExpiresAt < new Date()) {
-        return BaseService.sendFailedResponse("OTP expired");
+        return BaseService.sendFailedResponse({error: "OTP expired"});
       }
 
       userExists.isVerified = true;
@@ -238,6 +238,7 @@ class UserService extends BaseService {
         message: "OTP verified successfullly",
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({ error });
     }
   }
