@@ -106,6 +106,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, profileImageUpload.data)
     }
+    async getDailyNugget(req, res){
+        const userService = new UserService()
+        const getDailyNugget = await userService.getDailyNugget(req)
+        if(!getDailyNugget.success){
+            return BaseController.sendFailedResponse(res, getDailyNugget.data)
+        }
+        return BaseController.sendSuccessResponse(res, getDailyNugget.data)
+    }
 }
 
 module.exports = UserController

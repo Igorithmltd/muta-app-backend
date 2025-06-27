@@ -10,6 +10,7 @@ const {
   signAccessToken,
 } = require("../util/helper");
 const { EXPIRES_AT } = require("../util/constants");
+const nuggets = require("../data/nugget");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -798,6 +799,20 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: "Profile image uploaded successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getDailyNugget(req) {
+    try {
+      const randomIndex = Math.floor(Math.random() * nuggets.length);
+      const randomNugget = nuggets[randomIndex];
+      return BaseService.sendSuccessResponse({
+        message: randomNugget,
       });
     } catch (error) {
       console.log(error);

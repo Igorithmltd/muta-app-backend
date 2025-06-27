@@ -1,6 +1,6 @@
 const UserController = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING } = require('../util/page-route')
+const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING, ROUTE_DAILY_NUGGET } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -202,6 +202,41 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
 router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res)=>{
     const userController = new UserController()
     return userController.completeOnboarding(req, res)
+})
+/**
+ * @swagger
+ * /users/daily-nugget:
+ *   get:
+ *     summary: Get daily fitness nugget
+ *     description: Returns a motivational fitness nugget for the day.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *     responses:
+ *       200:
+ *         description: Onboarding data updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Get up and work. The day is all you hav got
+ *       400:
+ *         description: Bad request, such as missing or invalid fields
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_DAILY_NUGGET, (req, res)=>{
+    const userController = new UserController()
+    return userController.getDailyNugget(req, res)
 })
 
 
