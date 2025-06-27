@@ -153,6 +153,12 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
  *                 items:
  *                   type: string
  *                 example: ["weight loss", "muscle gain"]
+ *               specialty:
+ *                 type: array
+ *                 description: Optional list of specialty areas (for coaches)
+ *                 items:
+ *                   type: string
+ *                 example: ["weight loss", "muscle gain"]
  *               fitnessLevel:
  *                 type: string
  *                 enum: [beginner, intermediate, advanced]
@@ -166,6 +172,14 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
  *                 type: string
  *                 description: Optional height of the user
  *                 example: "5'7\""
+ *               location:
+ *                 type: string
+ *                 description: Optional height of the user
+ *                 example: "Awka, NG"
+ *               yearsOfExperience:
+ *                 type: integer
+ *                 description: Optional years of experience (for coaches)
+ *                 example: 5
  *     responses:
  *       200:
  *         description: Onboarding data updated successfully

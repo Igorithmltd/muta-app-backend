@@ -27,6 +27,10 @@ const router = require('express').Router()
  *                 type: string
  *                 format: password
  *                 example: gRDERIdiidfjii@
+ *               userType:
+ *                 type: string
+ *                 format: password
+ *                 example: (user | coach)
  *     responses:
  *       200:
  *         description: Registration successful
@@ -69,6 +73,10 @@ router.post(ROUTE_REGISTER, (req, res)=>{
  *                 type: string
  *                 format: text
  *                 example: <your_id_token>
+ *               userType:
+ *                 type: string
+ *                 format: text
+ *                 example: (user | coach)
  *     responses:
  *       200:
  *         description: Registration successful

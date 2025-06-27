@@ -45,7 +45,10 @@ const UserSchema = new mongoose.Schema(
     subscriptionPlan: {
       type: String,
       enum: ["basic", "premium"]
-    }
+    },
+    specialty: [String],
+    yearsOfExperience: { type: Number, default: 0 },
+    location: {type: String, trim: true, required: true},
   },
   { timestamps: true }
 );

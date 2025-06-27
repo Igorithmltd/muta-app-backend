@@ -19,6 +19,7 @@ class UserService extends BaseService {
       const validateRule = {
         email: "email|required",
         password: "string|required",
+        userType: "string|required"
       };
 
       const validateMessage = {
@@ -82,6 +83,7 @@ class UserService extends BaseService {
 
       const validateRule = {
         idToken: "string|required",
+        userType: "string|required"
       };
 
       const validateMessage = {
@@ -135,7 +137,8 @@ class UserService extends BaseService {
         username,
         email,
         image: {imageUrl: picture, publicId: ""},
-        isVerified: true
+        isVerified: true,
+        userType: post.userType
       }
       
       
@@ -698,17 +701,24 @@ class UserService extends BaseService {
       const post = req.body;
       const userId = req.user.id;
 
-      const validateRule = {
+      let validateRule = {
         firstName: "string|required",
         lastName: "string|required",
         gender: "string|required",
-        age: "integer|required",
-      };
+      }
+
+      if(post.userType == 'user'){
+        validateRule.age = "integer|required"
+      }else{
+        validateRule.yearsOfExperience = "integer|required"
+        validateRule.location = "integer|required"
+      }
 
       const validateMessage = {
         required: ":attribute is required",
         string: ":attribute must be a string",
         integer: ":attribute must be a string",
+        array: ":attribute must be an array"
       };
 
       const validateResult = validateData(post, validateRule, validateMessage);
@@ -722,13 +732,20 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      if(post.fitnessLevel && !["beginner", "intermediate", "advanced"].includes(post.fitnessLevel)) {
-        return BaseService.sendFailedResponse({ error: "Invalid fitness level" });
+      
+      if(post.userType == 'user'){
+        if(post.fitnessLevel && !["beginner", "intermediate", "advanced"].includes(post.fitnessLevel)) {
+          return BaseService.sendFailedResponse({ error: "Invalid fitness level" });
+        }
+        if(post.focusArea && !Array.isArray(post.focusArea)) {
+          return BaseService.sendFailedResponse({ error: "Focus area must be an array" });
+        }
+      }else{
+        if(post.specialty && !Array.isArray(post.specialty)) {
+          return BaseService.sendFailedResponse({ error: "Specialty must be an array" });
+        }
       }
 
-      if(post.focusArea && !Array.isArray(post.focusArea)) {
-        return BaseService.sendFailedResponse({ error: "Focus area must be an array" });
-      }
 
       const onboardingData = {
         age: post.age,
@@ -738,6 +755,9 @@ class UserService extends BaseService {
         ...(post.height && {height: post.height}),
         ...(post.focusArea && {focusArea: post.focusArea}),
         ...(post.fitnessLevel && {fitnessLevel: post.fitnessLevel}),
+        ...(post.specialty && {specialty: post.specialty}),
+        ...(post.location && {location: post.location}),
+        ...(post.yearsOfExperience && {yearsOfExperience: post.yearsOfExperience}),
         isRegistrationComplete: true,
       }
       
