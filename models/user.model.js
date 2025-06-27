@@ -48,7 +48,7 @@ const UserSchema = new mongoose.Schema(
     },
     specialty: [String],
     yearsOfExperience: { type: Number, default: 0 },
-    location: {type: String, trim: true, required: true},
+    location: {type: String, trim: true},
   },
   { timestamps: true }
 );
