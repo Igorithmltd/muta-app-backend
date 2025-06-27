@@ -809,10 +809,18 @@ class UserService extends BaseService {
   }
   async getDailyNugget(req) {
     try {
-      const randomIndex = Math.floor(Math.random() * nuggets.length);
-      const randomNugget = nuggets[randomIndex];
+      const today = new Date().toISOString().split('T')[0];
+
+      // Simple hash function based on date string
+      let hash = 0;
+      for (let i = 0; i < today.length; i++) {
+        hash = today.charCodeAt(i) + ((hash << 5) - hash);
+      }
+    
+      const index = Math.abs(hash) % nuggets.length;
+    
       return BaseService.sendSuccessResponse({
-        message: randomNugget,
+        message: nuggets[index],
       });
     } catch (error) {
       console.log(error);
