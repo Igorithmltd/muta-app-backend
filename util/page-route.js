@@ -28,6 +28,9 @@ exports.ROUTE_MAKE_SAVING = '/make-saving'
 exports.ROUTE_JOIN_SAVING = '/join-saving'
 exports.ROUTE_ALL_SAVINGS = '/all-savings'
 
+//challenge
+exports.ROUTE_CHALLENGES = '/challenges'
+
 //seeding
 exports.ROUTE_SEED = '/seed'
 
