@@ -11,6 +11,7 @@ const {
 } = require("../util/helper");
 const { EXPIRES_AT } = require("../util/constants");
 const nuggets = require("../data/nugget");
+const NuggetModel = require("../models/nugget.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -809,6 +810,18 @@ class UserService extends BaseService {
   }
   async getDailyNugget(req) {
     try {
+
+      for (const title of nuggets) {
+        // Check if already exists to prevent duplicates
+        const exists = await NuggetModel.findOne({ title });
+        if (!exists) {
+          await NuggetModel.create({ title });
+        } else {
+          console.log(`Skipped (already exists): ${title}`);
+        }
+      }
+
+      return BaseService.sendSuccessResponse({message: 'all is well'})
       const today = new Date().toISOString().split('T')[0];
 
       // Simple hash function based on date string
@@ -816,7 +829,7 @@ class UserService extends BaseService {
       for (let i = 0; i < today.length; i++) {
         hash = today.charCodeAt(i) + ((hash << 5) - hash);
       }
-    
+      
       const index = Math.abs(hash) % nuggets.length;
     
       return BaseService.sendSuccessResponse({

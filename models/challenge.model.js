@@ -14,19 +14,6 @@ const ChallengeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-ChallengeSchema.pre("save", async function (next) {
-  try {
-    if (this.isModified("password")) {
-      // const user = this as IUser;
-      const hashPassword = await bcrypt.hash(this.password, 10);
-      this.password = hashPassword;
-    }
-    next();
-  } catch (error) {
-    return next(error);
-  }
-});
-
 
 const ChallengeModel = mongoose.model("Challenge", ChallengeSchema);
 module.exports = ChallengeModel;
