@@ -1,5 +1,13 @@
 const Validator = require('validatorjs')
 
+Validator.register(
+    'object',
+    function(value) {
+      return value !== null && typeof value === 'object' && !Array.isArray(value);
+    },
+    'The :attribute must be an object.'
+  );
+  
 
 function validateData(body, rules, messages){
     const result = new Validator(body, rules, messages)

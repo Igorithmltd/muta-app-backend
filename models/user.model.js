@@ -77,7 +77,7 @@ UserSchema.methods.generateAccessToken = async function (secretToken) {
       userType: this.userType,
     },
     secretToken,
-    { expiresIn: "1h" }
+    { expiresIn: "6h" }
   );
   return token;
 };

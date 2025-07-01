@@ -29,7 +29,21 @@ exports.ROUTE_JOIN_SAVING = '/join-saving'
 exports.ROUTE_ALL_SAVINGS = '/all-savings'
 
 //challenge
-exports.ROUTE_CHALLENGES = '/challenges'
+exports.ROUTE_CREATE_CHALLENGE = '/create-challenge'
+exports.ROUTE_GET_ALL_CHALLENGES = '/get-all-challenges'
+exports.ROUTE_GET_CHALLENGE = '/get-challenge'
+exports.ROUTE_UPDATE_CHALLENGE = '/update-challenge'
+exports.ROUTE_DELETE_CHALLENGE = '/delete-challenge'
+
+//diet
+exports.ROUTE_CREATE_DIET = '/create-diet'
+exports.ROUTE_GET_ALL_DIETS = '/get-all-diets'
+exports.ROUTE_GET_DIET = '/get-diet'
+exports.ROUTE_UPDATE_DIET = '/update-diet'
+exports.ROUTE_DELETE_DIET = '/delete-diet'
+
+//categories
+exports.ROUTE_CATEGORY = '/category'
 
 //seeding
 exports.ROUTE_SEED = '/seed'
