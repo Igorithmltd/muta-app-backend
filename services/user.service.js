@@ -753,8 +753,8 @@ class UserService extends BaseService {
       const userExists = await UserModel.findById(userId)
 
       if(userExists.isRegistrationComplete){
-        return BaseService.sendFailedResponse({
-          error: "Onboarding already completed",
+        return BaseService.sendSuccessResponse({
+          message: "Onboarding completed successfully",
         });
       }
 
