@@ -707,13 +707,16 @@ class UserService extends BaseService {
         firstName: "string|required",
         lastName: "string|required",
         gender: "string|required",
+        userType: "string|required",
       }
 
-      if(post.userType == 'user'){
-        validateRule.age = "integer|required"
-      }else{
-        validateRule.yearsOfExperience = "integer|required"
-        validateRule.location = "integer|required"
+      if(post.userType){
+        if(post.userType == 'user'){
+          validateRule.age = "integer|required"
+        }else{
+          validateRule.yearsOfExperience = "integer|required"
+          validateRule.location = "string|required"
+        }
       }
 
       const validateMessage = {
@@ -746,6 +749,13 @@ class UserService extends BaseService {
         if(post.specialty && !Array.isArray(post.specialty)) {
           return BaseService.sendFailedResponse({ error: "Specialty must be an array" });
         }
+      }
+      const userExists = await UserModel.findById(userId)
+
+      if(userExists.isRegistrationComplete){
+        return BaseService.sendFailedResponse({
+          error: "Onboarding already completed",
+        });
       }
 
 
