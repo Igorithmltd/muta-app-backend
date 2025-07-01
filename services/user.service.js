@@ -702,16 +702,16 @@ class UserService extends BaseService {
     try {
       const post = req.body;
       const userId = req.user.id;
+      const userType = req.user
 
       let validateRule = {
         firstName: "string|required",
         lastName: "string|required",
         gender: "string|required",
-        userType: "string|required",
       }
 
-      if(post.userType){
-        if(post.userType == 'user'){
+      if(userType){
+        if(userType == 'user'){
           validateRule.age = "integer|required"
         }else{
           validateRule.yearsOfExperience = "integer|required"
@@ -738,7 +738,7 @@ class UserService extends BaseService {
       }
 
       
-      if(post.userType == 'user'){
+      if(userType == 'user'){
         if(post.fitnessLevel && !["beginner", "intermediate", "advanced"].includes(post.fitnessLevel)) {
           return BaseService.sendFailedResponse({ error: "Invalid fitness level" });
         }

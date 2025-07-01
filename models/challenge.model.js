@@ -9,7 +9,13 @@ const ChallengeSchema = new mongoose.Schema(
     duration: { type: String, required: true },
     durationUnit: { type: String, required: true, enum: ["minute", "hour"], default: "minute" },
     type: { type: String, required: true, enum: ["daily", "weekly"], default: "daily" },
-    difficulty: { type: String, required: true },
+    difficulty: { type: String, required: true, enum: ["begineer", "intermediate", "advanced"], default: "begineer" },
+    tasks: [
+      {
+        buttonLabel: {type: String, required: true},
+        title: { type: String, required: true },
+      }
+    ],
     // streak: { type: Number, default: 0 },
   },
   { timestamps: true }
