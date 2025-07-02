@@ -1,4 +1,4 @@
-const DietCategoryModel = require("../models/DietCategory.model");
+const DietCategoryModel = require("../models/dietCategory.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 
