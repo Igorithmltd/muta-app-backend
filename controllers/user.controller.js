@@ -114,6 +114,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getDailyNugget.data)
     }
+    async editNugget(req, res){
+        const userService = new UserService()
+        const editNugget = await userService.editNugget(req)
+        if(!editNugget.success){
+            return BaseController.sendFailedResponse(res, editNugget.data)
+        }
+        return BaseController.sendSuccessResponse(res, editNugget.data)
+    }
     async likeUnLikeNugget(req, res){
         const userService = new UserService()
         const likeUnLikeNugget = await userService.likeUnLikeNugget(req)

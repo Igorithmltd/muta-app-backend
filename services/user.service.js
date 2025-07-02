@@ -878,6 +878,42 @@ class UserService extends BaseService {
       });
     }
   }
+  async editNugget(req) {
+    try {
+      const nuggetId = req.params.id
+      const nugget = await NuggetModel.findById(nuggetId);
+
+      const post = req.body
+      const validateRule = {
+        title: "string|required",
+      };
+      const validateMessage = {
+        required: ":attribute is required",
+        string: ":attribute must be a string",
+      };
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      if (empty(nugget)) {
+        return BaseService.sendFailedResponse({
+          error: "Nugget not found",
+        });
+      }
+      nugget.title = post.title || nugget.title;
+      await nugget.save();
+    
+      return BaseService.sendSuccessResponse({
+        message: "nugget updated successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
   async increaseNuggetDownloadCount(req) {
     try {
       const userId = req.user.id

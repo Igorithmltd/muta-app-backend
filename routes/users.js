@@ -1,6 +1,6 @@
 const UserController = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING, ROUTE_DAILY_NUGGET, ROUTE_LIKE_AND_UNLIKE_NUGGET, ROUTE_INCREASE_NUGGET_SHARE_COUNT, ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT } = require('../util/page-route')
+const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING, ROUTE_DAILY_NUGGET, ROUTE_LIKE_AND_UNLIKE_NUGGET, ROUTE_INCREASE_NUGGET_SHARE_COUNT, ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT, ROUTE_UPDATE_NUGGET } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -315,6 +315,47 @@ router.get(ROUTE_DAILY_NUGGET, auth, (req, res)=>{
 router.put(ROUTE_LIKE_AND_UNLIKE_NUGGET+'/:id', auth, (req, res)=>{
     const userController = new UserController()
     return userController.likeUnLikeNugget(req, res)
+})
+/**
+ * @swagger
+ * /update-nugget/{id}:
+ *   put:
+ *     summary: Update a nugget
+ *     description: Update a nugget title.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of nugget to update
+ *         schema:
+ *           type: string
+ *           example: 686265149ba9c6ad79f60bfe
+ *     responses:
+ *       200:
+ *         description: nugget updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Nugget updated successfully
+ *       400:
+ *         description: Bad request, such as invalid nugget ID
+ *       404:
+ *         description: Nugget not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPDATE_NUGGET+'/:id', auth, (req, res)=>{
+    const userController = new UserController()
+    return userController.editNugget(req, res)
 })
 
 /**
