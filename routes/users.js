@@ -332,6 +332,19 @@ router.put(ROUTE_LIKE_AND_UNLIKE_NUGGET+'/:id', auth, (req, res)=>{
  *         schema:
  *           type: string
  *           example: 686265149ba9c6ad79f60bfe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Title of the nugget
+ *                 example: The size of a mango can never be determined by its oesophagus. Be wise.
  *     responses:
  *       200:
  *         description: nugget updated successfully
