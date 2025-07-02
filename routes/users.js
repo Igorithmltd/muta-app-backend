@@ -1,6 +1,6 @@
 const UserController = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING, ROUTE_DAILY_NUGGET } = require('../util/page-route')
+const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING, ROUTE_DAILY_NUGGET, ROUTE_LIKE_AND_UNLIKE_NUGGET, ROUTE_INCREASE_NUGGET_SHARE_COUNT, ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -208,16 +208,92 @@ router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res)=>{
  * /users/daily-nugget:
  *   get:
  *     summary: Get daily fitness nugget
- *     description: Returns a motivational fitness nugget for the day.
+ *     description: Returns a motivational fitness nugget for the day along with user interaction status.
  *     tags:
  *       - Users
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
  *     responses:
  *       200:
- *         description: Onboarding data updated successfully
+ *         description: Daily nugget retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: object
+ *                       properties:
+ *                         nugget:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               example: "686265149ba9c6ad79f60bfe"
+ *                             title:
+ *                               type: string
+ *                               example: "Wake up. Work out. Win."
+ *                             shares:
+ *                               type: integer
+ *                               example: 0
+ *                             likes:
+ *                               type: integer
+ *                               example: 1
+ *                             downloads:
+ *                               type: integer
+ *                               example: 0
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
+ *                               example: "2025-06-30T10:21:08.980Z"
+ *                             updatedAt:
+ *                               type: string
+ *                               format: date-time
+ *                               example: "2025-07-02T14:22:00.606Z"
+ *                             __v:
+ *                               type: integer
+ *                               example: 1
+ *                             likedBy:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                               example: ["685ec3c9b4a4947cd49fc6c9"]
+ *                         hasLiked:
+ *                           type: boolean
+ *                           example: true
+ *       400:
+ *         description: Bad request, such as missing or invalid fields
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_DAILY_NUGGET, auth, (req, res)=>{
+    const userController = new UserController()
+    return userController.getDailyNugget(req, res)
+})
+
+/**
+ * @swagger
+ * /like-unlike-nugget/{id}:
+ *   put:
+ *     summary: Like or unlike a nugget
+ *     description: Toggles the like status for the current user on a specific nugget.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the nugget to like or unlike
+ *         schema:
+ *           type: string
+ *           example: 686265149ba9c6ad79f60bfe
+ *     responses:
+ *       200:
+ *         description: Like status updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -228,15 +304,101 @@ router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res)=>{
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Get up and work. The day is all you hav got
+ *                   example: Nugget liked successfully
  *       400:
- *         description: Bad request, such as missing or invalid fields
+ *         description: Bad request, such as invalid nugget ID
+ *       404:
+ *         description: Nugget not found
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_DAILY_NUGGET, (req, res)=>{
+router.put(ROUTE_LIKE_AND_UNLIKE_NUGGET+'/:id', auth, (req, res)=>{
     const userController = new UserController()
-    return userController.getDailyNugget(req, res)
+    return userController.likeUnLikeNugget(req, res)
+})
+
+/**
+ * @swagger
+ * /increase-nugget-download-count/{id}:
+ *   put:
+ *     summary: download a nugget
+ *     description: records the download status for the current user on a specific nugget.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the nugget to download
+ *         schema:
+ *           type: string
+ *           example: 686265149ba9c6ad79f60bfe
+ *     responses:
+ *       200:
+ *         description: download count updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Nugget downloaded successfully
+ *       400:
+ *         description: Bad request, such as invalid nugget ID
+ *       404:
+ *         description: Nugget not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT+'/:id', auth, (req, res)=>{
+    const userController = new UserController()
+    return userController.increaseNuggetDownloadCount(req, res)
+})
+
+/**
+ * @swagger
+ * /increase-nugget-share-count/{id}:
+ *   put:
+ *     summary: share a nugget
+ *     description: records the share status for the current user on a specific nugget.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the nugget to share
+ *         schema:
+ *           type: string
+ *           example: 686265149ba9c6ad79f60bfe
+ *     responses:
+ *       200:
+ *         description: share count updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Nugget shared successfully
+ *       400:
+ *         description: Bad request, such as invalid nugget ID
+ *       404:
+ *         description: Nugget not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_INCREASE_NUGGET_SHARE_COUNT+'/:id', auth, (req, res)=>{
+    const userController = new UserController()
+    return userController.increaseNuggetShareCount(req, res)
 })
 
 

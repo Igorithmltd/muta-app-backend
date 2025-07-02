@@ -114,6 +114,30 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getDailyNugget.data)
     }
+    async likeUnLikeNugget(req, res){
+        const userService = new UserService()
+        const likeUnLikeNugget = await userService.likeUnLikeNugget(req)
+        if(!likeUnLikeNugget.success){
+            return BaseController.sendFailedResponse(res, likeUnLikeNugget.data)
+        }
+        return BaseController.sendSuccessResponse(res, likeUnLikeNugget.data)
+    }
+    async increaseNuggetDownloadCount(req, res){
+        const userService = new UserService()
+        const increaseNuggetDownloadCount = await userService.increaseNuggetDownloadCount(req)
+        if(!increaseNuggetDownloadCount.success){
+            return BaseController.sendFailedResponse(res, increaseNuggetDownloadCount.data)
+        }
+        return BaseController.sendSuccessResponse(res, increaseNuggetDownloadCount.data)
+    }
+    async increaseNuggetShareCount(req, res){
+        const userService = new UserService()
+        const increaseNuggetShareCount = await userService.increaseNuggetShareCount(req)
+        if(!increaseNuggetShareCount.success){
+            return BaseController.sendFailedResponse(res, increaseNuggetShareCount.data)
+        }
+        return BaseController.sendSuccessResponse(res, increaseNuggetShareCount.data)
+    }
 }
 
 module.exports = UserController

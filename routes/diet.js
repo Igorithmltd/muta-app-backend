@@ -356,7 +356,7 @@ router.get(ROUTE_GET_ALL_DIETS, [auth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_DIET, [auth], (req, res) => {
+router.get(ROUTE_GET_DIET+'/:id', [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.getDiet(req, res);
 });
@@ -407,7 +407,7 @@ router.get(ROUTE_GET_DIET, [auth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_UPDATE_DIET, [auth], (req, res) => {
+router.put(ROUTE_UPDATE_DIET+'/:id', [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.updateDiet(req, res);
 });
@@ -446,7 +446,7 @@ router.put(ROUTE_UPDATE_DIET, [auth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_DIET, [auth], (req, res) => {
+router.delete(ROUTE_DELETE_DIET+'/:id', [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.deleteDiet(req, res);
 });

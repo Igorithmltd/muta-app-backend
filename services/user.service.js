@@ -819,8 +819,9 @@ class UserService extends BaseService {
   }
   async getDailyNugget(req) {
     try {
+      const userId = req.user.id
       const today = new Date().toISOString().split('T')[0];
-      const nuggets = await NuggetModel.find()
+      const nuggets = await NuggetModel.find();
 
       // Simple hash function based on date string
       let hash = 0;
@@ -829,9 +830,110 @@ class UserService extends BaseService {
       }
       
       const index = Math.abs(hash) % nuggets.length;
+
+      const nugget = nuggets[index];
+      const hasLiked = nugget.likedBy.includes(userId);
     
       return BaseService.sendSuccessResponse({
-        message: nuggets[index],
+        message: {nugget, hasLiked},
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async likeUnLikeNugget(req) {
+    try {
+      const userId = req.user.id
+      const nuggetId = req.params.id
+      const nugget = await NuggetModel.findById(nuggetId);
+
+      if (empty(nugget)) {
+        return BaseService.sendFailedResponse({
+          error: "Nugget not found",
+        });
+      }
+      const hasLiked = nugget.likedBy.includes(userId);
+      let likeNugget = false
+      if (hasLiked) {
+        likeNugget = false
+        nugget.likedBy = nugget.likedBy.filter(id => id.toString() !== userId);
+        nugget.likes -= 1;
+      } else {
+        likeNugget = true
+        nugget.likedBy.push(userId);
+        nugget.likes += 1;
+      }
+      await nugget.save();
+    
+      return BaseService.sendSuccessResponse({
+        message: `${likeNugget ? "Liked" : "Unliked"} nugget successfully`,
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async increaseNuggetDownloadCount(req) {
+    try {
+      const userId = req.user.id
+      const nuggetId = req.params.id
+      const nugget = await NuggetModel.findById(nuggetId);
+
+      if (empty(nugget)) {
+        return BaseService.sendFailedResponse({
+          error: "Nugget not found",
+        });
+      }
+
+      if (nugget.downloads === undefined) {
+        nugget.downloads = 0;
+      }
+      if (!nugget.downloadedBy.includes(userId)) {
+        nugget.downloads += 1;
+        nugget.downloadedBy.push(userId);
+        await nugget.save();
+      }
+      
+    
+      return BaseService.sendSuccessResponse({
+        message: "nugget successfully downloaded",
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async increaseNuggetShareCount(req) {
+    try {
+      const userId = req.user.id
+      const nuggetId = req.params.id
+      const nugget = await NuggetModel.findById(nuggetId);
+
+      if (empty(nugget)) {
+        return BaseService.sendFailedResponse({
+          error: "Nugget not found",
+        });
+      }
+
+      if (nugget.shares === undefined) {
+        nugget.shares = 0;
+      }
+      if (!nugget.sharedBy.includes(userId)) {
+        nugget.shares += 1;
+        nugget.sharedBy.push(userId);
+        await nugget.save();
+      }
+      
+    
+      return BaseService.sendSuccessResponse({
+        message: "nugget shared successfully",
       });
     } catch (error) {
       console.log(error);

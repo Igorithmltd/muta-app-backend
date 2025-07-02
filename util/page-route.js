@@ -16,6 +16,9 @@ exports.ROUTE_PROFILE_IMAGE_UPLOAD = '/profile-image-upload'
 exports.ROUTE_UPDATE_ACCOUNT_DETAILS = '/update-account-details'
 exports.ROUTE_COMPLETE_ONBOARDING = '/complete-onboarding'
 exports.ROUTE_DAILY_NUGGET = '/daily-nugget'
+exports.ROUTE_LIKE_AND_UNLIKE_NUGGET = '/like-unlike-nugget'
+exports.ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT = '/increase-nugget-download-count'
+exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
 
 //admin
 exports.ROUTE_GET_ALL_USERS = '/get-all-users'
