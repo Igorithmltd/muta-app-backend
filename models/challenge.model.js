@@ -1,9 +1,7 @@
-// models/Post.ts
 const mongoose = require("mongoose");
 
 const ChallengeSchema = new mongoose.Schema(
   {
-    // userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
     title: { type: String, required: true, unique: true },
     goal: { type: String, required: true },
     duration: { type: Number, required: true },
@@ -12,17 +10,27 @@ const ChallengeSchema = new mongoose.Schema(
     difficulty: { type: String, required: true, enum: ["begineer", "intermediate", "advanced"], default: "begineer" },
     tasks: [
       {
-        buttonLabel: {type: String, required: true},
+        buttonLabel: { type: String, required: true },
         title: { type: String, required: true },
         status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
       }
     ],
-    startDate: {type: Date, default: Date.now},
-    endDate: {type: Date},
+    startDate: { type: Date, default: Date.now },
+    endDate: { type: Date },
   },
   { timestamps: true }
 );
 
+
+ChallengeSchema.pre("save", function (next) {
+  if (this.type === "weekly" && !this.endDate) {
+    const today = new Date(this.startDate || Date.now());
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + 6); // Adds 6 days
+    this.endDate = endDate;
+  }
+  next();
+});
 
 const ChallengeModel = mongoose.model("Challenge", ChallengeSchema);
 module.exports = ChallengeModel;

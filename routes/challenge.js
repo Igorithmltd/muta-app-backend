@@ -431,6 +431,9 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *                           _id:
  *                             type: string
  *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           challengeId:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
  *                           title:
  *                             type: string
  *                             example: "fourth challenge"
@@ -489,7 +492,7 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_JOIN_CHALLENGE, adminAuth, (req, res) => {
+router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.joinChallenge(req, res);
 });
@@ -524,17 +527,20 @@ router.put(ROUTE_JOIN_CHALLENGE, adminAuth, (req, res) => {
  *                   type: object
  *                   properties:
  *                     message:
+ *                         type: string
+ *                         example: "Challenge joined successfully"
+ *                     userId:
+ *                         type: string
+ *                         example: "6863ece6b0d40e2dd2eabe12"
+ *                     status:
+ *                         type: string
+ *                         example: "in-progress"
+ *                     streak:
+ *                         type: number
+ *                         example: 0
+ *                     challengeId:
  *                         type: object
  *                         properties:
- *                           streak:
- *                             type: string
- *                             example: 3
- *                           userId:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           status:
- *                             type: string
- *                             example: "in-progress"
  *                           _id:
  *                             type: string
  *                             example: "6863ece6b0d40e2dd2eabe12"
@@ -600,7 +606,65 @@ router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.getChallengeAction(req, res);
 });
-router.get(ROUTE_CHALLENGE_TASK + "/:id", auth, (req, res) => {
+
+/**
+ * @swagger
+ * /challenge/challenge-task:
+ *   put:
+ *     summary: Mark a challenge task as completed
+ *     tags:
+ *       - Challenges
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - challengeId
+ *               - challengeTaskId
+ *             properties:
+ *               challengeId:
+ *                 type: string
+ *                 description: The ID of the challenge
+ *                 example: "64a123456789abcdef123456"
+ *               challengeTaskId:
+ *                 type: string
+ *                 description: The ID of the task to mark as completed
+ *                 example: "64a987654321abcdef123456"
+ *     responses:
+ *       200:
+ *         description: Task marked as completed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Task marked as completed
+ *       400:
+ *         description: Invalid request body or missing parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Challenge task not found
+ *       401:
+ *         description: Unauthorized - user not part of the challenge
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_CHALLENGE_TASK, auth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.markChallengeTask(req, res);
 });

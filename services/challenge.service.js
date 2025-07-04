@@ -26,7 +26,7 @@ class ChallengeService extends BaseService {
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
-        in: "Please provide a valid :attribute.",
+        "in.difficulty": "Please provide a valid :attribute level.",
         array: ":attribute must be an array.",
       };
 
@@ -65,8 +65,10 @@ class ChallengeService extends BaseService {
 
         const endDate = new Date(today);
         endDate.setDate(today.getDate() + daysToAdd);
+        console.log({endDate})
         newChallenge.endDate = endDate;
       }
+      // return console.log('newChallenge')
 
       // Create a new challenge
       const challenge = new ChallengeModel(newChallenge);
@@ -205,24 +207,32 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
 
+    const challenge = await ChallengeModel.findById(post.challengeId);
+    if (!challenge) {
+      return BaseService.sendFailedResponse({
+        error: "Challenge not found",
+      });
+    }
+
     const joinedChallenge = await ChallengeActionModel.findOne({
       userId,
       challengeId: post.challengeId,
     });
     if (joinedChallenge) {
-      return BaseService.sendFailedResponse({
-        error: "You have already joined this challenge",
+      return BaseService.sendSuccessResponse({
+        message: "You have already joined this challenge",
       });
     }
 
     const newUserChallenge = new ChallengeActionModel({
       userId,
       challengeId: post.challengeId,
+      tasks: challenge.tasks
     });
 
     (await newUserChallenge.save()).populate("challengeId");
 
-    return BaseSuccessResponse({
+    return BaseService.sendSuccessResponse({
       message: "Challenge joined successfully",
       challenge: newUserChallenge,
     });
@@ -266,6 +276,7 @@ class ChallengeService extends BaseService {
     const challengeTask = challengeAction.tasks.find(
       (task) => task._id.toString() === post.challengeTaskId
     );
+
     if (!challengeTask) {
       return BaseService.sendFailedResponse({
         error: "Challenge task not found",
@@ -274,43 +285,31 @@ class ChallengeService extends BaseService {
  
     if (challengeAction.status === "completed") {
       return BaseService.sendSuccessResponse({
-        error: "You have already completed this challenge",
+        message: "You have already completed this challenge",
       });
     }
-    if (challengeAction.streak >= challenge.tasks.length) {
+    if (challengeTask.status === "completed") {
       return BaseService.sendSuccessResponse({
-        error: "You are all done",
+        message: "You have already completed this task",
       });
     }
+    // if (challengeAction.streak >= challengeAction.tasks.length) {
+    //   return BaseService.sendSuccessResponse({
+    //     message: "You are all done",
+    //   });
+    // }
     challengeAction.streak += 1;
-    challengeTask.status
-    if (challengeAction.streak >= challenge.tasks.length) {
+    challengeTask.status = "completed";
+    if (challengeAction.streak >= challengeAction.tasks.length) {
       challengeAction.status = "completed";
     }
     await challengeAction.save();
 
-    const joinedChallenge = await ChallengeActionModel.findOne({
-      userId,
-      challengeId: post.challengeId,
-    });
-    if (joinedChallenge) {
-      return BaseService.sendFailedResponse({
-        error: "You have already joined this challenge",
-      });
-    }
-
-    const newUserChallenge = new ChallengeActionModel({
-      userId,
-      challengeId: post.challengeId,
-    });
-
-    (await newUserChallenge.save()).populate("challengeId");
-
-    return BaseSuccessResponse({
-      message: "Challenge joined successfully",
-      challenge: newUserChallenge,
+    return BaseService.sendSuccessResponse({
+      message: "Task marked as completed"
     });
   }
+
   async getChallengeAction(req) {
     try {
       const challengeActionId = req.params.id;
