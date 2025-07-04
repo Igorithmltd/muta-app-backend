@@ -42,6 +42,30 @@ class ChallengeController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deleteChallenge.data)
     }
+    async joinChallenge(req, res){
+        const challengeService = new ChallengeService()
+        const joinChallenge = await challengeService.joinChallenge(req)
+        if(!joinChallenge.success){
+            return BaseController.sendFailedResponse(res, joinChallenge.data)
+        }
+        return BaseController.sendSuccessResponse(res, joinChallenge.data)
+    }
+    async getChallengeAction(req, res){
+        const challengeService = new ChallengeService()
+        const getChallengeAction = await challengeService.getChallengeAction(req)
+        if(!getChallengeAction.success){
+            return BaseController.sendFailedResponse(res, getChallengeAction.data)
+        }
+        return BaseController.sendSuccessResponse(res, getChallengeAction.data)
+    }
+    async markChallengeTask(req, res){
+        const challengeService = new ChallengeService()
+        const markChallengeTask = await challengeService.markChallengeTask(req)
+        if(!markChallengeTask.success){
+            return BaseController.sendFailedResponse(res, markChallengeTask.data)
+        }
+        return BaseController.sendSuccessResponse(res, markChallengeTask.data)
+    }
 }
 
 module.exports = ChallengeController

@@ -18,6 +18,7 @@ exports.ROUTE_COMPLETE_ONBOARDING = '/complete-onboarding'
 exports.ROUTE_DAILY_NUGGET = '/daily-nugget'
 exports.ROUTE_LIKE_AND_UNLIKE_NUGGET = '/like-unlike-nugget'
 exports.ROUTE_UPDATE_NUGGET = '/update-nugget'
+exports.ROUTE_CREATE_NUGGET = '/create-nugget'
 exports.ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT = '/increase-nugget-download-count'
 exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
 
@@ -36,7 +37,10 @@ exports.ROUTE_ALL_SAVINGS = '/all-savings'
 exports.ROUTE_CREATE_CHALLENGE = '/create-challenge'
 exports.ROUTE_GET_ALL_CHALLENGES = '/get-all-challenges'
 exports.ROUTE_GET_CHALLENGE = '/get-challenge'
+exports.ROUTE_GET_CHALLENGE_ACTION = '/get-challenge-action'
+exports.ROUTE_CHALLENGE_TASK = '/challenge-task'
 exports.ROUTE_UPDATE_CHALLENGE = '/update-challenge'
+exports.ROUTE_JOIN_CHALLENGE = '/join-challenge'
 exports.ROUTE_DELETE_CHALLENGE = '/delete-challenge'
 
 //diet
@@ -48,6 +52,21 @@ exports.ROUTE_DELETE_DIET = '/delete-diet'
 
 //categories
 exports.ROUTE_CATEGORY = '/category'
+
+//products
+exports.ROUTE_CREATE_PRODUCT = '/create-product'
+exports.ROUTE_GET_ALL_PRODUCTS = '/get-all-products'
+exports.ROUTE_GET_PRODUCT = '/get-product'
+exports.ROUTE_UPDATE_PRODUCT = '/update-product'
+exports.ROUTE_DELETE_PRODUCT = '/delete-product'
+
+//product categories
+exports.ROUTE_CREATE_PRODUCT_CATEGORY = '/create-product-category'
+exports.ROUTE_GET_ALL_PRODUCT_CATEGORIES = '/get-all-product-categories'
+exports.ROUTE_GET_PRODUCT_CATEGORY = '/get-product-category'
+exports.ROUTE_UPDATE_PRODUCT_CATEGORY = '/update-product-category'
+exports.ROUTE_DELETE_PRODUCT_CATEGORY = '/delete-product-category'
+
 
 //seeding
 exports.ROUTE_SEED = '/seed'

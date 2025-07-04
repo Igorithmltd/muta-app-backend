@@ -6,6 +6,7 @@ const CategoryController = require("../controllers/category.controller");
 
 const auth = require("../middlewares/auth");
 const { ROUTE_CATEGORY } = require("../util/page-route");
+const adminAuth = require("../middlewares/adminAuth");
 /**
  * @swagger
  * /categories/category:
@@ -34,15 +35,15 @@ const { ROUTE_CATEGORY } = require("../util/page-route");
  *             schema:
  *               type: object
  *               properties:
- *                 title:
+ *                 success:
  *                   type: string
- *                   example: Weight
+ *                   example: Category created successfully
  *       400:
  *         description: Bad request, such as missing or invalid fields
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_CATEGORY, auth, (req, res) => {
+router.post(ROUTE_CATEGORY, adminAuth, (req, res) => {
   const categoryController = new CategoryController();
   return categoryController.createCategory(req, res);
 });
@@ -54,17 +55,9 @@ router.post(ROUTE_CATEGORY, auth, (req, res) => {
  *     summary: get all categories
  *     tags:
  *       - Categories
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the category to delete
- *         example: "12345"
  *     responses:
  *       200:
- *         description: Category deleted successfully
+ *         description: Categories fetched successfully
  *         content:
  *           application/json:
  *             schema:
@@ -79,7 +72,7 @@ router.post(ROUTE_CATEGORY, auth, (req, res) => {
  *                     type: string
  *                     example: weight
  *       404:
- *         description: Category not found
+ *         description: Categories not found
  *       500:
  *         description: Server error
  */
@@ -162,7 +155,7 @@ router.get(`${ROUTE_CATEGORY}/:id`, auth, (req, res) => {
  *         description: Server error
  */
 
-router.put(`${ROUTE_CATEGORY}/:id`, auth, (req, res) => {
+router.put(`${ROUTE_CATEGORY}/:id`, adminAuth, (req, res) => {
   const categoryController = new CategoryController();
   return categoryController.updateCategory(req, res);
 });
@@ -201,7 +194,7 @@ router.put(`${ROUTE_CATEGORY}/:id`, auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(`${ROUTE_CATEGORY}/:id`, auth, (req, res) => {
+router.delete(`${ROUTE_CATEGORY}/:id`, adminAuth, (req, res) => {
   const categoryController = new CategoryController();
   return categoryController.deleteCategory(req, res);
 });

@@ -1,4 +1,5 @@
 const ChallengeController = require("../controllers/challenge.controller");
+const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
 const {
   ROUTE_GET_ALL_CHALLENGES,
@@ -6,6 +7,9 @@ const {
   ROUTE_GET_CHALLENGE,
   ROUTE_UPDATE_CHALLENGE,
   ROUTE_DELETE_CHALLENGE,
+  ROUTE_JOIN_CHALLENGE,
+  ROUTE_GET_CHALLENGE_ACTION,
+  ROUTE_CHALLENGE_TASK,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -72,65 +76,15 @@ const router = require("express").Router();
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                       example: "6863ece6b0d40e2dd2eabe12"
- *                     title:
- *                       type: string
- *                       example: "New challenge"
- *                     goal:
- *                       type: string
- *                       example: "Achieve something great"
- *                     duration:
- *                       type: integer
- *                       example: 30
- *                     durationUnit:
- *                       type: string
- *                       example: "minute"
- *                     type:
- *                       type: string
- *                       enum: [weekly, daily]
- *                       example: "daily"
- *                     difficulty:
- *                       type: string
- *                       example: "intermediate"
- *                     tasks:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           buttonLabel:
- *                             type: string
- *                             example: "close"
- *                           title:
- *                             type: string
- *                             example: "Open your phone"
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe13"
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                       example: "2025-07-01T14:12:55.020Z"
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
- *                       example: "2025-07-01T14:12:55.020Z"
- *                     __v:
- *                       type: integer
- *                       example: 0
+ *                 message:
+ *                   type: string
+ *                   example: Challenge created successfully
  *       400:
  *         description: Invalid input data
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_CREATE_CHALLENGE, auth, (req, res) => {
+router.post(ROUTE_CREATE_CHALLENGE, adminAuth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.createChallenge(req, res);
 });
@@ -179,6 +133,12 @@ router.post(ROUTE_CREATE_CHALLENGE, auth, (req, res) => {
  *                           goal:
  *                             type: string
  *                             example: "fourth goal"
+ *                           startDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           endDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
  *                           duration:
  *                             type: integer
  *                             example: 30
@@ -203,6 +163,9 @@ router.post(ROUTE_CREATE_CHALLENGE, auth, (req, res) => {
  *                                 title:
  *                                   type: string
  *                                   example: "Open your phone"
+ *                                 status:
+ *                                   type: string
+ *                                   example: "in-progress"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863ece6b0d40e2dd2eabe13"
@@ -268,6 +231,12 @@ router.get(ROUTE_GET_ALL_CHALLENGES, auth, (req, res) => {
  *                           goal:
  *                             type: string
  *                             example: "fourth goal"
+ *                           startDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           endDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
  *                           duration:
  *                             type: integer
  *                             example: 30
@@ -292,6 +261,9 @@ router.get(ROUTE_GET_ALL_CHALLENGES, auth, (req, res) => {
  *                                 title:
  *                                   type: string
  *                                   example: "Open your phone"
+ *                                 status:
+ *                                   type: string
+ *                                   example: "in-progress"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863ece6b0d40e2dd2eabe13"
@@ -353,7 +325,7 @@ router.get(ROUTE_GET_CHALLENGE + "/:id", auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_UPDATE_CHALLENGE + "/:id", auth, (req, res) => {
+router.put(ROUTE_UPDATE_CHALLENGE + "/:id", adminAuth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.updateChallenge(req, res);
 });
@@ -395,9 +367,242 @@ router.put(ROUTE_UPDATE_CHALLENGE + "/:id", auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_CHALLENGE + "/:id", auth, (req, res) => {
+router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.deleteChallenge(req, res);
+});
+
+/**
+ * @swagger
+ * /challenge/join-challenge:
+ *   put:
+ *     summary: Join challenge
+ *     tags:
+ *       - Challenges
+ *     parameters:
+ *       - in: params
+ *         name: type
+ *         schema:
+ *           id: string
+ *           exapmle: "6863ece6b0d40e2dd2eabe12"
+ *         description: Challenge id
+ *         example: 6863ece6b0d40e2dd2eabe12
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - challengeId
+ *             properties:
+ *               challengeId:
+ *                 type: string
+ *                 example: "6863ece6b0d40e2dd2eabe12"
+ *     responses:
+ *       200:
+ *         description: challenge joined successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                         type: string
+ *                         example: "Challenge joined successfully"
+ *                     userId:
+ *                         type: string
+ *                         example: "6863ece6b0d40e2dd2eabe12"
+ *                     status:
+ *                         type: string
+ *                         example: "in-progress"
+ *                     streak:
+ *                         type: number
+ *                         example: 0
+ *                     challenge:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           title:
+ *                             type: string
+ *                             example: "fourth challenge"
+ *                           goal:
+ *                             type: string
+ *                             example: "fourth goal"
+ *                           startDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           endDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           duration:
+ *                             type: integer
+ *                             example: 30
+ *                           durationUnit:
+ *                             type: string
+ *                             example: "minute"
+ *                           type:
+ *                             type: string
+ *                             example: "daily"
+ *                             enum: [weekly, daily]
+ *                           difficulty:
+ *                             type: string
+ *                             example: "advanced"
+ *                           tasks:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 buttonLabel:
+ *                                   type: string
+ *                                   example: "close"
+ *                                 title:
+ *                                   type: string
+ *                                   example: "Open your phone"
+ *                                 status:
+ *                                   type: string
+ *                                   example: "in-progress"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863ece6b0d40e2dd2eabe13"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *       400:
+ *         description: Invalid query parameter
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_JOIN_CHALLENGE, adminAuth, (req, res) => {
+  const challengeController = new ChallengeController();
+  return challengeController.joinChallenge(req, res);
+});
+
+/**
+ * @swagger
+ * /challenge/get-challenge-action:
+ *   get:
+ *     summary: Get challenge action
+ *     tags:
+ *       - Challenges
+ *     parameters:
+ *       - in: params
+ *         name: type
+ *         schema:
+ *           id: string
+ *           exapmle: "6863ece6b0d40e2dd2eabe12"
+ *         description: Challenge action id
+ *         example: 6863ece6b0d40e2dd2eabe12
+ *     responses:
+ *       200:
+ *         description: challenge action returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                         type: object
+ *                         properties:
+ *                           streak:
+ *                             type: string
+ *                             example: 3
+ *                           userId:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           status:
+ *                             type: string
+ *                             example: "in-progress"
+ *                           _id:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           title:
+ *                             type: string
+ *                             example: "fourth challenge"
+ *                           goal:
+ *                             type: string
+ *                             example: "fourth goal"
+ *                           startDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           endDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           duration:
+ *                             type: integer
+ *                             example: 30
+ *                           durationUnit:
+ *                             type: string
+ *                             example: "minute"
+ *                           type:
+ *                             type: string
+ *                             example: "daily"
+ *                             enum: [weekly, daily]
+ *                           difficulty:
+ *                             type: string
+ *                             example: "advanced"
+ *                           tasks:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 buttonLabel:
+ *                                   type: string
+ *                                   example: "close"
+ *                                 title:
+ *                                   type: string
+ *                                   example: "Open your phone"
+ *                                 status:
+ *                                   type: string
+ *                                   example: "in-progress"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863ece6b0d40e2dd2eabe13"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *       400:
+ *         description: Invalid query parameter
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
+  const challengeController = new ChallengeController();
+  return challengeController.getChallengeAction(req, res);
+});
+router.get(ROUTE_CHALLENGE_TASK + "/:id", auth, (req, res) => {
+  const challengeController = new ChallengeController();
+  return challengeController.markChallengeTask(req, res);
 });
 
 module.exports = router;

@@ -14,9 +14,11 @@ const ChallengeSchema = new mongoose.Schema(
       {
         buttonLabel: {type: String, required: true},
         title: { type: String, required: true },
+        status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
       }
     ],
-    // streak: { type: Number, default: 0 },
+    startDate: {type: Date, default: Date.now},
+    endDate: {type: Date},
   },
   { timestamps: true }
 );

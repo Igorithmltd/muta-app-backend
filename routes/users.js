@@ -1,8 +1,19 @@
-const UserController = require('../controllers/user.controller')
-const auth = require('../middlewares/auth')
-const { ROUTE_GET_ACCOUNT, ROUTE_SEED, ROUTE_PROFILE_IMAGE_UPLOAD, ROUTE_UPDATE_ACCOUNT_DETAILS, ROUTE_COMPLETE_ONBOARDING, ROUTE_DAILY_NUGGET, ROUTE_LIKE_AND_UNLIKE_NUGGET, ROUTE_INCREASE_NUGGET_SHARE_COUNT, ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT, ROUTE_UPDATE_NUGGET } = require('../util/page-route')
+const UserController = require("../controllers/user.controller");
+const adminAuth = require("../middlewares/adminAuth");
+const auth = require("../middlewares/auth");
+const {
+  ROUTE_GET_ACCOUNT,
+  ROUTE_PROFILE_IMAGE_UPLOAD,
+  ROUTE_COMPLETE_ONBOARDING,
+  ROUTE_DAILY_NUGGET,
+  ROUTE_LIKE_AND_UNLIKE_NUGGET,
+  ROUTE_INCREASE_NUGGET_SHARE_COUNT,
+  ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT,
+  ROUTE_UPDATE_NUGGET,
+  ROUTE_CREATE_NUGGET,
+} = require("../util/page-route");
 
-const router = require('express').Router()
+const router = require("express").Router();
 
 /**
  * @swagger
@@ -57,10 +68,10 @@ const router = require('express').Router()
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_ACCOUNT, [auth], (req, res)=>{
-    const userController = new UserController()
-    return userController.getUser(req, res)
-})
+router.get(ROUTE_GET_ACCOUNT, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.getUser(req, res);
+});
 /**
  * @swagger
  * /users/profile-image-upload:
@@ -111,10 +122,10 @@ router.get(ROUTE_GET_ACCOUNT, [auth], (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
-    const userController = new UserController()
-    return userController.profileImageUpload(req, res)
-})
+router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.profileImageUpload(req, res);
+});
 
 /**
  * @swagger
@@ -199,10 +210,10 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res)=>{
-    const userController = new UserController()
-    return userController.completeOnboarding(req, res)
-})
+router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.completeOnboarding(req, res);
+});
 /**
  * @swagger
  * /users/daily-nugget:
@@ -270,10 +281,10 @@ router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_DAILY_NUGGET, auth, (req, res)=>{
-    const userController = new UserController()
-    return userController.getDailyNugget(req, res)
-})
+router.get(ROUTE_DAILY_NUGGET, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getDailyNugget(req, res);
+});
 
 /**
  * @swagger
@@ -312,10 +323,10 @@ router.get(ROUTE_DAILY_NUGGET, auth, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_LIKE_AND_UNLIKE_NUGGET+'/:id', auth, (req, res)=>{
-    const userController = new UserController()
-    return userController.likeUnLikeNugget(req, res)
-})
+router.put(ROUTE_LIKE_AND_UNLIKE_NUGGET + "/:id", auth, (req, res) => {
+  const userController = new UserController();
+  return userController.likeUnLikeNugget(req, res);
+});
 /**
  * @swagger
  * /update-nugget/{id}:
@@ -366,10 +377,50 @@ router.put(ROUTE_LIKE_AND_UNLIKE_NUGGET+'/:id', auth, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_UPDATE_NUGGET+'/:id', auth, (req, res)=>{
-    const userController = new UserController()
-    return userController.editNugget(req, res)
-})
+router.put(ROUTE_UPDATE_NUGGET + "/:id", adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.editNugget(req, res);
+});
+/**
+ * @swagger
+ * /users/create-nugget:
+ *   post:
+ *     summary: Create a new nugget
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Title of the nugget
+ *                 example: The bigger, the better. Keep going
+ *     responses:
+ *       201:
+ *         description: Nugget created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Nugget created successfully
+ *       400:
+ *         description: Bad request, such as missing or invalid fields
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_CREATE_NUGGET, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.editNugget(req, res);
+});
 
 /**
  * @swagger
@@ -408,10 +459,10 @@ router.put(ROUTE_UPDATE_NUGGET+'/:id', auth, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT+'/:id', auth, (req, res)=>{
-    const userController = new UserController()
-    return userController.increaseNuggetDownloadCount(req, res)
-})
+router.put(ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT + "/:id", auth, (req, res) => {
+  const userController = new UserController();
+  return userController.increaseNuggetDownloadCount(req, res);
+});
 
 /**
  * @swagger
@@ -450,12 +501,9 @@ router.put(ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT+'/:id', auth, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_INCREASE_NUGGET_SHARE_COUNT+'/:id', auth, (req, res)=>{
-    const userController = new UserController()
-    return userController.increaseNuggetShareCount(req, res)
-})
+router.put(ROUTE_INCREASE_NUGGET_SHARE_COUNT + "/:id", auth, (req, res) => {
+  const userController = new UserController();
+  return userController.increaseNuggetShareCount(req, res);
+});
 
-
-
-
-module.exports = router
+module.exports = router;

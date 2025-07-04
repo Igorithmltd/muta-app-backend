@@ -1,4 +1,5 @@
 const ChallengeModel = require("../models/challenge.model");
+const ChallengeActionModel = require("../models/challengeAction.model");
 const { empty } = require("../util");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
@@ -44,12 +45,11 @@ class ChallengeService extends BaseService {
           error: "Challenge with this title already exists",
         });
       }
-      // Create a new challenge
-      const challenge = new ChallengeModel({
+
+      const newChallenge = {
         title: post.title,
         goal: post.goal,
         duration: post.duration,
-        durationUnit: post.durationUnit || "minute",
         type: post.type,
         difficulty: post.difficulty,
         tasks: post.tasks,
@@ -57,7 +57,19 @@ class ChallengeService extends BaseService {
           imageUrl: post.image.imageUrl,
           publicId: post.image.publicId,
         },
-      });
+      };
+
+      if (post.type == "weekly" && post.end_date) {
+        const today = new Date();
+        const daysToAdd = 6;
+
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + daysToAdd);
+        newChallenge.endDate = endDate;
+      }
+
+      // Create a new challenge
+      const challenge = new ChallengeModel(newChallenge);
       // Save the challenge to the database
       const savedChallenge = await challenge.save();
 
@@ -170,6 +182,147 @@ class ChallengeService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: "Challenge deleted successfully",
       });
+    } catch (error) {
+      console.log(error, "the error");
+      return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async joinChallenge(req) {
+    const userId = req.user.id;
+    const post = req.body;
+
+    const validateRule = {
+      challengeId: "string|required",
+    };
+
+    const validateMessage = {
+      required: ":attribute is required",
+    };
+
+    const validateResult = validateData(post, validateRule, validateMessage);
+
+    if (!validateResult.success) {
+      return BaseService.sendFailedResponse({ error: validateResult.data });
+    }
+
+    const joinedChallenge = await ChallengeActionModel.findOne({
+      userId,
+      challengeId: post.challengeId,
+    });
+    if (joinedChallenge) {
+      return BaseService.sendFailedResponse({
+        error: "You have already joined this challenge",
+      });
+    }
+
+    const newUserChallenge = new ChallengeActionModel({
+      userId,
+      challengeId: post.challengeId,
+    });
+
+    (await newUserChallenge.save()).populate("challengeId");
+
+    return BaseSuccessResponse({
+      message: "Challenge joined successfully",
+      challenge: newUserChallenge,
+    });
+  }
+  async markChallengeTask(req) {
+    const userId = req.user.id;
+    const post = req.body;
+
+    const validateRule = {
+      challengeTaskId: "string|required",
+      challengeId: "string|required",
+    };
+
+    const validateMessage = {
+      required: ":attribute is required",
+    };
+
+    const validateResult = validateData(post, validateRule, validateMessage);
+
+    if (!validateResult.success) {
+      return BaseService.sendFailedResponse({ error: validateResult.data });
+    }
+
+    const challenge = await ChallengeModel.findById(post.challengeId);
+    if (!challenge) {
+      return BaseService.sendFailedResponse({
+        error: "Challenge not found",
+      });
+    }
+    const challengeAction = await ChallengeActionModel.findOne({
+      userId,
+      challengeId: post.challengeId,
+    }).populate("challengeId");
+
+    if (!challengeAction) {
+      return BaseService.sendFailedResponse({
+        error: "You have not joined this challenge",
+      });
+    }
+
+    const challengeTask = challengeAction.tasks.find(
+      (task) => task._id.toString() === post.challengeTaskId
+    );
+    if (!challengeTask) {
+      return BaseService.sendFailedResponse({
+        error: "Challenge task not found",
+      });
+    }
+ 
+    if (challengeAction.status === "completed") {
+      return BaseService.sendSuccessResponse({
+        error: "You have already completed this challenge",
+      });
+    }
+    if (challengeAction.streak >= challenge.tasks.length) {
+      return BaseService.sendSuccessResponse({
+        error: "You are all done",
+      });
+    }
+    challengeAction.streak += 1;
+    challengeTask.status
+    if (challengeAction.streak >= challenge.tasks.length) {
+      challengeAction.status = "completed";
+    }
+    await challengeAction.save();
+
+    const joinedChallenge = await ChallengeActionModel.findOne({
+      userId,
+      challengeId: post.challengeId,
+    });
+    if (joinedChallenge) {
+      return BaseService.sendFailedResponse({
+        error: "You have already joined this challenge",
+      });
+    }
+
+    const newUserChallenge = new ChallengeActionModel({
+      userId,
+      challengeId: post.challengeId,
+    });
+
+    (await newUserChallenge.save()).populate("challengeId");
+
+    return BaseSuccessResponse({
+      message: "Challenge joined successfully",
+      challenge: newUserChallenge,
+    });
+  }
+  async getChallengeAction(req) {
+    try {
+      const challengeActionId = req.params.id;
+
+      const challengeAction = await ChallengeActionModel.findById(challengeActionId).populate("challengeId");
+      if (!challengeAction) {
+        return BaseService.sendFailedResponse({
+          error: "Challenge action not found",
+        });
+      }
+
+      return BaseService.sendSuccessResponse({ message: challengeAction });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);

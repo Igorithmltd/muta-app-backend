@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const DietController = require("../controllers/diet.controller");
+const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
 const { ROUTE_CREATE_DIET, ROUTE_GET_DIET, ROUTE_UPDATE_DIET, ROUTE_GET_ALL_DIETS, ROUTE_DELETE_DIET } = require("../util/page-route");
 
@@ -112,7 +113,7 @@ const { ROUTE_CREATE_DIET, ROUTE_GET_DIET, ROUTE_UPDATE_DIET, ROUTE_GET_ALL_DIET
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_CREATE_DIET, [auth], (req, res) => {
+router.post(ROUTE_CREATE_DIET, [adminAuth], (req, res) => {
   const dietController = new DietController();
   return dietController.createDiet(req, res);
 });
@@ -407,7 +408,7 @@ router.get(ROUTE_GET_DIET+'/:id', [auth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_UPDATE_DIET+'/:id', [auth], (req, res) => {
+router.put(ROUTE_UPDATE_DIET+'/:id', [adminAuth], (req, res) => {
   const dietController = new DietController();
   return dietController.updateDiet(req, res);
 });
@@ -446,7 +447,7 @@ router.put(ROUTE_UPDATE_DIET+'/:id', [auth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_DIET+'/:id', [auth], (req, res) => {
+router.delete(ROUTE_DELETE_DIET+'/:id', [adminAuth], (req, res) => {
   const dietController = new DietController();
   return dietController.deleteDiet(req, res);
 });

@@ -88,7 +88,7 @@ UserSchema.methods.generateRefreshToken = async function (secretToken) {
       userType: this.userType,
     },
     secretToken,
-    { expiresIn: "48h" }
+    { expiresIn: "1w" }
   );
   return token;
 };
