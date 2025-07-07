@@ -13,7 +13,7 @@ class ProductService extends BaseService {
         price: "integer|required",
         category: "string|required",
         color: "string|required",
-        size: "string|required",
+        size: "integer|required",
         stock: "integer|required",
         image: "object|required",
       };

@@ -23,11 +23,14 @@ const httpServer = http.createServer(app);
 
 const options = {
   /* ... */
+  maxHttpBufferSize: 1e7, // ~10MB
+  cors: { origin: "*", methods: ["GET", "POST"] }
 };
 const io = socketIO(httpServer, options);
 
 const corsOptions = {
-  origin: ["https://muta-app-backend.onrender.com", "http://localhost:3000"],
+  origin: "*",
+  // origin: ["https://muta-app-backend.onrender.com", "http://localhost:3000"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,

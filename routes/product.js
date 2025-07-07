@@ -20,44 +20,49 @@ const router = require('express').Router()
  *             type: object
  *             required:
  *               - title
+ *               - price
+ *               - category
+ *               - stock
  *             properties:
  *               title:
  *                 type: string
  *                 description: Title of the product
- *                 example: Sneaker 5
+ *                 example: hand bell one
+ *               description:
+ *                 type: string
+ *                 description: Description of the product
+ *                 example: hand bell description
  *               price:
  *                 type: number
  *                 description: Price of the product
- *                 example: 4000
+ *                 example: 5500
  *               category:
  *                 type: string
  *                 description: Category of the product
- *                 example: 686265149ba9c6ad79f60bfe
+ *                 example: weight burn
  *               color:
  *                 type: string
  *                 description: Color of the product
  *                 example: red
- *               description:
- *                 type: string
- *                 description: Description of the product
- *                 example: Best sneakers in anambra
  *               size:
- *                 type: Number
+ *                 type: number
  *                 description: Size of the product
- *                 example: 44
+ *                 example: 45
  *               stock:
  *                 type: number
- *                 description: Stock of the product
- *                 example: 101
+ *                 description: Available stock of the product
+ *                 example: 44
  *               image:
  *                 type: object
+ *                 description: Product image details
  *                 properties:
  *                   imageUrl:
  *                     type: string
- *                     example: https://cloudinary/muta-app/48858483.jpg
+ *                     format: uri
+ *                     example: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQPd9rxSyLvQEvW8TqQ6T_5Z5xhyeKFoUnAw&s
  *                   publicId:
  *                     type: string
- *                     example: dlmgki54ifu
+ *                     example: publicIdone
  *     responses:
  *       201:
  *         description: Product created successfully
