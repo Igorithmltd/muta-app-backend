@@ -1,6 +1,7 @@
 const ChallengeModel = require("../models/challenge.model");
 const ChallengeActionModel = require("../models/challengeAction.model");
-const { empty } = require("../util");
+const WorkoutPlanModel = require("../models/workoutPlan.model");
+const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 
@@ -14,8 +15,10 @@ class WorkoutplanService extends BaseService {
         description: "string|required",
         duration: "integer|required",
         category: "string|required",
+        calories: "integer|required",
         level: "string|required|in:begineer,intermediate,advanced",
-        roundsCount: "string|required",
+        recommended: "string|required|in:YES,NO",
+        roundsCount: "integer|required",
         rounds: "array|required",
         "rounds.*.title": "string|required",
         "rounds.*.duration": "integer|required",
@@ -45,16 +48,16 @@ class WorkoutplanService extends BaseService {
       }
 
       // Check if the challenge already exists
-      const existingChallenge = await ChallengeModel.findOne({
+      const existingWorkoutplan = await WorkoutPlanModel.findOne({
         title: post.title,
       });
-      if (existingChallenge) {
+      if (existingWorkoutplan) {
         return BaseService.sendFailedResponse({
           error: "Challenge with this title already exists",
         });
       }
 
-      const newChallenge = {
+      const newWorkoutplan = {
         title: post.title,
         goal: post.goal,
         duration: post.duration,
@@ -67,24 +70,24 @@ class WorkoutplanService extends BaseService {
         },
       };
 
-      if (post.type == "weekly" && post.end_date) {
-        const today = new Date();
-        const daysToAdd = 6;
+      // if (post.type == "weekly" && post.end_date) {
+      //   const today = new Date();
+      //   const daysToAdd = 6;
 
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() + daysToAdd);
-        console.log({endDate})
-        newChallenge.endDate = endDate;
-      }
+      //   const endDate = new Date(today);
+      //   endDate.setDate(today.getDate() + daysToAdd);
+      //   console.log({endDate})
+      //   newChallenge.endDate = endDate;
+      // }
       // return console.log('newChallenge')
 
       // Create a new challenge
-      const challenge = new ChallengeModel(newChallenge);
-      // Save the challenge to the database
-      const savedChallenge = await challenge.save();
+      const workoutplan = new WorkoutPlanModel(newWorkoutplan);
+      // Save the workoutplan to the database
+      const savedWorkoutplan = await workoutplan.save();
 
       return BaseService.sendSuccessResponse({
-        message: "Challenge created successfully",
+        message: "Workout plan created successfully",
       });
     } catch (error) {
       console.log(error, "the error");
@@ -96,10 +99,10 @@ class WorkoutplanService extends BaseService {
       const type = req.query.type || "";
       const filter = type ? { type } : {};
 
-      const challenges = await ChallengeModel.find(filter).sort({
+      const workoutplans = await WorkoutPlanModel.find(filter).sort({
         createdAt: -1,
       });
-      return BaseService.sendSuccessResponse({ message: challenges });
+      return BaseService.sendSuccessResponse({ message: workoutplans });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -107,16 +110,16 @@ class WorkoutplanService extends BaseService {
   }
   async getWorkoutplan(req) {
     try {
-      const challengeId = req.params.id;
+      const workoutplanId = req.params.id;
 
-      const challenge = await ChallengeModel.findById(challengeId);
-      if (!challenge) {
+      const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
+      if (!workoutplan) {
         return BaseService.sendFailedResponse({
-          error: "Challenge not found",
+          error: "Workout plan not found",
         });
       }
 
-      return BaseService.sendSuccessResponse({ message: challenge });
+      return BaseService.sendSuccessResponse({ message: workoutplan });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -124,26 +127,26 @@ class WorkoutplanService extends BaseService {
   }
   async updateWorkoutplan(req) {
     try {
-      const challengeId = req.params.id;
+      const workoutplanId = req.params.id;
 
-      const challenge = await ChallengeModel.findById(challengeId);
+      const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
       if (!challenge) {
         return BaseService.sendFailedResponse({
-          error: "Challenge not found",
+          error: "Workout plan not found",
         });
       }
 
-      const challengeExists = await ChallengeModel.findOne({
+      const workoutplanExists = await WorkoutPlanModel.findOne({
         title: req.body.title,
-        _id: { $ne: challengeId }, // Exclude the current challenge
+        _id: { $ne: workoutplanId }, // Exclude the current workoutid
       });
-      if (challengeExists) {
+      if (workoutplanExists) {
         return BaseService.sendFailedResponse({
-          error: "Challenge with this title already exists",
+          error: "Workout plan with this title already exists",
         });
       }
 
-      const updatedChallenge = await ChallengeModel.findByIdAndUpdate(
+      const workoutplanUpdate = await ChallengeModel.findByIdAndUpdate(
         challengeId,
         {
           $set: {
@@ -162,13 +165,13 @@ class WorkoutplanService extends BaseService {
         },
         { new: true }
       );
-      if (!updatedChallenge) {
+      if (!workoutplanUpdate) {
         return BaseService.sendFailedResponse({
-          error: "Failed to update challenge",
+          error: "Failed to update workout plan",
         });
       }
       return BaseService.sendSuccessResponse({
-        message: "Challenge updated successfully",
+        message: "Workout plan updated successfully",
       });
     } catch (error) {
       console.log(error, "the error");
@@ -177,20 +180,20 @@ class WorkoutplanService extends BaseService {
   }
   async deleteWorkoutplan(req) {
     try {
-      const challengeId = req.params.id;
+      const workoutplanId = req.params.id;
 
-      const challenge = await ChallengeModel.findById(challengeId);
-      if (!challenge) {
+      const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
+      if (!workoutplan) {
         return BaseService.sendFailedResponse({
           error: "Challenge not found",
         });
       }
 
-      const deleteChallenge = await ChallengeModel.findByIdAndDelete(
-        challengeId
+      const deleteWorkoutplan = await WorkoutPlanModel.findByIdAndDelete(
+        workoutplanId
       );
       return BaseService.sendSuccessResponse({
-        message: "Challenge deleted successfully",
+        message: "Workout plan deleted successfully",
       });
     } catch (error) {
       console.log(error, "the error");
@@ -202,7 +205,7 @@ class WorkoutplanService extends BaseService {
     const post = req.body;
 
     const validateRule = {
-      challengeId: "string|required",
+      workoutplanId: "string|required",
     };
 
     const validateMessage = {
@@ -215,34 +218,34 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
 
-    const challenge = await ChallengeModel.findById(post.challengeId);
-    if (!challenge) {
+    const workoutplan = await WorkoutPlanModel.findById(post.workoutplanId);
+    if (!workoutplan) {
       return BaseService.sendFailedResponse({
-        error: "Challenge not found",
+        error: "Workout plan not found",
       });
     }
 
-    const joinedChallenge = await ChallengeActionModel.findOne({
+    const joinedWorkoutplan = await WorkoutPlanModel.findOne({
       userId,
       challengeId: post.challengeId,
     });
-    if (joinedChallenge) {
+    if (joinedWorkoutplan) {
       return BaseService.sendSuccessResponse({
-        message: "You have already joined this challenge",
+        message: "You have already joined this Workout plan",
       });
     }
 
-    const newUserChallenge = new ChallengeActionModel({
+    const newWorkoutplan = new WorkoutPlanActionModel({
       userId,
-      challengeId: post.challengeId,
-      tasks: challenge.tasks
+      workoutPlanId: post.workoutPlanId,
+      rounds: workoutplan.rounds
     });
 
-    (await newUserChallenge.save()).populate("challengeId");
+    (await newWorkoutplan.save()).populate("workoutPlanId");
 
     return BaseService.sendSuccessResponse({
-      message: "Challenge joined successfully",
-      challenge: newUserChallenge,
+      message: "Workout plan joined successfully",
+      challenge: newWorkoutplan,
     });
   }
   async markWorkoutplanTask(req) {
@@ -250,8 +253,8 @@ class WorkoutplanService extends BaseService {
     const post = req.body;
 
     const validateRule = {
-      challengeTaskId: "string|required",
-      challengeId: "string|required",
+      workoutplanRoundId: "string|required",
+      workoutplanId: "string|required",
     };
 
     const validateMessage = {
@@ -264,39 +267,39 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
 
-    const challenge = await ChallengeModel.findById(post.challengeId);
-    if (!challenge) {
+    const workoutplan = await WorkoutPlanModel.findById(post.workoutplanId);
+    if (!workoutplan) {
       return BaseService.sendFailedResponse({
         error: "Challenge not found",
       });
     }
-    const challengeAction = await ChallengeActionModel.findOne({
+    const workoutplanAction = await WorkoutPlanActionModel.findOne({
       userId,
       challengeId: post.challengeId,
-    }).populate("challengeId");
+    }).populate("workoutPlanId");
 
-    if (!challengeAction) {
+    if (!workoutplanAction) {
       return BaseService.sendFailedResponse({
-        error: "You have not joined this challenge",
+        error: "You have not joined this workout plan",
       });
     }
 
-    const challengeTask = challengeAction.tasks.find(
-      (task) => task._id.toString() === post.challengeTaskId
+    const workoutRoundTask = workoutplanAction.rounds.find(
+      (round) => round._id.toString() === post.workoutplanRoundId.toString()
     );
 
-    if (!challengeTask) {
+    if (!workoutRoundTask) {
       return BaseService.sendFailedResponse({
         error: "Challenge task not found",
       });
     }
  
-    if (challengeAction.status === "completed") {
+    if (workoutplanAction.status === "completed") {
       return BaseService.sendSuccessResponse({
         message: "You have already completed this challenge",
       });
     }
-    if (challengeTask.status === "completed") {
+    if (workoutRoundTask.status === "completed") {
       return BaseService.sendSuccessResponse({
         message: "You have already completed this task",
       });
@@ -306,29 +309,29 @@ class WorkoutplanService extends BaseService {
     //     message: "You are all done",
     //   });
     // }
-    challengeAction.streak += 1;
-    challengeTask.status = "completed";
-    if (challengeAction.streak >= challengeAction.tasks.length) {
+    workoutplanAction.streak += 1;
+    workoutRoundTask.status = "completed";
+    if (workoutplanAction.streak >= workoutplanAction.tasks.length) {
       challengeAction.status = "completed";
     }
-    await challengeAction.save();
+    await workoutplanAction.save();
 
     return BaseService.sendSuccessResponse({
-      message: "Task marked as completed"
+      message: "Round marked as completed"
     });
   }
   async getWorkoutplanAction(req) {
     try {
-      const challengeActionId = req.params.id;
+      const workoutplanActionId = req.params.id;
 
-      const challengeAction = await ChallengeActionModel.findById(challengeActionId).populate("challengeId");
-      if (!challengeAction) {
+      const workoutplanAction = await WorkoutPlanActionModel.findById(workoutplanActionId).populate("workoutPlanId");
+      if (!workoutplanAction) {
         return BaseService.sendFailedResponse({
-          error: "Challenge action not found",
+          error: "Workout plan action not found",
         });
       }
 
-      return BaseService.sendSuccessResponse({ message: challengeAction });
+      return BaseService.sendSuccessResponse({ message: workoutplanAction });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);

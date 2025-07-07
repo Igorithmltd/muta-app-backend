@@ -40,6 +40,18 @@ exports.ROUTE_UPDATE_CHALLENGE = '/update-challenge'
 exports.ROUTE_JOIN_CHALLENGE = '/join-challenge'
 exports.ROUTE_DELETE_CHALLENGE = '/delete-challenge'
 
+//workout plan
+exports.ROUTE_CREATE_WORKOUTPLAN = '/create-workoutplan'
+exports.ROUTE_GET_ALL_WORKOUTPLANS = '/get-all-workoutplans'
+exports.ROUTE_GET_WORKOUTPLAN = '/get-workoutplan'
+exports.ROUTE_GET_DAILY_WORKOUTPLAN = '/get-daily-workoutplan'
+exports.ROUTE_GET_WEEKLY_WORKOUTPLAN = '/get-weekly-workoutplan'
+exports.ROUTE_GET_WORKOUTPLAN_ACTION = '/get-workoutplan-action'
+exports.ROUTE_WORKOUTPLAN_TASK = '/workoutplan-task'
+exports.ROUTE_UPDATE_WORKOUTPLAN = '/update-workoutplan'
+exports.ROUTE_JOIN_WORKOUTPLAN = '/join-workoutplan'
+exports.ROUTE_DELETE_WORKOUTPLAN = '/delete-workoutplan'
+
 //diet
 exports.ROUTE_CREATE_DIET = '/create-diet'
 exports.ROUTE_GET_ALL_DIETS = '/get-all-diets'

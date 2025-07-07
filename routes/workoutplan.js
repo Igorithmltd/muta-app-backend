@@ -1,18 +1,10 @@
 const ChallengeController = require("../controllers/challenge.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
-const {
-  ROUTE_GET_ALL_CHALLENGES,
-  ROUTE_CREATE_CHALLENGE,
-  ROUTE_GET_CHALLENGE,
-  ROUTE_UPDATE_CHALLENGE,
-  ROUTE_DELETE_CHALLENGE,
-  ROUTE_JOIN_CHALLENGE,
-  ROUTE_GET_CHALLENGE_ACTION,
-  ROUTE_CHALLENGE_TASK,
-} = require("../util/page-route");
+const { ROUTE_CREATE_WORKOUTPLAN, ROUTE_GET_ALL_WORKOUTPLANS, ROUTE_GET_WORKOUTPLAN, ROUTE_UPDATE_WORKOUTPLAN, ROUTE_DELETE_WORKOUTPLAN, ROUTE_JOIN_WORKOUTPLAN, ROUTE_GET_WORKOUTPLAN_ACTION, ROUTE_WORKOUTPLAN_TASK } = require("../util/page-route");
 
 const router = require("express").Router();
+
 /**
  * @swagger
  * /workoutplan/create-workoutplan:
@@ -26,48 +18,85 @@ const router = require("express").Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - title
- *               - goal
- *               - duration
- *               - durationUnit
- *               - type
- *               - difficulty
- *               - tasks
  *             properties:
  *               title:
  *                 type: string
  *                 example: "New Workoutplan"
- *               goal:
+ *               description:
  *                 type: string
- *                 example: "Achieve something great"
+ *                 example: "Workout plan description"
  *               duration:
  *                 type: integer
  *                 example: 30
- *               durationUnit:
+ *               category:
  *                 type: string
- *                 example: "minute"
- *               type:
+ *                 example: "6863ece6b0d40e2dd2eabe12"
+ *               calories:
+ *                 type: number
+ *                 example: 54
+ *               roundsCount:
+ *                 type: number
+ *                 example: 12
+ *               level:
  *                 type: string
- *                 enum: [weekly, daily]
- *                 example: "daily"
- *               difficulty:
- *                 type: string
+ *                 enum: [intermediate, advanced]
+ *                 default: intermediate
  *                 example: "intermediate"
- *               tasks:
+ *               recommended:
+ *                 type: string
+ *                 enum: [YES, NO]
+ *                 default: NO
+ *                 example: "NO"
+ *               image:
+ *                 type: object
+ *                 properties:
+ *                   imageUrl:
+ *                     type: string
+ *                     example: "https://example.com/image.jpg"
+ *                   publicId:
+ *                     type: string
+ *                     example: "public_id_of_image"
+ *               rounds:
  *                 type: array
  *                 items:
  *                   type: object
- *                   required:
- *                     - buttonLabel
- *                     - title
  *                   properties:
- *                     buttonLabel:
- *                       type: string
- *                       example: "close"
  *                     title:
  *                       type: string
+ *                       example: "close"
+ *                     instruction:
+ *                       type: string
  *                       example: "Open your phone"
+ *                     duration:
+ *                       type: number
+ *                       example: 55
+ *                     set:
+ *                       type: number
+ *                       example: 12
+ *                     animation:
+ *                       type: number
+ *                       example: 12
+ *                     reps:
+ *                       type: number
+ *                       example: 12
+ *                     restBetweenSet:
+ *                       type: number
+ *                       example: 12
+ *                     commonMistakesToAvoid:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                         example: "Avoid overextending your arms"
+ *                     breathingTips:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                         example: "Avoid overextending your arms"
+ *                     focusArea:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                         example: "Avoid overextending your arms"
  *     responses:
  *       201:
  *         description: Workoutplan created successfully
@@ -84,9 +113,9 @@ const router = require("express").Router();
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_CREATE_CHALLENGE, adminAuth, (req, res) => {
+router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.createChallenge(req, res);
+  return challengeController.createWorkoutplan(req, res);
 });
 
 /**
@@ -185,9 +214,9 @@ router.post(ROUTE_CREATE_CHALLENGE, adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_ALL_CHALLENGES, auth, (req, res) => {
+router.get(ROUTE_GET_ALL_WORKOUTPLANS, auth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.getChallenges(req, res);
+  return challengeController.getWorkoutplans(req, res);
 });
 
 /**
@@ -283,9 +312,9 @@ router.get(ROUTE_GET_ALL_CHALLENGES, auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_CHALLENGE + "/:id", auth, (req, res) => {
+router.get(ROUTE_GET_WORKOUTPLAN + "/:id", auth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.getChallenge(req, res);
+  return challengeController.getWorkoutplan(req, res);
 });
 
 /**
@@ -325,9 +354,9 @@ router.get(ROUTE_GET_CHALLENGE + "/:id", auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_UPDATE_CHALLENGE + "/:id", adminAuth, (req, res) => {
+router.put(ROUTE_UPDATE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.updateChallenge(req, res);
+  return challengeController.updateWorkoutplan(req, res);
 });
 
 /**
@@ -367,9 +396,9 @@ router.put(ROUTE_UPDATE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
+router.delete(ROUTE_DELETE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.deleteChallenge(req, res);
+  return challengeController.deleteWorkoutplan(req, res);
 });
 
 /**
@@ -492,9 +521,9 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
+router.put(ROUTE_JOIN_WORKOUTPLAN, auth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.joinChallenge(req, res);
+  return challengeController.joinWorkoutplan(req, res);
 });
 
 /**
@@ -602,9 +631,9 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
+router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.getChallengeAction(req, res);
+  return challengeController.getWorkoutplanAction(req, res);
 });
 
 /**
@@ -664,9 +693,9 @@ router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_CHALLENGE_TASK, auth, (req, res) => {
+router.put(ROUTE_WORKOUTPLAN_TASK, auth, (req, res) => {
   const challengeController = new ChallengeController();
-  return challengeController.markChallengeTask(req, res);
+  return challengeController.markWorkoutplanTask(req, res);
 });
 
 module.exports = router;

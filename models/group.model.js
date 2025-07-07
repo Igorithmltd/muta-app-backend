@@ -1,15 +1,12 @@
 const mongoose = require("mongoose");
 
-const MessageSchema = new mongoose.Schema(
+const GroupSchema = new mongoose.Schema(
   {
-    senderId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-    receiverId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-    roomId: { type: String },
-    message: { type: String, required: true },
-    type: { type: String, enum: ["private", "group"], required: true },
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    groupName: { type: String, required: true },
   },
   { timestamps: true }
 );
 
-const MessageModel = mongoose.model("Message", MessageSchema);
-module.exports = MessageModel;
+const GroupModel = mongoose.model("Group", GroupSchema);
+module.exports = GroupModel;

@@ -2,9 +2,9 @@ const WorkoutplanService = require("../services/workoutplan.service");
 const  BaseController = require("./base");
 
 class WorkoutplanController extends BaseController{
-    async createWorkoutPlan(req, res){
+    async createWorkoutplan(req, res){
         const workoutplanService = new WorkoutplanService()
-        const createWorkoutPlan = await workoutplanService.createWorkoutPlan(req)
+        const createWorkoutPlan = await workoutplanService.createWorkoutplan(req)
         if(!createWorkoutPlan.success){
             return BaseController.sendFailedResponse(res, createWorkoutPlan.data)
         }
@@ -12,7 +12,7 @@ class WorkoutplanController extends BaseController{
     }
     async getWorkoutPlans(req, res){
         const workoutplanService = new WorkoutplanService()
-        const getWorkoutPlans = await workoutplanService.getWorkoutPlans(req)
+        const getWorkoutPlans = await workoutplanService.getWorkoutplans(req)
         if(!getWorkoutPlans.success){
             return BaseController.sendFailedResponse(res, getWorkoutPlans.data)
         }
@@ -20,7 +20,7 @@ class WorkoutplanController extends BaseController{
     }
     async getWorkoutPlan(req, res){
         const workoutplanService = new WorkoutplanService()
-        const getWorkoutPlan = await workoutplanService.getWorkoutPlan(req)
+        const getWorkoutPlan = await workoutplanService.getWorkoutplan(req)
         if(!getWorkoutPlan.success){
             return BaseController.sendFailedResponse(res, getWorkoutPlan.data)
         }
@@ -28,7 +28,7 @@ class WorkoutplanController extends BaseController{
     }
     async updateWorkoutPlan(req, res){
         const workoutplanService = new WorkoutplanService()
-        const updateWorkoutPlan = await workoutplanService.updateWorkoutPlan(req)
+        const updateWorkoutPlan = await workoutplanService.updateWorkoutplan(req)
         if(!updateWorkoutPlan.success){
             return BaseController.sendFailedResponse(res, updateWorkoutPlan.data)
         }
@@ -36,7 +36,7 @@ class WorkoutplanController extends BaseController{
     }
     async deleteWorkoutPlan(req, res){
         const workoutplanService = new WorkoutplanService()
-        const deleteWorkoutPlan = await workoutplanService.deleteWorkoutPlan(req)
+        const deleteWorkoutPlan = await workoutplanService.deleteWorkoutplan(req)
         if(!deleteWorkoutPlan.success){
             return BaseController.sendFailedResponse(res, deleteWorkoutPlan.data)
         }
@@ -44,7 +44,7 @@ class WorkoutplanController extends BaseController{
     }
     async joinWorkoutPlan(req, res){
         const workoutplanService = new WorkoutplanService()
-        const joinWorkoutPlan = await workoutplanService.joinWorkoutPlan(req)
+        const joinWorkoutPlan = await workoutplanService.joinWorkoutplan(req)
         if(!joinWorkoutPlan.success){
             return BaseController.sendFailedResponse(res, joinWorkoutPlan.data)
         }
@@ -52,7 +52,7 @@ class WorkoutplanController extends BaseController{
     }
     async getWorkoutPlanAction(req, res){
         const workoutplanService = new WorkoutplanService()
-        const getWorkoutPlanAction = await workoutplanService.getWorkoutPlanAction(req)
+        const getWorkoutPlanAction = await workoutplanService.getWorkoutplanAction(req)
         if(!getWorkoutPlanAction.success){
             return BaseController.sendFailedResponse(res, getWorkoutPlanAction.data)
         }
@@ -60,7 +60,7 @@ class WorkoutplanController extends BaseController{
     }
     async markWorkoutPlanTask(req, res){
         const workoutplanService = new WorkoutplanService()
-        const markWorkoutPlanTask = await workoutplanService.markWorkoutPlanTask(req)
+        const markWorkoutPlanTask = await workoutplanService.markWorkoutplanTask(req)
         if(!markWorkoutPlanTask.success){
             return BaseController.sendFailedResponse(res, markWorkoutPlanTask.data)
         }
