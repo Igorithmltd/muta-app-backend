@@ -15,7 +15,7 @@ const WorkoutPlanSchema = new mongoose.Schema(
       required: true,
     },
     calories: { type: Number, required: true },
-    rounds: { type: Number, required: true },
+    roundsCount: { type: Number, required: true },
     duration: { type: Number, required: true },
     level: {
       type: String,
@@ -23,17 +23,20 @@ const WorkoutPlanSchema = new mongoose.Schema(
       enum: ["begineer", "intermediate", "advanced"],
       default: "begineer",
     },
-    dailyMealBreakdown: [
+    recommended: {type: String, enum: ["YES", "NO"], default: "NO"},
+    rounds: [
       {
         title: { type: String, required: true },
         duration: { type: Number, required: true },
         set: { type: Number, required: true },
+        animation: { type: String, required: true },
         reps: { type: Number, required: true },
         restBetweenSet: { type: Number, required: true },
         instruction: { type: String, required: true },
         commonMistakesToAvoid: [String],
         breathingTips: [String],
         focusArea: [String],
+        status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
       },
     ],
   },

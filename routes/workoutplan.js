@@ -10,18 +10,16 @@ const {
   ROUTE_JOIN_CHALLENGE,
   ROUTE_GET_CHALLENGE_ACTION,
   ROUTE_CHALLENGE_TASK,
-  ROUTE_GET_WEEKLY_CHALLENGE,
-  ROUTE_GET_DAILY_CHALLENGE,
 } = require("../util/page-route");
 
 const router = require("express").Router();
 /**
  * @swagger
- * /challenge/create-challenge:
+ * /workoutplan/create-workoutplan:
  *   post:
- *     summary: Create a new challenge
+ *     summary: Create a new workout plan
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     requestBody:
  *       required: true
  *       content:
@@ -39,7 +37,7 @@ const router = require("express").Router();
  *             properties:
  *               title:
  *                 type: string
- *                 example: "New challenge"
+ *                 example: "New Workoutplan"
  *               goal:
  *                 type: string
  *                 example: "Achieve something great"
@@ -72,7 +70,7 @@ const router = require("express").Router();
  *                       example: "Open your phone"
  *     responses:
  *       201:
- *         description: Challenge created successfully
+ *         description: Workoutplan created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -80,7 +78,7 @@ const router = require("express").Router();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Challenge created successfully
+ *                   example: Workoutplan created successfully
  *       400:
  *         description: Invalid input data
  *       500:
@@ -93,23 +91,23 @@ router.post(ROUTE_CREATE_CHALLENGE, adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/get-all-challenges:
+ * /workoutplan/get-all-workoutplan:
  *   get:
- *     summary: Get all challenges (optionally filter by type)
+ *     summary: Get all workoutplans (optionally filter by type)
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     parameters:
  *       - in: query
  *         name: type
  *         schema:
  *           type: string
  *           enum: [weekly, daily]
- *         description: Optional filter by challenge type
+ *         description: Optional filter by workoutplans type
  *         required: false
  *         example: daily
  *     responses:
  *       200:
- *         description: List of challenges returned successfully
+ *         description: List of workoutplanss returned successfully
  *         content:
  *           application/json:
  *             schema:
@@ -194,22 +192,22 @@ router.get(ROUTE_GET_ALL_CHALLENGES, auth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/get-challenge:
+ * /workoutplan/get-workoutplan:
  *   get:
- *     summary: Get challenge
+ *     summary: Get workoutplan
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     parameters:
  *       - in: params
- *         name: id
+ *         name: type
  *         schema:
  *           id: string
  *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Challenge id
+ *         description: Workoutplan id
  *         example: 6863ece6b0d40e2dd2eabe12
  *     responses:
  *       200:
- *         description: challenge returned successfully
+ *         description: workoutplan returned successfully
  *         content:
  *           application/json:
  *             schema:
@@ -292,22 +290,22 @@ router.get(ROUTE_GET_CHALLENGE + "/:id", auth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/update-challenge:
+ * /workoutplan/update-workoutplan:
  *   put:
- *     summary: Update challenge
+ *     summary: Update workoutplan
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     parameters:
  *       - in: params
  *         name: type
  *         schema:
  *           id: string
  *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Challenge id
+ *         description: Workoutplan id
  *         example: 6863ece6b0d40e2dd2eabe12
  *     responses:
  *       200:
- *         description: challenge updated successfully
+ *         description: Workoutplan updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -321,7 +319,7 @@ router.get(ROUTE_GET_CHALLENGE + "/:id", auth, (req, res) => {
  *                   properties:
  *                     message:
  *                         type: string
- *                         example: "Challenge updated successfully"
+ *                         example: "Workoutplan updated successfully"
  *       400:
  *         description: Invalid query parameter
  *       500:
@@ -334,22 +332,22 @@ router.put(ROUTE_UPDATE_CHALLENGE + "/:id", adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/delete-challenge:
+ * /workoutplan/delete-workoutplan:
  *   delete:
- *     summary: Delete challenge
+ *     summary: Delete workoutplan
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     parameters:
  *       - in: params
  *         name: type
  *         schema:
  *           id: string
  *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Challenge id
+ *         description: Workoutplan id
  *         example: 6863ece6b0d40e2dd2eabe12
  *     responses:
  *       200:
- *         description: challenge deleted successfully
+ *         description: Workoutplan deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -363,7 +361,7 @@ router.put(ROUTE_UPDATE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *                   properties:
  *                     message:
  *                         type: string
- *                         example: "Challenge deleted successfully"
+ *                         example: "Workoutplan deleted successfully"
  *       400:
  *         description: Invalid query parameter
  *       500:
@@ -376,18 +374,18 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/join-challenge:
+ * /workoutplan/join-workoutplan:
  *   put:
- *     summary: Join challenge
+ *     summary: Join workoutplan
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     parameters:
  *       - in: params
  *         name: type
  *         schema:
  *           id: string
  *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Challenge id
+ *         description: Workoutplan id
  *         example: 6863ece6b0d40e2dd2eabe12
  *     requestBody:
  *       required: true
@@ -396,14 +394,14 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - challengeId
+ *               - workoutplanId
  *             properties:
- *               challengeId:
+ *               workoutplanId:
  *                 type: string
  *                 example: "6863ece6b0d40e2dd2eabe12"
  *     responses:
  *       200:
- *         description: challenge joined successfully
+ *         description: workoutplan joined successfully
  *         content:
  *           application/json:
  *             schema:
@@ -417,7 +415,7 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *                   properties:
  *                     message:
  *                         type: string
- *                         example: "Challenge joined successfully"
+ *                         example: "Workoutplan joined successfully"
  *                     userId:
  *                         type: string
  *                         example: "6863ece6b0d40e2dd2eabe12"
@@ -501,22 +499,22 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/get-challenge-action:
+ * /workoutplan/get-workoutplan-action:
  *   get:
- *     summary: Get challenge action
+ *     summary: Get workoutplan action
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     parameters:
  *       - in: params
  *         name: type
  *         schema:
  *           id: string
  *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Challenge action id
+ *         description: Workoutplan action id
  *         example: 6863ece6b0d40e2dd2eabe12
  *     responses:
  *       200:
- *         description: challenge action returned successfully
+ *         description: workoutplan action returned successfully
  *         content:
  *           application/json:
  *             schema:
@@ -530,7 +528,7 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
  *                   properties:
  *                     message:
  *                         type: string
- *                         example: "Challenge joined successfully"
+ *                         example: "Workoutplan joined successfully"
  *                     userId:
  *                         type: string
  *                         example: "6863ece6b0d40e2dd2eabe12"
@@ -611,11 +609,11 @@ router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
 
 /**
  * @swagger
- * /challenge/challenge-task:
+ * /workoutplan/workoutplan-task:
  *   put:
- *     summary: Mark a challenge task as completed
+ *     summary: Mark a workoutplan task as completed
  *     tags:
- *       - Challenges
+ *       - Workoutplan
  *     requestBody:
  *       required: true
  *       content:
@@ -628,7 +626,7 @@ router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
  *             properties:
  *               challengeId:
  *                 type: string
- *                 description: The ID of the challenge
+ *                 description: The ID of the workoutplan
  *                 example: "64a123456789abcdef123456"
  *               challengeTaskId:
  *                 type: string
@@ -660,195 +658,15 @@ router.get(ROUTE_GET_CHALLENGE_ACTION + "/:id", auth, (req, res) => {
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: Challenge task not found
+ *                   example: Workoutplan task not found
  *       401:
- *         description: Unauthorized - user not part of the challenge
+ *         description: Unauthorized - user not part of the workoutplan
  *       500:
  *         description: Server error
  */
 router.put(ROUTE_CHALLENGE_TASK, auth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.markChallengeTask(req, res);
-});
-
-/**
- * @swagger
- * /challenge/get-daily-challenge:
- *   get:
- *     summary: Get daily challenge
- *     tags:
- *       - Challenges
- *     responses:
- *       200:
- *         description: challenge returned successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     message:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           title:
- *                             type: string
- *                             example: "fourth challenge"
- *                           goal:
- *                             type: string
- *                             example: "fourth goal"
- *                           startDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           endDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           duration:
- *                             type: integer
- *                             example: 30
- *                           durationUnit:
- *                             type: string
- *                             example: "minute"
- *                           type:
- *                             type: string
- *                             example: "daily"
- *                             enum: [weekly, daily]
- *                           difficulty:
- *                             type: string
- *                             example: "advanced"
- *                           tasks:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 buttonLabel:
- *                                   type: string
- *                                   example: "close"
- *                                 title:
- *                                   type: string
- *                                   example: "Open your phone"
- *                                 status:
- *                                   type: string
- *                                   example: "in-progress"
- *                                 _id:
- *                                   type: string
- *                                   example: "6863ece6b0d40e2dd2eabe13"
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
- *       400:
- *         description: Invalid query parameter
- *       500:
- *         description: Server error
- */
-router.get(ROUTE_GET_DAILY_CHALLENGE, auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.getDailyChallenge(req, res);
-});
-
-/**
- * @swagger
- * /challenge/get-weekly-challenge:
- *   get:
- *     summary: Get weekly challenge
- *     tags:
- *       - Challenges
- *     responses:
- *       200:
- *         description: challenge returned successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     message:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           title:
- *                             type: string
- *                             example: "fourth challenge"
- *                           goal:
- *                             type: string
- *                             example: "fourth goal"
- *                           startDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           endDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           duration:
- *                             type: integer
- *                             example: 30
- *                           durationUnit:
- *                             type: string
- *                             example: "minute"
- *                           type:
- *                             type: string
- *                             example: "weekly"
- *                             enum: [weekly, daily]
- *                           difficulty:
- *                             type: string
- *                             example: "advanced"
- *                           tasks:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 buttonLabel:
- *                                   type: string
- *                                   example: "close"
- *                                 title:
- *                                   type: string
- *                                   example: "Open your phone"
- *                                 status:
- *                                   type: string
- *                                   example: "in-progress"
- *                                 _id:
- *                                   type: string
- *                                   example: "6863ece6b0d40e2dd2eabe13"
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
- *       400:
- *         description: Invalid query parameter
- *       500:
- *         description: Server error
- */
-router.get(ROUTE_GET_WEEKLY_CHALLENGE, auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.getWeeklyChallenge(req, res);
 });
 
 module.exports = router;

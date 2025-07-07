@@ -11,6 +11,7 @@ const {
   ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT,
   ROUTE_UPDATE_NUGGET,
   ROUTE_CREATE_NUGGET,
+  ROUTE_UPGRADE_PLAN,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -424,7 +425,7 @@ router.post(ROUTE_CREATE_NUGGET, adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /increase-nugget-download-count/{id}:
+ * /userss/increase-nugget-download-count/{id}:
  *   put:
  *     summary: download a nugget
  *     description: records the download status for the current user on a specific nugget.
@@ -466,7 +467,7 @@ router.put(ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT + "/:id", auth, (req, res) => {
 
 /**
  * @swagger
- * /increase-nugget-share-count/{id}:
+ * /users/increase-nugget-share-count/{id}:
  *   put:
  *     summary: share a nugget
  *     description: records the share status for the current user on a specific nugget.
@@ -502,6 +503,40 @@ router.put(ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT + "/:id", auth, (req, res) => {
  *         description: Server error
  */
 router.put(ROUTE_INCREASE_NUGGET_SHARE_COUNT + "/:id", auth, (req, res) => {
+  const userController = new UserController();
+  return userController.increaseNuggetShareCount(req, res);
+});
+
+/**
+ * @swagger
+ * /users/upgrade-plan:
+ *   put:
+ *     summary: upgrade plan
+ *     description: upgrade plan.
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: subscription plan upgraded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Plan upgraded successfully
+ *       400:
+ *         description: Bad request, such as invalid nugget ID
+ *       404:
+ *         description: Nugget not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPGRADE_PLAN, auth, (req, res) => {
   const userController = new UserController();
   return userController.increaseNuggetShareCount(req, res);
 });

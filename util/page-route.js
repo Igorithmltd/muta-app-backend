@@ -21,22 +21,19 @@ exports.ROUTE_UPDATE_NUGGET = '/update-nugget'
 exports.ROUTE_CREATE_NUGGET = '/create-nugget'
 exports.ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT = '/increase-nugget-download-count'
 exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
+exports.ROUTE_UPGRADE_PLAN = '/upgrade-plan'
 
 //admin
 exports.ROUTE_GET_ALL_USERS = '/get-all-users'
 exports.ROUTE_GET_SAVINGS = '/get-savings'
 exports.ROUTE_DASHBOARD_STAT = '/dashboard-stat'
 
-//savings
-exports.ROUTE_CREATE_SAVING = '/create-saving'
-exports.ROUTE_MAKE_SAVING = '/make-saving'
-exports.ROUTE_JOIN_SAVING = '/join-saving'
-exports.ROUTE_ALL_SAVINGS = '/all-savings'
-
 //challenge
 exports.ROUTE_CREATE_CHALLENGE = '/create-challenge'
 exports.ROUTE_GET_ALL_CHALLENGES = '/get-all-challenges'
 exports.ROUTE_GET_CHALLENGE = '/get-challenge'
+exports.ROUTE_GET_DAILY_CHALLENGE = '/get-daily-challenge'
+exports.ROUTE_GET_WEEKLY_CHALLENGE = '/get-weekly-challenge'
 exports.ROUTE_GET_CHALLENGE_ACTION = '/get-challenge-action'
 exports.ROUTE_CHALLENGE_TASK = '/challenge-task'
 exports.ROUTE_UPDATE_CHALLENGE = '/update-challenge'

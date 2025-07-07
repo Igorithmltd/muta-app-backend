@@ -66,6 +66,22 @@ class ChallengeController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, markChallengeTask.data)
     }
+    async getDailyChallenge(req, res){
+        const challengeService = new ChallengeService()
+        const getDailyChallenge = await challengeService.getDailyChallenge(req)
+        if(!getDailyChallenge.success){
+            return BaseController.sendFailedResponse(res, getDailyChallenge.data)
+        }
+        return BaseController.sendSuccessResponse(res, getDailyChallenge.data)
+    }
+    async getWeeklyChallenge(req, res){
+        const challengeService = new ChallengeService()
+        const getWeeklyChallenge = await challengeService.getWeeklyChallenge(req)
+        if(!getWeeklyChallenge.success){
+            return BaseController.sendFailedResponse(res, getWeeklyChallenge.data)
+        }
+        return BaseController.sendSuccessResponse(res, getWeeklyChallenge.data)
+    }
 }
 
 module.exports = ChallengeController

@@ -12,7 +12,7 @@ const connectToMongoDB = require("./db/connect.js");
 const errorController = require("./controllers/error.controller.js");
 const AppError = require("./util/appError.js");
 // const ChatModel = require("./models/chat.model.js");
-// const MessageModel = require("./models/message.model.js");
+const MessageModel = require("./models/message.model.js");
 const setupSwagger = require("./swagger");
 
 const port = process.env.PORT || 5000;
@@ -27,7 +27,7 @@ const options = {
 const io = socketIO(httpServer, options);
 
 const corsOptions = {
-  origin: ["https://growe-app.onrender.com", "http://localhost:3000"],
+  origin: ["https://muta-app-backend.onrender.com", "http://localhost:3000"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -61,106 +61,129 @@ if (process.env.NODE_ENV !== "development") {
 //     return true;
 //   }
 // }));
-// Socket.IO events for real-time messaging
-// const users = {}; // Store online users (userId -> socketId)
 
-// io.use((socket, next) => {
-//   const token = socket.handshake.query.token;
-//   if (!token) return next(new Error("Authentication error"));
 
-//   jwt.verify(token, "aaaaaaaaa", (err, decoded) => {
-//     if (err) return next(new Error("Authentication error"));
-//     socket.userId = decoded.id; // Attach userId to the socket object
-//     next();
-//   });
-// });
+const users = {}; // userId -> socketId
+const groupId = "general-group-forum"
 
-// io.on("connection", (socket) => {
-//   // Add user to the users object when they connect
-//   users[socket.userId] = socket.id;
+// Middleware to authenticate users
+io.use((socket, next) => {
+  const token = socket.handshake.query.token;
+  if (!token) return next(new Error("Authentication error"));
 
-//   // Join room based on groupId
-//   socket.on("joinRoom", (groupId) => {
-//     socket.join(groupId); // Join the group (room)
-//     console.log(`User ${socket.userId} joined room ${groupId}`);
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) return next(new Error("Authentication error"));
+    socket.userId = decoded.id;
+    next();
+  });
+});
 
-//     // Optional: Notify the group that a new user has joined
-//     io.to(groupId).emit("userJoined", {
-//       userId: socket.userId,
-//       message: `${socket.userId} has joined the group.`,
-//     });
-//   });
+io.on("connection", (socket) => {
+  users[socket.userId] = socket.id;
+  console.log(`User ${socket.userId} connected`);
 
-//   // Handle sending messages to a group
-//   socket.on("sendMessageToGroup", async (messageData) => {
-//     const { senderId, groupId, message } = JSON.parse(messageData);
+  // ======= JOIN ROOMS (Forum or Private Chat) =======
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.userId} joined room ${roomId}`);
 
-//     // Create and save the message to the database (example)
-//     const chat = await ChatModel.findById(groupId);
+    io.to(roomId).emit("userJoined", {
+      userId: socket.userId,
+      message: `${socket.userId} has joined the chat.`,
+    });
+  });
 
-//     try {
-//       if (chat) {
+  // ======= GROUP (Forum) CHAT =======
+  socket.on("sendGroupMessage", async ({ groupId, senderId, message }) => {
+    try {
+      const groupMessage = new MessageModel({
+        senderId,
+        groupId,
+        message,
+        type: "group",
+      });
+      await groupMessage.save();
 
-//         // Emit the message to all members of the chat
-//         chat.members.forEach((memberId) => {
-//           const socketId = users[memberId]; // assuming you have a map of user ids to socket ids
-//           if (socketId) {
-//             io.to(socketId).emit("receiveMessage", messageData);
-//           }
-//         });
-//         const groupMessage = new MessageModel({
-//           senderId,
-//           groupId,
-//           message,
-//         });
-  
-//         await groupMessage.save();
-//       }
-//     } catch (error) {
-//       AppLogger.error(error);
-//     }
+      io.to(groupId).emit("receiveGroupMessage", {
+        senderId,
+        groupId,
+        message,
+      });
+    } catch (error) {
+      console.error("Error sending group message:", error);
+    }
+  });
 
-//     // Send the message to all users in the group (room)
-//     io.to(groupId).emit("receiveGroupMessage", messageData);
-//   });
+  // ======= PRIVATE (1-on-1) CHAT =======
+  socket.on("sendPrivateMessage", async ({ senderId, receiverId, message }) => {
+    const privateRoomId = [senderId, receiverId].sort().join("-");
 
-//   // Handle typing event in the group
-//   socket.on("isTyping", (typingData) => {
-//     const { senderId, groupId, isTyping } = typingData;
-//     io.to(groupId).emit("isTyping", { senderId, isTyping });
-//   });
+    try {
+      const privateMessage = new MessageModel({
+        senderId,
+        receiverId,
+        roomId: privateRoomId,
+        message,
+        type: "private",
+      });
+      await privateMessage.save();
 
-//   // Handle explicit user leaving a room
-//   socket.on("leaveRoom", (groupId) => {
-//     socket.leave(groupId); // Remove user from the group (room)
-//     console.log(`User ${socket.userId} left room ${groupId}`);
+      // Emit to both sender and receiver if online
+      [senderId, receiverId].forEach((userId) => {
+        const socketId = users[userId];
+        if (socketId) {
+          io.to(socketId).emit("receivePrivateMessage", {
+            senderId,
+            receiverId,
+            message,
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error sending private message:", error);
+    }
+  });
 
-//     // Notify other users that this user left the group
-//     io.to(groupId).emit("userLeft", {
-//       userId: socket.userId,
-//       message: `${socket.userId} has left the group.`,
-//     });
-//   });
+  // ======= TYPING INDICATORS =======
+  socket.on("typing", ({ roomId, senderId, isTyping }) => {
+    io.to(roomId).emit("isTyping", { senderId, isTyping });
+  });
 
-//   // Handle user disconnection (going offline)
-//   socket.on("disconnect", () => {
-//     // Notify other users in the same group (room) that this user has disconnected
-//     for (let groupId of Object.keys(socket.rooms)) {
-//       io.to(groupId).emit("userLeft", {
-//         userId: socket.userId,
-//         message: `${socket.userId} has disconnected.`,
-//       });
-//     }
+  // ======= LEAVE ROOM =======
+  socket.on("leaveRoom", (roomId) => {
+    socket.leave(roomId);
+    console.log(`User ${socket.userId} left room ${roomId}`);
 
-//     // Clean up: remove the user from the users object
-//     delete users[socket.userId];
-//   });
+    io.to(roomId).emit("userLeft", {
+      userId: socket.userId,
+      message: `${socket.userId} has left the chat.`,
+    });
+  });
 
-//   // Nudge user (send a "nudge-received" event to a user)
-//   socket.on("nudge", (id) => {
-//     socket.emit("nudge-received").to(id); // Send nudge to the specified user
-//   });
-// });
+  // ======= DISCONNECT =======
+  socket.on("disconnect", () => {
+    console.log(`User ${socket.userId} disconnected`);
+
+    // Notify rooms user was in (optional)
+    for (let roomId of socket.rooms) {
+      io.to(roomId).emit("userLeft", {
+        userId: socket.userId,
+        message: `${socket.userId} has disconnected.`,
+      });
+    }
+
+    delete users[socket.userId];
+  });
+
+  // ======= NUDGE FEATURE =======
+  socket.on("nudge", (targetUserId) => {
+    const targetSocketId = users[targetUserId];
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("nudgeReceived", { from: socket.userId });
+    }
+  });
+});
+
 
 // app.use("/webhook", express.raw({ type: "application/json" }));
 

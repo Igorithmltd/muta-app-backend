@@ -4,20 +4,28 @@ const { empty } = require("../util");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 
-class ChallengeService extends BaseService {
-  async createChallenge(req) {
+class WorkoutplanService extends BaseService {
+  async createWorkoutplan(req) {
     try {
       const post = req.body;
 
       const validateRule = {
         title: "string|required",
-        goal: "string|required",
+        description: "string|required",
         duration: "integer|required",
-        type: "string|required|in:daily,weekly",
-        difficulty: "string|required|in:begineer,intermediate,advanced",
-        tasks: "array|required",
-        "tasks.*.buttonLabel": "string|required",
-        "tasks.*.title": "string|required",
+        category: "string|required",
+        level: "string|required|in:begineer,intermediate,advanced",
+        roundsCount: "string|required",
+        rounds: "array|required",
+        "rounds.*.title": "string|required",
+        "rounds.*.duration": "integer|required",
+        "rounds.*.set": "integer|required",
+        "rounds.*.reps": "integer|required",
+        "rounds.*.restBetweenSet": "integer|required",
+        "rounds.*.instruction": "string|required",
+        "rounds.*.commonMistakesToAvoid": "array|required",
+        "rounds.*.breathingTips": "array|required",
+        "rounds.*.focusArea": "array|required",
         image: "object|required",
         "image.imageUrl": "string|required",
         "image.publicId": "string|required",
@@ -83,7 +91,7 @@ class ChallengeService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getChallenges(req) {
+  async getWorkoutplans(req) {
     try {
       const type = req.query.type || "";
       const filter = type ? { type } : {};
@@ -97,7 +105,7 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getChallenge(req) {
+  async getWorkoutplan(req) {
     try {
       const challengeId = req.params.id;
 
@@ -114,7 +122,7 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async updateChallenge(req) {
+  async updateWorkoutplan(req) {
     try {
       const challengeId = req.params.id;
 
@@ -167,7 +175,7 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async deleteChallenge(req) {
+  async deleteWorkoutplan(req) {
     try {
       const challengeId = req.params.id;
 
@@ -189,7 +197,7 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async joinChallenge(req) {
+  async joinWorkoutplan(req) {
     const userId = req.user.id;
     const post = req.body;
 
@@ -237,7 +245,7 @@ class ChallengeService extends BaseService {
       challenge: newUserChallenge,
     });
   }
-  async markChallengeTask(req) {
+  async markWorkoutplanTask(req) {
     const userId = req.user.id;
     const post = req.body;
 
@@ -309,8 +317,7 @@ class ChallengeService extends BaseService {
       message: "Task marked as completed"
     });
   }
-
-  async getChallengeAction(req) {
+  async getWorkoutplanAction(req) {
     try {
       const challengeActionId = req.params.id;
 
@@ -327,36 +334,6 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getDailyChallenge(req) {
-    try {
-      const dailyChallenge = await ChallengeModel.findOne({ type: 'daily' }).sort({ _id: -1 });
-      if (!dailyChallenge) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge not found",
-        });
-      }
-
-      return BaseService.sendSuccessResponse({ message: dailyChallenge });
-    } catch (error) {
-      console.log(error, "the error");
-      return BaseService.sendFailedResponse(this.server_error_message);
-    }
-  }
-  async getWeeklyChallenge(req) {
-    try {
-      const weeklyChallenge = await ChallengeModel.findOne({ type: 'weekly' }).sort({ _id: -1 });
-      if (!weeklyChallenge) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge not found",
-        });
-      }
-
-      return BaseService.sendSuccessResponse({ message: weeklyChallenge });
-    } catch (error) {
-      console.log(error, "the error");
-      return BaseService.sendFailedResponse(this.server_error_message);
-    }
-  }
 }
 
-module.exports = ChallengeService;
+module.exports = WorkoutplanService;
