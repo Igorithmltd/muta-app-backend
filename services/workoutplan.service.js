@@ -26,6 +26,7 @@ class WorkoutplanService extends BaseService {
         "rounds.*.reps": "integer|required",
         "rounds.*.restBetweenSet": "integer|required",
         "rounds.*.instruction": "string|required",
+        "rounds.*.animation": "string|required",
         "rounds.*.commonMistakesToAvoid": "array|required",
         "rounds.*.breathingTips": "array|required",
         "rounds.*.focusArea": "array|required",
@@ -57,18 +58,18 @@ class WorkoutplanService extends BaseService {
         });
       }
 
-      const newWorkoutplan = {
-        title: post.title,
-        goal: post.goal,
-        duration: post.duration,
-        type: post.type,
-        difficulty: post.difficulty,
-        tasks: post.tasks,
-        image: {
-          imageUrl: post.image.imageUrl,
-          publicId: post.image.publicId,
-        },
-      };
+      // const newWorkoutplan = {
+      //   title: post.title,
+      //   goal: post.goal,
+      //   duration: post.duration,
+      //   type: post.type,
+      //   difficulty: post.difficulty,
+      //   tasks: post.tasks,
+      //   image: {
+      //     imageUrl: post.image.imageUrl,
+      //     publicId: post.image.publicId,
+      //   },
+      // };
 
       // if (post.type == "weekly" && post.end_date) {
       //   const today = new Date();
@@ -82,7 +83,7 @@ class WorkoutplanService extends BaseService {
       // return console.log('newChallenge')
 
       // Create a new challenge
-      const workoutplan = new WorkoutPlanModel(newWorkoutplan);
+      const workoutplan = new WorkoutPlanModel(post);
       // Save the workoutplan to the database
       const savedWorkoutplan = await workoutplan.save();
 

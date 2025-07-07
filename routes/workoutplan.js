@@ -1,4 +1,4 @@
-const ChallengeController = require("../controllers/challenge.controller");
+const WorkoutplanController = require("../controllers/workoutplan.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
 const { ROUTE_CREATE_WORKOUTPLAN, ROUTE_GET_ALL_WORKOUTPLANS, ROUTE_GET_WORKOUTPLAN, ROUTE_UPDATE_WORKOUTPLAN, ROUTE_DELETE_WORKOUTPLAN, ROUTE_JOIN_WORKOUTPLAN, ROUTE_GET_WORKOUTPLAN_ACTION, ROUTE_WORKOUTPLAN_TASK } = require("../util/page-route");
@@ -114,8 +114,8 @@ const router = require("express").Router();
  *         description: Server error
  */
 router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.createWorkoutplan(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.createWorkoutplan(req, res);
 });
 
 /**
@@ -215,8 +215,8 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *         description: Server error
  */
 router.get(ROUTE_GET_ALL_WORKOUTPLANS, auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.getWorkoutplans(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.getWorkoutPlans(req, res);
 });
 
 /**
@@ -313,8 +313,8 @@ router.get(ROUTE_GET_ALL_WORKOUTPLANS, auth, (req, res) => {
  *         description: Server error
  */
 router.get(ROUTE_GET_WORKOUTPLAN + "/:id", auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.getWorkoutplan(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.getWorkoutPlan(req, res);
 });
 
 /**
@@ -355,8 +355,8 @@ router.get(ROUTE_GET_WORKOUTPLAN + "/:id", auth, (req, res) => {
  *         description: Server error
  */
 router.put(ROUTE_UPDATE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.updateWorkoutplan(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.updateWorkoutPlan(req, res);
 });
 
 /**
@@ -397,8 +397,8 @@ router.put(ROUTE_UPDATE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
  *         description: Server error
  */
 router.delete(ROUTE_DELETE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.deleteWorkoutplan(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.deleteWorkoutPlan(req, res);
 });
 
 /**
@@ -522,8 +522,8 @@ router.delete(ROUTE_DELETE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
  *         description: Server error
  */
 router.put(ROUTE_JOIN_WORKOUTPLAN, auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.joinWorkoutplan(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.joinWorkoutPlan(req, res);
 });
 
 /**
@@ -632,8 +632,8 @@ router.put(ROUTE_JOIN_WORKOUTPLAN, auth, (req, res) => {
  *         description: Server error
  */
 router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.getWorkoutplanAction(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.getWorkoutPlanAction(req, res);
 });
 
 /**
@@ -694,8 +694,8 @@ router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
  *         description: Server error
  */
 router.put(ROUTE_WORKOUTPLAN_TASK, auth, (req, res) => {
-  const challengeController = new ChallengeController();
-  return challengeController.markWorkoutplanTask(req, res);
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.markWorkoutPlanTask(req, res);
 });
 
 module.exports = router;
