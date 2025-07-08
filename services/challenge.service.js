@@ -350,7 +350,7 @@ class ChallengeService extends BaseService {
           error: "Challenge not found",
         });
       }
-
+      console.log(weeklyChallenge, "weeklyChallenge")
       return BaseService.sendSuccessResponse({ message: weeklyChallenge });
     } catch (error) {
       console.log(error, "the error");
