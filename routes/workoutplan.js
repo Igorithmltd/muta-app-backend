@@ -1,7 +1,7 @@
 const WorkoutplanController = require("../controllers/workoutplan.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
-const { ROUTE_CREATE_WORKOUTPLAN, ROUTE_GET_ALL_WORKOUTPLANS, ROUTE_GET_WORKOUTPLAN, ROUTE_UPDATE_WORKOUTPLAN, ROUTE_DELETE_WORKOUTPLAN, ROUTE_JOIN_WORKOUTPLAN, ROUTE_GET_WORKOUTPLAN_ACTION, ROUTE_WORKOUTPLAN_TASK } = require("../util/page-route");
+const { ROUTE_CREATE_WORKOUTPLAN, ROUTE_GET_ALL_WORKOUTPLANS, ROUTE_GET_WORKOUTPLAN, ROUTE_UPDATE_WORKOUTPLAN, ROUTE_DELETE_WORKOUTPLAN, ROUTE_JOIN_WORKOUTPLAN, ROUTE_GET_WORKOUTPLAN_ACTION, ROUTE_WORKOUTPLAN_TASK, ROUTE_RESET_WORKOUTPLAN_ACTION, ROUTE_RECOMMENDED_WORKOUTPLANS, ROUTE_ACTIVE_WORKOUTPLANS } = require("../util/page-route");
 
 const router = require("express").Router();
 
@@ -696,6 +696,259 @@ router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
 router.put(ROUTE_WORKOUTPLAN_TASK, auth, (req, res) => {
   const workoutplanController = new WorkoutplanController();
   return workoutplanController.markWorkoutPlanTask(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/reset-workoutplan-action:
+ *   put:
+ *     summary: Reset a user's workoutplan progress
+ *     tags:
+ *       - Workoutplan
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               workoutplanId:
+ *                 type: string
+ *                 example: "64f865b9f8a7ab0012345678"
+ *             required:
+ *               - workoutplanId
+ *     responses:
+ *       200:
+ *         description: Workoutplan progress reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Workoutplan progress reset successfully
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: workoutplanId is required
+ *       404:
+ *         description: Workoutplan action not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: You have not joined this workoutplan
+ *       500:
+ *         description: Internal server error
+ */
+router.put(ROUTE_RESET_WORKOUTPLAN_ACTION, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.resetWorkoutplanAction(req, res);
+});
+
+/**
+ * @swagger
+ * /workoutplan/recommended-workoutplans:
+ *   get:
+ *     summary: Get all recommended workoutplans
+ *     tags:
+ *       - Workoutplan
+ *     responses:
+ *       200:
+ *         description: List of recommended workoutplanss returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           title:
+ *                             type: string
+ *                             example: "fourth challenge"
+ *                           goal:
+ *                             type: string
+ *                             example: "fourth goal"
+ *                           startDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           endDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           duration:
+ *                             type: integer
+ *                             example: 30
+ *                           durationUnit:
+ *                             type: string
+ *                             example: "minute"
+ *                           type:
+ *                             type: string
+ *                             example: "daily"
+ *                             enum: [weekly, daily]
+ *                           difficulty:
+ *                             type: string
+ *                             example: "advanced"
+ *                           tasks:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 buttonLabel:
+ *                                   type: string
+ *                                   example: "close"
+ *                                 title:
+ *                                   type: string
+ *                                   example: "Open your phone"
+ *                                 status:
+ *                                   type: string
+ *                                   example: "in-progress"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863ece6b0d40e2dd2eabe13"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *       400:
+ *         description: Invalid query parameter
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_RECOMMENDED_WORKOUTPLANS, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.recommendedWorkoutplans(req, res);
+});
+
+/**
+ * @swagger
+ * /workoutplan/active-workoutplans:
+ *   get:
+ *     summary: Get all active workoutplans
+ *     tags:
+ *       - Workoutplan
+ *     responses:
+ *       200:
+ *         description: List of active workoutplans returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           title:
+ *                             type: string
+ *                             example: "fourth challenge"
+ *                           goal:
+ *                             type: string
+ *                             example: "fourth goal"
+ *                           startDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           endDate:
+ *                             type: date
+ *                             example: "2025-07-02T15:02:03.521+00:00"
+ *                           duration:
+ *                             type: integer
+ *                             example: 30
+ *                           durationUnit:
+ *                             type: string
+ *                             example: "minute"
+ *                           type:
+ *                             type: string
+ *                             example: "daily"
+ *                             enum: [weekly, daily]
+ *                           difficulty:
+ *                             type: string
+ *                             example: "advanced"
+ *                           tasks:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 buttonLabel:
+ *                                   type: string
+ *                                   example: "close"
+ *                                 title:
+ *                                   type: string
+ *                                   example: "Open your phone"
+ *                                 status:
+ *                                   type: string
+ *                                   example: "in-progress"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863ece6b0d40e2dd2eabe13"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *       400:
+ *         description: Invalid query parameter
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_ACTIVE_WORKOUTPLANS, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.activeWorkoutplans(req, res);
 });
 
 module.exports = router;

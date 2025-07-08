@@ -309,7 +309,6 @@ class ChallengeService extends BaseService {
       message: "Task marked as completed"
     });
   }
-
   async getChallengeAction(req) {
     try {
       const challengeId = req.params.id;
@@ -356,6 +355,64 @@ class ChallengeService extends BaseService {
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async resetChallengeAction(req) {
+    try {
+      const userId = req.user.id;
+      const { challengeId } = req.body;
+
+      // Validate input
+      const validateRule = {
+        challengeId: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+      };
+
+      const validateResult = validateData(
+        { challengeId },
+        validateRule,
+        validateMessage
+      );
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      // Fetch the diet action
+      const challengeAction = await ChallengeActionModel.findOne({
+        userId,
+        challengeId,
+      });
+
+      if (!challengeAction) {
+        return BaseService.sendFailedResponse({
+          error: "You have not joined this challenge",
+        });
+      }
+
+      // Reset progress, status, and all daily task statuses
+      challengeAction.streak = 0;
+      challengeAction.status = "in-progress";
+
+      challengeAction.tasks = challengeAction.tasks.map(
+        (task) => ({
+          ...task.toObject(),
+          status: "in-progress",
+        })
+      );
+
+      await challengeAction.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Challenge progress reset successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
 }

@@ -17,13 +17,21 @@ const OrderSchema = new mongoose.Schema(
         },
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
+        color: {
+            type: String,
+          },
+          size: {
+            type: String,
+        },
       },
     ],
     shippingAddress: {
-      street: String,
+      fullName: String,
+      phoneNumber: String,
+      address: String,
+      region: String,
       city: String,
-      postalCode: String,
-      country: String,
+      deliveryNote: String,
     },
     totalAmount: {
       type: Number,
@@ -34,10 +42,30 @@ const OrderSchema = new mongoose.Schema(
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
+    paymentMethod: {
+      type: String,
+      enum: ["paystack", "on-delivery"],
+      default: "paystack",
+    },
     orderStatus: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
+    },
+    review: {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      comment: { type: String },
+      rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+      },
+      createdAt: {
+        type: Date,
+      },
     },
   },
   { timestamps: true }

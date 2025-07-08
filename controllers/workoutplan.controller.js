@@ -66,6 +66,30 @@ class WorkoutplanController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, markWorkoutPlanTask.data)
     }
+    async resetWorkoutplanAction(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const resetWorkoutplanAction = await workoutplanService.resetWorkoutplanAction(req)
+        if(!resetWorkoutplanAction.success){
+            return BaseController.sendFailedResponse(res, resetWorkoutplanAction.data)
+        }
+        return BaseController.sendSuccessResponse(res, resetWorkoutplanAction.data)
+    }
+    async recommendedWorkoutplans(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const recommendedWorkoutplans = await workoutplanService.recommendedWorkoutplans(req)
+        if(!recommendedWorkoutplans.success){
+            return BaseController.sendFailedResponse(res, recommendedWorkoutplans.data)
+        }
+        return BaseController.sendSuccessResponse(res, recommendedWorkoutplans.data)
+    }
+    async activeWorkoutplans(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const activeWorkoutplans = await workoutplanService.activeWorkoutplans(req)
+        if(!activeWorkoutplans.success){
+            return BaseController.sendFailedResponse(res, activeWorkoutplans.data)
+        }
+        return BaseController.sendSuccessResponse(res, activeWorkoutplans.data)
+    }
 }
 
 module.exports = WorkoutplanController

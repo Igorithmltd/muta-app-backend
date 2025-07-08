@@ -6,14 +6,15 @@ const ProductSchema = new mongoose.Schema(
     title: { type: String, required: true, unique: true },
     price: { type: Number, required: true },
     category: { type: String, required: true },
-    color: { type: String, required: true },
-    size: { type: Number, required: true },
+    color: [{ type: String, required: true }],
+    size: [{ type: String, required: true }],
+    keyFeatures: [{ type: String, required: true }],
     stock: { type: Number, required: true },
     description: { type: String, required: true },
-    image: {
+    images: [{
       imageUrl: { type: String },
       publicId: { type: String },
-    },
+    }],
     rating: { type: Number, default: 0 }, // average rating
     numReviews: { type: Number, default: 0 },
     reviews: [

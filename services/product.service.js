@@ -1,5 +1,6 @@
 const ProductModel = require("../models/product.model");
 const ProductCategoryModel = require("../models/productCategory.model");
+const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 
@@ -12,10 +13,11 @@ class ProductService extends BaseService {
         description: "string|required",
         price: "integer|required",
         category: "string|required",
-        color: "string|required",
-        size: "integer|required",
+        color: "array|required",
+        size: "array|required",
+        keyFeatures: "array|required",
         stock: "integer|required",
-        image: "object|required",
+        images: "array|required",
       };
       const validateMessage = {
         required: ":attribute is required",
@@ -123,7 +125,6 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-
   async createProductCategory(req) {
     try {
       const post = req.body;
@@ -235,7 +236,53 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-
+  async addProductToFavorites(req) {
+    try {
+      const userId = req.user.id;
+      const { productId } = req.body;
+  
+      const product = await ProductModel.findById(productId);
+      if (!product) {
+        return BaseService.sendFailedResponse({ error: "Product not found" });
+      }
+  
+      const user = await UserModel.findById(userId);
+      if (user.favorites.includes(productId)) {
+        return BaseService.sendSuccessResponse({ message: "Product is already in favorites" });
+      }
+  
+      user.favorites.push(productId);
+      await user.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: "Product added to favorites"
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({error: this.server_error_message});
+    }
+  }
+  async removeFavoriteProduct(req) {
+    try {
+      const userId = req.user.id;
+      const { productId } = req.body;
+  
+      const user = await UserModel.findById(userId);
+      if (!user.favorites.includes(productId)) {
+        return BaseService.sendFailedResponse({ message: "Product is not in favorites" });
+      }
+  
+      user.favorites = user.favorites.filter(
+        (favId) => favId.toString() !== productId
+      );
+      await user.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: "Product removed from favorites",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: this.server_error_message });
+    }
+  }
 }
 
 module.exports = ProductService;

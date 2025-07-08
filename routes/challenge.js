@@ -12,6 +12,7 @@ const {
   ROUTE_CHALLENGE_TASK,
   ROUTE_GET_WEEKLY_CHALLENGE,
   ROUTE_GET_DAILY_CHALLENGE,
+  ROUTE_RESET_CHALLENGE_ACTION,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -864,6 +865,75 @@ router.get(ROUTE_GET_DAILY_CHALLENGE, auth, (req, res) => {
 router.get(ROUTE_GET_WEEKLY_CHALLENGE, auth, (req, res) => {
   const challengeController = new ChallengeController();
   return challengeController.getWeeklyChallenge(req, res);
+});
+
+/**
+ * @swagger
+ * /challenge/reset-challenge-action:
+ *   put:
+ *     summary: Reset a user's challenge progress
+ *     tags:
+ *       - Challenges
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               challengeId:
+ *                 type: string
+ *                 example: "64f865b9f8a7ab0012345678"
+ *             required:
+ *               - challengeId
+ *     responses:
+ *       200:
+ *         description: Challenge progress reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Challenge progress reset successfully
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: challengeId is required
+ *       404:
+ *         description: Challenge action not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: You have not joined this challenge
+ *       500:
+ *         description: Internal server error
+ */
+router.put(ROUTE_RESET_CHALLENGE_ACTION, [auth], (req, res) => {
+  const challengeController = new ChallengeController();
+  return challengeController.resetChallengeAction(req, res);
 });
 
 module.exports = router;

@@ -84,6 +84,22 @@ class ProductController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deleteProductCategory.data)
     }
+    async addProductToFavorites(req, res){
+        const productService = new ProductService()
+        const addProductToFavorites = await productService.addProductToFavorites(req)
+        if(!addProductToFavorites.success){
+            return BaseController.sendFailedResponse(res, addProductToFavorites.data)
+        }
+        return BaseController.sendSuccessResponse(res, addProductToFavorites.data)
+    }
+    async removeFavoriteProduct(req, res){
+        const productService = new ProductService()
+        const removeFavoriteProduct = await productService.removeFavoriteProduct(req)
+        if(!removeFavoriteProduct.success){
+            return BaseController.sendFailedResponse(res, removeFavoriteProduct.data)
+        }
+        return BaseController.sendSuccessResponse(res, removeFavoriteProduct.data)
+    }
 }
 
 module.exports = ProductController

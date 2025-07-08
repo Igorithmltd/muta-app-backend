@@ -1,7 +1,7 @@
 const ProductController = require('../controllers/product.controller')
 const auth = require('../middlewares/auth')
 const adminAuth = require('../middlewares/adminAuth')
-const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY } = require('../util/page-route')
+const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -41,13 +41,23 @@ const router = require('express').Router()
  *                 description: Category of the product
  *                 example: weight burn
  *               color:
- *                 type: string
- *                 description: Color of the product
- *                 example: red
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Colors of the product
+ *                     example: ["#fffbee", "#000000"]
  *               size:
- *                 type: number
- *                 description: Size of the product
- *                 example: 45
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Colors of the product
+ *                     example: ["#fffbee", "#000000"]
+ *               keyFeatures:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Key features of the product
+ *                     example: ["lightweight", "durable"]
  *               stock:
  *                 type: number
  *                 description: Available stock of the product
@@ -120,30 +130,42 @@ router.post(ROUTE_CREATE_PRODUCT, adminAuth, (req, res)=>{
  *                   description: Category of the product
  *                   example: 686265149ba9c6ad79f60bfe
  *                 color:
- *                   type: string
- *                   description: Color of the product
- *                   example: red
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     description: Color of the product
+ *                     example: "#fffbee"
+ *                 size:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     description: size of the product
+ *                     example: "54"
+ *                 keyFeatures:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     description: key features of the product
+ *                     example: "lightweight, durable"
  *                 description:
  *                   type: string
  *                   description: Description of the product
  *                   example: Best sneakers in anambra
- *                 size:
- *                   type: Number
- *                   description: Size of the product
- *                   example: 44
  *                 stock:
  *                   type: number
  *                   description: Stock of the product
  *                   example: 101
- *                 image:
- *                   type: object
- *                   properties:
- *                     imageUrl:
- *                       type: string
- *                       example: https://cloudinary/muta-app/48858483.jpg
- *                     publicId:
- *                       type: string
- *                       example: dlmgki54ifu
+ *                 images:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       imageUrl:
+ *                         type: string
+ *                         example: https://cloudinary/muta-app/48858483.jpg
+ *                       publicId:
+ *                         type: string
+ *                         example: dlmgki54ifu
  *       404:
  *         description: Product not found
  *       500:
@@ -158,7 +180,7 @@ router.get(ROUTE_GET_PRODUCT+"/:id", auth, (req, res)=>{
  * @swagger
  * /products/get-all-products:
  *   get:
- *     summary: get all products
+ *     summary: Get all products
  *     tags:
  *       - Products
  *     responses:
@@ -184,30 +206,42 @@ router.get(ROUTE_GET_PRODUCT+"/:id", auth, (req, res)=>{
  *                     description: Category of the product
  *                     example: 686265149ba9c6ad79f60bfe
  *                   color:
- *                     type: string
- *                     description: Color of the product
- *                     example: red
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Colors of the product
+ *                     example: ["#fffbee", "#000000"]
+ *                   size:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Sizes of the product
+ *                     example: ["42", "43", "44"]
+ *                   keyFeatures:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     description: Key features of the product
+ *                     example: ["lightweight", "durable"]
  *                   description:
  *                     type: string
  *                     description: Description of the product
- *                     example: Best sneakers in anambra
- *                   size:
- *                     type: Number
- *                     description: Size of the product
- *                     example: 44
+ *                     example: Best sneakers in Anambra
  *                   stock:
  *                     type: number
- *                     description: Stock of the product
+ *                     description: Stock quantity of the product
  *                     example: 101
- *                   image:
- *                     type: object
- *                     properties:
- *                       imageUrl:
- *                         type: string
- *                         example: https://cloudinary/muta-app/48858483.jpg
- *                       publicId:
- *                         type: string
- *                         example: dlmgki54ifu
+ *                   images:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         imageUrl:
+ *                           type: string
+ *                           example: https://cloudinary/muta-app/48858483.jpg
+ *                         publicId:
+ *                           type: string
+ *                           example: dlmgki54ifu
  *       404:
  *         description: Products not found
  *       500:
@@ -482,6 +516,99 @@ router.put(ROUTE_UPDATE_PRODUCT_CATEGORY+"/:id", adminAuth, (req, res)=>{
 router.delete(ROUTE_DELETE_PRODUCT_CATEGORY+"/:id", adminAuth, (req, res)=>{
     const productController = new ProductController()
     return productController.deleteProduct(req, res)
+})
+
+
+/**
+ * @swagger
+ * /products/add-product-to-favorite:
+ *   put:
+ *     summary: Add a product to user's favorites
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: string
+ *                 example: "64b123456abcde0001345678"
+ *     responses:
+ *       200:
+ *         description: Product added to favorites
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Product added to favorites
+ *       400:
+ *         description: Product is already in favorites
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_ADD_PRODUCT_TO_FAVORITE, auth, (req, res)=>{
+    const productController = new ProductController()
+    return productController.addProductToFavorites(req, res)
+})
+
+/**
+ * @swagger
+ * /products/remove-product-from-favorite:
+ *   put:
+ *     summary: Remove a product from user's favorites
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: string
+ *                 example: "64b123456abcde0001345678"
+ *     responses:
+ *       200:
+ *         description: Product removed from favorites
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Product removed from favorites
+ *       400:
+ *         description: Product is not in favorites
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, auth, (req, res)=>{
+    const productController = new ProductController()
+    return productController.removeFavoriteProduct(req, res)
 })
 
 module.exports = router

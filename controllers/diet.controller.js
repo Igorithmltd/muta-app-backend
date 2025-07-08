@@ -43,6 +43,46 @@ class DietController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, deleteDiet.data)
     }
+    async joinDiet(req, res){
+        const dietService = new DietService()
+        const joinDiet = await dietService.joinDiet(req)
+        if(!joinDiet.success){
+            return BaseController.sendFailedResponse(res, joinDiet.data)
+        }
+        return BaseController.sendSuccessResponse(res, joinDiet.data)
+    }
+    async markDietTask(req, res){
+        const dietService = new DietService()
+        const markDietTask = await dietService.markDietTask(req)
+        if(!markDietTask.success){
+            return BaseController.sendFailedResponse(res, markDietTask.data)
+        }
+        return BaseController.sendSuccessResponse(res, markDietTask.data)
+    }
+    async getDietAction(req, res){
+        const dietService = new DietService()
+        const getDietAction = await dietService.getDietAction(req)
+        if(!getDietAction.success){
+            return BaseController.sendFailedResponse(res, getDietAction.data)
+        }
+        return BaseController.sendSuccessResponse(res, getDietAction.data)
+    }
+    async resetDietAction(req, res){
+        const dietService = new DietService()
+        const resetDietAction = await dietService.resetDietAction(req)
+        if(!resetDietAction.success){
+            return BaseController.sendFailedResponse(res, resetDietAction.data)
+        }
+        return BaseController.sendSuccessResponse(res, resetDietAction.data)
+    }
+    async activeDiets(req, res){
+        const dietService = new DietService()
+        const activeDiets = await dietService.activeDiets(req)
+        if(!activeDiets.success){
+            return BaseController.sendFailedResponse(res, activeDiets.data)
+        }
+        return BaseController.sendSuccessResponse(res, activeDiets.data)
+    }
 }
 
 module.exports = DietController;

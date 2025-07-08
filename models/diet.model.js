@@ -1,10 +1,16 @@
-// models/Post.ts
 const mongoose = require("mongoose");
 
 const DietSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, unique: true },
     description: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      required: true,
+      default: "active",
+    },
+    recommended: { type: String, enum: ["YES", "NO"], default: "NO" },
     image: {
       imageUrl: { type: String },
       publicId: { type: String },
@@ -26,6 +32,12 @@ const DietSchema = new mongoose.Schema(
         calories: { type: Number, required: true },
         recommendedTime: { type: String, required: true },
         missedBy: { type: String, required: true },
+        mealType: {
+          type: String,
+          required: true,
+          enum: ["breakfast", "lunch", "dinner"],
+        },
+        // day: { type: String, required: true },
       },
     ],
   },

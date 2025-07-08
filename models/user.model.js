@@ -66,6 +66,12 @@ const UserSchema = new mongoose.Schema(
     specialty: [String],
     yearsOfExperience: { type: Number, default: 0 },
     location: { type: String, trim: true },
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      }
+    ],    
   },
   { timestamps: true }
 );

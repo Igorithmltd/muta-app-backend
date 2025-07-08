@@ -338,6 +338,108 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async resetWorkoutplanAction(req) {
+    try {
+      const userId = req.user.id;
+      const { workoutplanId } = req.body;
+
+      // Validate input
+      const validateRule = {
+        workoutplanId: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+      };
+
+      const validateResult = validateData(
+        { workoutplanId },
+        validateRule,
+        validateMessage
+      );
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      // Fetch the diet action
+      const workoutplanAction = await WorkoutPlanActionModel.findOne({
+        userId,
+        workoutplanId,
+      });
+
+      if (!workoutplanAction) {
+        return BaseService.sendFailedResponse({
+          error: "You have not joined this challenge",
+        });
+      }
+
+      // Reset progress, status, and all daily task statuses
+      workoutplanAction.streak = 0;
+      workoutplanAction.status = "in-progress";
+
+      workoutplanAction.rounds = workoutplanAction.rounds.map(
+        (task) => ({
+          ...task.toObject(),
+          status: "in-progress",
+        })
+      );
+
+      await workoutplanAction.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Workout plan progress reset successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async recommendedWorkoutplans(req) {
+    try {
+      const recommendedWorkoutplans = await WorkoutPlanModel.find({
+        recommended: "YES",
+        // status: "active",
+      })
+        .populate("category")
+        .sort({ createdAt: -1 });
+      if (empty(recommendedWorkoutplans)) {
+        return BaseService.sendFailedResponse({
+          error: "No recommended workout plan found",
+        });
+      }
+      return BaseService.sendSuccessResponse({
+        message: recommendedWorkoutplans,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async activeWorkoutplans() {
+    try {
+      const activeWorkoutplans = await WorkoutPlanModel.find({
+        // recommended: "YES",
+        status: "active",
+      })
+        .populate("category")
+        .sort({ createdAt: -1 });
+      if (empty(activeWorkoutplans)) {
+        return BaseService.sendFailedResponse({
+          error: "No active plan found",
+        });
+      }
+      return BaseService.sendSuccessResponse({
+        message: activeWorkoutplans,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
 }
 
 module.exports = WorkoutplanService;

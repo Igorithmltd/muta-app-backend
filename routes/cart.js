@@ -31,6 +31,12 @@ const router = require('express').Router();
  *                 type: integer
  *                 minimum: 1
  *                 example: 2
+ *               color:
+ *                 type: string
+ *                 example: "red"
+ *               size:
+ *                 type: string
+ *                 example: "45"
  *     responses:
  *       200:
  *         description: Product added to cart successfully

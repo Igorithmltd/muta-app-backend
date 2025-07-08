@@ -9,6 +9,7 @@ const productRouter = require('./product')
 const utilRouter = require('./util')
 const workoutplanRouter = require('./workoutplan')
 const cartRouter = require('./cart')
+const orderRouter = require('./order')
 // const adminRouter = require('./admin')
 
 
@@ -21,6 +22,7 @@ router.use('/diet', dietRouter)
 router.use('/products', productRouter)
 router.use('/workoutplan', workoutplanRouter)
 router.use('/cart', cartRouter)
+router.use('/order', orderRouter)
 // router.use('/admin', adminRouter)
 
 module.exports = router

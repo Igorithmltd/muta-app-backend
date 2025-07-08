@@ -37,6 +37,8 @@ exports.ROUTE_CHALLENGE_TASK = '/challenge-task'
 exports.ROUTE_UPDATE_CHALLENGE = '/update-challenge'
 exports.ROUTE_JOIN_CHALLENGE = '/join-challenge'
 exports.ROUTE_DELETE_CHALLENGE = '/delete-challenge'
+exports.ROUTE_RESET_CHALLENGE_ACTION = '/reset-challenge-action'
+
 
 //workout plan
 exports.ROUTE_CREATE_WORKOUTPLAN = '/create-workoutplan'
@@ -49,6 +51,11 @@ exports.ROUTE_WORKOUTPLAN_TASK = '/workoutplan-task'
 exports.ROUTE_UPDATE_WORKOUTPLAN = '/update-workoutplan'
 exports.ROUTE_JOIN_WORKOUTPLAN = '/join-workoutplan'
 exports.ROUTE_DELETE_WORKOUTPLAN = '/delete-workoutplan'
+exports.ROUTE_RESET_WORKOUTPLAN_ACTION = '/reset-workoutplan-action'
+exports.ROUTE_RECOMMENDED_WORKOUTPLANS = '/recommended-workoutplans'
+exports.ROUTE_ACTIVE_WORKOUTPLANS = '/active-workoutplans'
+
+
 
 //diet
 exports.ROUTE_CREATE_DIET = '/create-diet'
@@ -56,6 +63,14 @@ exports.ROUTE_GET_ALL_DIETS = '/get-all-diets'
 exports.ROUTE_GET_DIET = '/get-diet'
 exports.ROUTE_UPDATE_DIET = '/update-diet'
 exports.ROUTE_DELETE_DIET = '/delete-diet'
+exports.ROUTE_JOIN_DIET = '/join-diet'
+exports.ROUTE_DIET_TASK = '/diet-task'
+exports.ROUTE_GET_DIET_ACTION = '/get-diet-action'
+exports.ROUTE_RESET_DIET_ACTION = '/reset-diet-action'
+exports.ROUTE_RECOMMENDED_DIETS = '/recommended-diets'
+exports.ROUTE_ACTIVE_DIETS = '/active-diets'
+
+
 
 //categories
 exports.ROUTE_CATEGORY = '/category'
@@ -66,6 +81,8 @@ exports.ROUTE_GET_ALL_PRODUCTS = '/get-all-products'
 exports.ROUTE_GET_PRODUCT = '/get-product'
 exports.ROUTE_UPDATE_PRODUCT = '/update-product'
 exports.ROUTE_DELETE_PRODUCT = '/delete-product'
+exports.ROUTE_ADD_PRODUCT_TO_FAVORITE = '/add-product-to-favorite'
+exports.ROUTE_REMOVE_PRODUCT_FROM_FAVORITE = '/remove-product-from-favorite'
 
 //product categories
 exports.ROUTE_CREATE_PRODUCT_CATEGORY = '/create-product-category'
@@ -84,6 +101,7 @@ exports.ROUTE_REMOVE_FROM_CART = '/remove-from-cart'
 exports.ROUTE_CREATE_ORDER = '/create-order'
 exports.ROUTE_GET_ALL_ORDERS = '/get-all-orders'
 exports.ROUTE_GET_ORDER = '/get-order'
+exports.ROUTE_GET_USER_ORDER = '/get-user-order'
 exports.ROUTE_UPDATE_ORDER = '/update-order'
 exports.ROUTE_DELETE_ORDER = '/delete-order'
 

@@ -82,6 +82,14 @@ class ChallengeController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getWeeklyChallenge.data)
     }
+    async resetChallengeAction(req, res){
+        const challengeService = new ChallengeService()
+        const resetChallengeAction = await challengeService.resetChallengeAction(req)
+        if(!resetChallengeAction.success){
+            return BaseController.sendFailedResponse(res, resetChallengeAction.data)
+        }
+        return BaseController.sendSuccessResponse(res, resetChallengeAction.data)
+    }
 }
 
 module.exports = ChallengeController
