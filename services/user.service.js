@@ -11,6 +11,8 @@ const {
 } = require("../util/helper");
 const { EXPIRES_AT } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
+const DietModel = require("../models/diet.model");
+const WorkoutPlanModel = require("../models/workoutPlan.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -973,6 +975,47 @@ class UserService extends BaseService {
       });
     } catch (error) {
       console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  calculateBMI(weight, height) {
+    if (weight <= 0 || height <= 0) {
+      return null; // Invalid input
+    }
+    const heightInMeters = height / 100; // Convert height from cm to meters
+    const bmi = weight / (heightInMeters * heightInMeters);
+    return parseFloat(bmi.toFixed(2)); // Return BMI rounded to two decimal places
+
+      //     | BMI Range   | Category          |
+      // | ----------- | ----------------- |
+      // | < 18.5      | Underweight       |
+      // | 18.5 – 24.9 | Normal weight     |
+      // | 25.0 – 29.9 | Overweight        |
+      // | 30.0 – 34.9 | Obese (Class I)   |
+      // | 35.0 – 39.9 | Obese (Class II)  |
+      // | ≥ 40.0      | Obese (Class III) |
+
+  }
+  async adminDashboardStat(){
+    try {
+      const response = {}
+      const totalUsers = await UserModel.find({userType: 'user'}).countDocuments();
+      const totalDietPlans = await DietModel.countDocuments();
+      const totalWorkoutPlans = await WorkoutPlanModel.countDocuments();
+      const totalVerifiedCoaches = await UserModel.find({userType: 'coach', isVerifiedCoach: true}).countDocuments();
+      // const totalPendingOrders = await OrderModel.find({status: 'pending'}).countDocuments();
+      response['totalUsers'] = totalUsers
+      response['totalDietPlans'] = totalDietPlans
+      response['totalWorkoutPlans'] = totalWorkoutPlans
+      response['totalVerifiedCoaches'] = totalVerifiedCoaches
+
+      return BaseService.sendSuccessResponse({
+        message: response,
+      });
+
+    } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });

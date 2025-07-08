@@ -704,6 +704,12 @@ router.put(ROUTE_CHALLENGE_TASK, auth, (req, res) => {
  *                           goal:
  *                             type: string
  *                             example: "fourth goal"
+ *                           streak:
+ *                             type: number
+ *                             example: 0
+ *                           status:
+ *                             type: string
+ *                             example: "in-progress"
  *                           startDate:
  *                             type: date
  *                             example: "2025-07-02T15:02:03.521+00:00"
@@ -791,9 +797,18 @@ router.get(ROUTE_GET_DAILY_CHALLENGE, auth, (req, res) => {
  *                           title:
  *                             type: string
  *                             example: "fourth challenge"
+ *                           streak:
+ *                             type: number
+ *                             example: 0
+ *                           status:
+ *                             type: string
+ *                             example: "in-progress"
  *                           goal:
  *                             type: string
  *                             example: "fourth goal"
+ *                           weekCount:
+ *                             type: number
+ *                             example: 23
  *                           startDate:
  *                             type: date
  *                             example: "2025-07-02T15:02:03.521+00:00"

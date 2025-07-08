@@ -24,8 +24,6 @@ exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
 exports.ROUTE_UPGRADE_PLAN = '/upgrade-plan'
 
 //admin
-exports.ROUTE_GET_ALL_USERS = '/get-all-users'
-exports.ROUTE_GET_SAVINGS = '/get-savings'
 exports.ROUTE_DASHBOARD_STAT = '/dashboard-stat'
 
 //challenge

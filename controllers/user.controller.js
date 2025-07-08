@@ -146,6 +146,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, increaseNuggetShareCount.data)
     }
+    async adminDashboardStat(req, res){
+        const userService = new UserService()
+        const adminDashboardStat = await userService.adminDashboardStat(req)
+        if(!adminDashboardStat.success){
+            return BaseController.sendFailedResponse(res, adminDashboardStat.data)
+        }
+        return BaseController.sendSuccessResponse(res, adminDashboardStat.data)
+    }
 }
 
 module.exports = UserController

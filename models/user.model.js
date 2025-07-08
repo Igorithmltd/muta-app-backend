@@ -14,7 +14,10 @@ const UserSchema = new mongoose.Schema(
     weight: { type: String },
     height: { type: String },
     focusArea: [String],
-    fitnessLevel: {type: String, enum: ['beginner', 'intermediate', 'advanced']},
+    fitnessLevel: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced"],
+    },
     // phoneNumber: { type: String, trim: true, unique: true, default: "" },
     googleId: { type: String, unique: true, sparse: true },
     password: { type: String },
@@ -36,19 +39,33 @@ const UserSchema = new mongoose.Schema(
     otp: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
+    isVerifiedCoach: {
+      type: Boolean,
+      default: false,
+      validate: {
+        validator: function (val) {
+          return this.userType === "coach" || val === undefined;
+        },
+        message: "Only users with role 'coach' can have isVerifiedCoach",
+      },
+    },
     servicePlatform: {
       type: String,
       default: "local",
       enum: ["local", "google"],
     },
-    status: { type: String, default: "inactive", enum: ["active", "inactive", "suspended"] },
+    status: {
+      type: String,
+      default: "inactive",
+      enum: ["active", "inactive", "suspended"],
+    },
     subscriptionPlan: {
       type: String,
-      enum: ["basic", "premium"]
+      enum: ["basic", "premium"],
     },
     specialty: [String],
     yearsOfExperience: { type: Number, default: 0 },
-    location: {type: String, trim: true},
+    location: { type: String, trim: true },
   },
   { timestamps: true }
 );
@@ -60,6 +77,11 @@ UserSchema.pre("save", async function (next) {
       const hashPassword = await bcrypt.hash(this.password, 10);
       this.password = hashPassword;
     }
+
+    if (this.userType !== "coach") {
+      this.isVerifiedCoach = undefined;
+    }
+
     next();
   } catch (error) {
     return next(error);
@@ -81,6 +103,7 @@ UserSchema.methods.generateAccessToken = async function (secretToken) {
   );
   return token;
 };
+
 UserSchema.methods.generateRefreshToken = async function (secretToken) {
   const token = jwt.sign(
     {
@@ -92,6 +115,16 @@ UserSchema.methods.generateRefreshToken = async function (secretToken) {
   );
   return token;
 };
+
+UserSchema.pre(/^find/, function (next) {
+  // This refers to the query, not the result
+  if (this.getQuery().userType !== 'coach') {
+    // Optionally exclude coach-only fields for non-coach queries
+    this.select('-isVerifiedCoach -specialty -yearsOfExperience');
+  }
+  next();
+});
+
 
 const UserModel = mongoose.model("User", UserSchema);
 module.exports = UserModel;

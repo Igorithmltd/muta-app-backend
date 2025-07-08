@@ -12,6 +12,7 @@ const {
   ROUTE_UPDATE_NUGGET,
   ROUTE_CREATE_NUGGET,
   ROUTE_UPGRADE_PLAN,
+  ROUTE_DASHBOARD_STAT,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -539,6 +540,53 @@ router.put(ROUTE_INCREASE_NUGGET_SHARE_COUNT + "/:id", auth, (req, res) => {
 router.put(ROUTE_UPGRADE_PLAN, auth, (req, res) => {
   const userController = new UserController();
   return userController.increaseNuggetShareCount(req, res);
+});
+
+/**
+ * @swagger
+ * /admin/dashboard-stat:
+ *   get:
+ *     summary: Get dashboard statistics
+ *     description: Returns dashboard statistics.
+ *     tags:
+ *       - Admin
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: object
+ *                       properties:
+ *                         totalUsers:
+ *                           type: number
+ *                           example: 234
+ *                         totalDietPlans:
+ *                           type: number
+ *                           example: 24
+ *                         totalWorkoutPlans:
+ *                           type: number
+ *                           example: 34
+ *                         totalVerifiedCoaches:
+ *                           type: number
+ *                           example: 54
+ *       400:
+ *         description: Bad request, such as missing or invalid fields
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.adminDashboardStat(req, res);
 });
 
 module.exports = router;
