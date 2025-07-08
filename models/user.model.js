@@ -65,7 +65,10 @@ const UserSchema = new mongoose.Schema(
     },
     specialty: [String],
     yearsOfExperience: { type: Number, default: 0 },
-    location: { type: String, trim: true },
+    dailyStreak: { type: Number, default: 0 },
+    lastDailyStreakDate: { type: Date },
+    weeklyStreak: { type: Number, default: 0 },
+    lastWeeklyStreakWeek: { type: Number },     location: { type: String, trim: true },
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,

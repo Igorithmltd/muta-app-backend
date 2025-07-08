@@ -508,13 +508,13 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
  *     tags:
  *       - Challenges
  *     parameters:
- *       - in: params
- *         name: challengeId
+ *       - in: path
+ *         name: id
  *         schema:
- *           id: string
- *           exapmle: "6863ece6b0d40e2dd2eabe12"
+ *           type: string
+ *         required: true
  *         description: Challenge id
- *         example: 6863ece6b0d40e2dd2eabe12
+ *         example: "6863ece6b0d40e2dd2eabe12"
  *     responses:
  *       200:
  *         description: challenge action returned successfully
@@ -530,76 +530,86 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
  *                   type: object
  *                   properties:
  *                     message:
- *                         type: string
- *                         example: "Challenge joined successfully"
+ *                       type: string
+ *                       example: "Challenge joined successfully"
  *                     userId:
- *                         type: string
- *                         example: "6863ece6b0d40e2dd2eabe12"
+ *                       type: string
+ *                       example: "6863ece6b0d40e2dd2eabe12"
  *                     status:
- *                         type: string
- *                         example: "in-progress"
+ *                       type: string
+ *                       example: "in-progress"
  *                     streak:
- *                         type: number
- *                         example: 0
+ *                       type: number
+ *                       example: 0
  *                     challengeId:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           title:
- *                             type: string
- *                             example: "fourth challenge"
- *                           goal:
- *                             type: string
- *                             example: "fourth goal"
- *                           startDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           endDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           duration:
- *                             type: integer
- *                             example: 30
- *                           durationUnit:
- *                             type: string
- *                             example: "minute"
- *                           type:
- *                             type: string
- *                             example: "daily"
- *                             enum: [weekly, daily]
- *                           difficulty:
- *                             type: string
- *                             example: "advanced"
- *                           tasks:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 buttonLabel:
- *                                   type: string
- *                                   example: "close"
- *                                 title:
- *                                   type: string
- *                                   example: "Open your phone"
- *                                 status:
- *                                   type: string
- *                                   example: "in-progress"
- *                                 _id:
- *                                   type: string
- *                                   example: "6863ece6b0d40e2dd2eabe13"
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: "6863ece6b0d40e2dd2eabe12"
+ *                         title:
+ *                           type: string
+ *                           example: "fourth challenge"
+ *                         goal:
+ *                           type: string
+ *                           example: "fourth goal"
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-02T15:02:03.521+00:00"
+ *                         endDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-08T15:02:03.521+00:00"
+ *                         duration:
+ *                           type: integer
+ *                           example: 30
+ *                         durationUnit:
+ *                           type: string
+ *                           example: "minute"
+ *                         type:
+ *                           type: string
+ *                           example: "daily"
+ *                           enum: [weekly, daily]
+ *                         difficulty:
+ *                           type: string
+ *                           example: "advanced"
+ *                         tasks:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               buttonLabel:
+ *                                 type: string
+ *                                 example: "close"
+ *                               title:
+ *                                 type: string
+ *                                 example: "Open your phone"
+ *                               status:
+ *                                 type: string
+ *                                 example: "in-progress"
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863ece6b0d40e2dd2eabe13"
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T14:12:55.020Z"
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T14:12:55.020Z"
+ *                         __v:
+ *                           type: integer
+ *                           example: 0
+ *                     dailyStreak:
+ *                       type: integer
+ *                       description: User's current daily streak count
+ *                       example: 5
+ *                     weeklyStreak:
+ *                       type: integer
+ *                       description: User's current weekly streak count
+ *                       example: 2
  *       400:
  *         description: Invalid query parameter
  *       500:
@@ -694,70 +704,80 @@ router.put(ROUTE_CHALLENGE_TASK, auth, (req, res) => {
  *                   type: object
  *                   properties:
  *                     message:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           title:
- *                             type: string
- *                             example: "fourth challenge"
- *                           goal:
- *                             type: string
- *                             example: "fourth goal"
- *                           streak:
- *                             type: number
- *                             example: 0
- *                           status:
- *                             type: string
- *                             example: "in-progress"
- *                           startDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           endDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           duration:
- *                             type: integer
- *                             example: 30
- *                           durationUnit:
- *                             type: string
- *                             example: "minute"
- *                           type:
- *                             type: string
- *                             example: "daily"
- *                             enum: [weekly, daily]
- *                           difficulty:
- *                             type: string
- *                             example: "advanced"
- *                           tasks:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 buttonLabel:
- *                                   type: string
- *                                   example: "close"
- *                                 title:
- *                                   type: string
- *                                   example: "Open your phone"
- *                                 status:
- *                                   type: string
- *                                   example: "in-progress"
- *                                 _id:
- *                                   type: string
- *                                   example: "6863ece6b0d40e2dd2eabe13"
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: "6863ece6b0d40e2dd2eabe12"
+ *                         title:
+ *                           type: string
+ *                           example: "fourth challenge"
+ *                         goal:
+ *                           type: string
+ *                           example: "fourth goal"
+ *                         streak:
+ *                           type: number
+ *                           example: 0
+ *                         status:
+ *                           type: string
+ *                           example: "in-progress"
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-02T15:02:03.521+00:00"
+ *                         endDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-02T15:02:03.521+00:00"
+ *                         duration:
+ *                           type: integer
+ *                           example: 30
+ *                         durationUnit:
+ *                           type: string
+ *                           example: "minute"
+ *                         type:
+ *                           type: string
+ *                           example: "daily"
+ *                           enum: [weekly, daily]
+ *                         difficulty:
+ *                           type: string
+ *                           example: "advanced"
+ *                         tasks:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               buttonLabel:
+ *                                 type: string
+ *                                 example: "close"
+ *                               title:
+ *                                 type: string
+ *                                 example: "Open your phone"
+ *                               status:
+ *                                 type: string
+ *                                 example: "in-progress"
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863ece6b0d40e2dd2eabe13"
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T14:12:55.020Z"
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T14:12:55.020Z"
+ *                         __v:
+ *                           type: integer
+ *                           example: 0
+ *                     dailyStreak:
+ *                       type: integer
+ *                       description: User's current daily streak count
+ *                       example: 5
+ *                     weeklyStreak:
+ *                       type: integer
+ *                       description: User's current weekly streak count
+ *                       example: 2
  *       400:
  *         description: Invalid query parameter
  *       500:
@@ -790,73 +810,83 @@ router.get(ROUTE_GET_DAILY_CHALLENGE, auth, (req, res) => {
  *                   type: object
  *                   properties:
  *                     message:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           title:
- *                             type: string
- *                             example: "fourth challenge"
- *                           streak:
- *                             type: number
- *                             example: 0
- *                           status:
- *                             type: string
- *                             example: "in-progress"
- *                           goal:
- *                             type: string
- *                             example: "fourth goal"
- *                           weekCount:
- *                             type: number
- *                             example: 23
- *                           startDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           endDate:
- *                             type: date
- *                             example: "2025-07-02T15:02:03.521+00:00"
- *                           duration:
- *                             type: integer
- *                             example: 30
- *                           durationUnit:
- *                             type: string
- *                             example: "minute"
- *                           type:
- *                             type: string
- *                             example: "weekly"
- *                             enum: [weekly, daily]
- *                           difficulty:
- *                             type: string
- *                             example: "advanced"
- *                           tasks:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 buttonLabel:
- *                                   type: string
- *                                   example: "close"
- *                                 title:
- *                                   type: string
- *                                   example: "Open your phone"
- *                                 status:
- *                                   type: string
- *                                   example: "in-progress"
- *                                 _id:
- *                                   type: string
- *                                   example: "6863ece6b0d40e2dd2eabe13"
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: "6863ece6b0d40e2dd2eabe12"
+ *                         title:
+ *                           type: string
+ *                           example: "fourth challenge"
+ *                         streak:
+ *                           type: number
+ *                           example: 0
+ *                         status:
+ *                           type: string
+ *                           example: "in-progress"
+ *                         goal:
+ *                           type: string
+ *                           example: "fourth goal"
+ *                         weeklyCount:
+ *                           type: number
+ *                           example: 23
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-02T15:02:03.521+00:00"
+ *                         endDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-02T15:02:03.521+00:00"
+ *                         duration:
+ *                           type: integer
+ *                           example: 30
+ *                         durationUnit:
+ *                           type: string
+ *                           example: "minute"
+ *                         type:
+ *                           type: string
+ *                           example: "weekly"
+ *                           enum: [weekly, daily]
+ *                         difficulty:
+ *                           type: string
+ *                           example: "advanced"
+ *                         tasks:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               buttonLabel:
+ *                                 type: string
+ *                                 example: "close"
+ *                               title:
+ *                                 type: string
+ *                                 example: "Open your phone"
+ *                               status:
+ *                                 type: string
+ *                                 example: "in-progress"
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863ece6b0d40e2dd2eabe13"
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T14:12:55.020Z"
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T14:12:55.020Z"
+ *                         __v:
+ *                           type: integer
+ *                           example: 0
+ *                     dailyStreak:
+ *                       type: integer
+ *                       description: User's current daily streak count
+ *                       example: 5
+ *                     weeklyStreak:
+ *                       type: integer
+ *                       description: User's current weekly streak count
+ *                       example: 2
  *       400:
  *         description: Invalid query parameter
  *       500:

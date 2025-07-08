@@ -5,7 +5,7 @@ const ChallengeSchema = new mongoose.Schema(
     title: { type: String, required: true, unique: true },
     goal: { type: String, required: true },
     duration: { type: Number, required: true },
-    streak: { type: Number, default: 0 },
+    // streak: { type: Number, default: 0 },
     status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
     weeklyCount: { type: Number },
     durationUnit: { type: String, required: true, enum: ["minute", "hour"], default: "minute" },

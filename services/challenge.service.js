@@ -1,6 +1,8 @@
 const ChallengeModel = require("../models/challenge.model");
 const ChallengeActionModel = require("../models/challengeAction.model");
+const UserModel = require("../models/user.model");
 const { empty } = require("../util");
+const { getCurrentWeekNumber } = require("../util/helper");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 
@@ -65,7 +67,7 @@ class ChallengeService extends BaseService {
 
         const endDate = new Date(today);
         endDate.setDate(today.getDate() + daysToAdd);
-        console.log({endDate})
+        console.log({ endDate });
         newChallenge.endDate = endDate;
       }
       // return console.log('newChallenge')
@@ -227,7 +229,7 @@ class ChallengeService extends BaseService {
     const newUserChallenge = new ChallengeActionModel({
       userId,
       challengeId: post.challengeId,
-      tasks: challenge.tasks
+      tasks: challenge.tasks,
     });
 
     (await newUserChallenge.save()).populate("challengeId");
@@ -256,12 +258,15 @@ class ChallengeService extends BaseService {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
 
+    // Load challenge
     const challenge = await ChallengeModel.findById(post.challengeId);
     if (!challenge) {
       return BaseService.sendFailedResponse({
         error: "Challenge not found",
       });
     }
+
+    // Load user's challenge action
     const challengeAction = await ChallengeActionModel.findOne({
       userId,
       challengeId: post.challengeId,
@@ -273,6 +278,7 @@ class ChallengeService extends BaseService {
       });
     }
 
+    // Find the task to mark
     const challengeTask = challengeAction.tasks.find(
       (task) => task._id.toString() === post.challengeTaskId
     );
@@ -282,46 +288,131 @@ class ChallengeService extends BaseService {
         error: "Challenge task not found",
       });
     }
- 
+
+    // If challenge already completed, return
     if (challengeAction.status === "completed") {
       return BaseService.sendSuccessResponse({
         message: "You have already completed this challenge",
       });
     }
+
+    // If task already completed, return
     if (challengeTask.status === "completed") {
       return BaseService.sendSuccessResponse({
         message: "You have already completed this task",
       });
     }
-    // if (challengeAction.streak >= challengeAction.tasks.length) {
-    //   return BaseService.sendSuccessResponse({
-    //     message: "You are all done",
-    //   });
-    // }
+
+    // Mark the task as completed
     challengeTask.status = "completed";
-    if (challengeAction.streak >= challengeAction.tasks.length) {
+
+    // Check if all tasks are now completed
+    const allTasksCompleted = challengeAction.tasks.every(
+      (task) => task.status === "completed"
+    );
+
+    // If all tasks completed, mark challenge action as completed
+    if (allTasksCompleted) {
       challengeAction.status = "completed";
-      challengeAction.streak += 1;
+      // You may want to increment streak here, but we'll handle that in user streak logic below
     }
+
     await challengeAction.save();
 
+    // Now update/reset user streaks based on challenge type and completion status
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return BaseService.sendFailedResponse({ error: "User not found" });
+    }
+
+    const todayStr = new Date().toDateString();
+    const currentWeek = getCurrentWeekNumber();
+
+    if (challenge.type === "daily") {
+      // If user missed any task for today, reset streak; else increment if first completion today
+      const missedTask = challengeAction.tasks.some(
+        (task) => task.status !== "completed"
+      );
+
+      if (missedTask) {
+        user.dailyStreak = 0;
+        user.lastDailyStreakDate = null;
+      } else {
+        if (
+          !user.lastDailyStreakDate ||
+          new Date(user.lastDailyStreakDate).toDateString() !== todayStr
+        ) {
+          user.dailyStreak = (user.dailyStreak || 0) + 1;
+          user.lastDailyStreakDate = new Date();
+        }
+      }
+    }
+
+    if (challenge.type === "weekly") {
+      // Fetch all daily challenges for this user in current week
+      const dailyChallengesThisWeek = await this.getUserDailyChallengesForWeek(
+        userId,
+        currentWeek
+      );
+
+      // Check if any daily challenge has incomplete tasks
+      const missedDayExists = dailyChallengesThisWeek.some((dc) =>
+        dc.tasks.some((task) => task.status !== "completed")
+      );
+
+      if (missedDayExists) {
+        // Reset weekly streak
+        user.weeklyStreak = 0;
+        user.lastWeeklyStreakWeek = null;
+      } else {
+        // All daily challenges complete for the week, increment streak if not done this week
+        if (user.lastWeeklyStreakWeek !== currentWeek) {
+          user.weeklyStreak = (user.weeklyStreak || 0) + 1;
+          user.lastWeeklyStreakWeek = currentWeek;
+        }
+      }
+    }
+
+    await user.save();
+
     return BaseService.sendSuccessResponse({
-      message: "Task marked as completed"
+      message: "Task marked as completed",
     });
   }
   async getChallengeAction(req) {
     try {
       const challengeId = req.params.id;
-      const userId = req.user.id
+    const userId = req.user.id;
 
-      const challengeAction = await ChallengeActionModel.findOne({challengeId: challengeId, userId: userId}).populate("challengeId");
-      if (!challengeAction) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge action not found",
-        });
-      }
+    // Find the challenge action with populated challenge details
+    const challengeAction = await ChallengeActionModel.findOne({
+      challengeId,
+      userId,
+    }).populate("challengeId");
 
-      return BaseService.sendSuccessResponse({ message: challengeAction });
+    if (!challengeAction) {
+      return BaseService.sendFailedResponse({
+        error: "Challenge action not found",
+      });
+    }
+
+    // Fetch the user to get streak counts
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return BaseService.sendFailedResponse({
+        error: "User not found",
+      });
+    }
+
+    // Prepare response with streak info added
+    const responseData = {
+      challengeAction,
+      dailyStreak: user.dailyStreak || 0,
+      weeklyStreak: user.weeklyStreak || 0,
+    };
+
+    return BaseService.sendSuccessResponse({ message: responseData });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -329,14 +420,33 @@ class ChallengeService extends BaseService {
   }
   async getDailyChallenge(req) {
     try {
-      const dailyChallenge = await ChallengeModel.findOne({ type: 'daily' }).sort({ _id: -1 });
-      if (!dailyChallenge) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge not found",
-        });
-      }
+      const userId = req.user.id;
 
-      return BaseService.sendSuccessResponse({ message: dailyChallenge });
+    const dailyChallenge = await ChallengeModel.findOne({
+      type: "daily",
+    }).sort({ _id: -1 });
+
+    if (!dailyChallenge) {
+      return BaseService.sendFailedResponse({
+        error: "Challenge not found",
+      });
+    }
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return BaseService.sendFailedResponse({
+        error: "User not found",
+      });
+    }
+
+    return BaseService.sendSuccessResponse({
+      message: {
+        dailyChallenge,
+        dailyStreak: user.dailyStreak || 0,
+        weeklyStreak: user.weeklyStreak || 0,
+      },
+    });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -344,14 +454,33 @@ class ChallengeService extends BaseService {
   }
   async getWeeklyChallenge(req) {
     try {
-      const weeklyChallenge = await ChallengeModel.findOne({ type: 'weekly' }).sort({ _id: -1 });
-      if (!weeklyChallenge) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge not found",
-        });
-      }
-      console.log(weeklyChallenge, "weeklyChallenge")
-      return BaseService.sendSuccessResponse({ message: weeklyChallenge });
+      const userId = req.user.id;
+
+    const weeklyChallenge = await ChallengeModel.findOne({
+      type: "weekly",
+    }).sort({ _id: -1 });
+
+    if (!weeklyChallenge) {
+      return BaseService.sendFailedResponse({
+        error: "Challenge not found",
+      });
+    }
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return BaseService.sendFailedResponse({
+        error: "User not found",
+      });
+    }
+
+    return BaseService.sendSuccessResponse({
+      message: {
+        weeklyChallenge,
+        dailyStreak: user.dailyStreak || 0,
+        weeklyStreak: user.weeklyStreak || 0,
+      },
+    });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -394,15 +523,13 @@ class ChallengeService extends BaseService {
       }
 
       // Reset progress, status, and all daily task statuses
-      challengeAction.streak = 0;
+      // challengeAction.streak = 0;
       challengeAction.status = "in-progress";
 
-      challengeAction.tasks = challengeAction.tasks.map(
-        (task) => ({
-          ...task.toObject(),
-          status: "in-progress",
-        })
-      );
+      challengeAction.tasks = challengeAction.tasks.map((task) => ({
+        ...task.toObject(),
+        status: "in-progress",
+      }));
 
       await challengeAction.save();
 
@@ -414,6 +541,22 @@ class ChallengeService extends BaseService {
         error: this.server_error_message,
       });
     }
+  }
+
+  async getUserDailyChallengesForWeek(userId, weekNumber) {
+    const dailyChallengeActions = await ChallengeActionModel.find({
+      userId,
+    }).populate("challengeId");
+  
+    return dailyChallengeActions.filter(ca => {
+      if (!ca.challengeId) return false;
+      if (ca.challengeId.type !== "daily") return false;
+  
+      const startWeek = getCurrentWeekNumber(ca.challengeId.startDate);
+      const endWeek = getCurrentWeekNumber(ca.challengeId.endDate || ca.challengeId.startDate);
+  
+      return weekNumber >= startWeek && weekNumber <= endWeek;
+    });
   }
 }
 
