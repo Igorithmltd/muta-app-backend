@@ -80,6 +80,13 @@ exports.ROUTE_GET_CART = '/get-cart'
 exports.ROUTE_UPDATE_CART = '/update-cart'
 exports.ROUTE_REMOVE_FROM_CART = '/remove-from-cart'
 
+//orders
+exports.ROUTE_CREATE_ORDER = '/create-order'
+exports.ROUTE_GET_ALL_ORDERS = '/get-all-orders'
+exports.ROUTE_GET_ORDER = '/get-order'
+exports.ROUTE_UPDATE_ORDER = '/update-order'
+exports.ROUTE_DELETE_ORDER = '/delete-order'
+
 
 //seeding
 exports.ROUTE_SEED = '/seed'

@@ -298,10 +298,10 @@ class ChallengeService extends BaseService {
     //     message: "You are all done",
     //   });
     // }
-    challengeAction.streak += 1;
     challengeTask.status = "completed";
     if (challengeAction.streak >= challengeAction.tasks.length) {
       challengeAction.status = "completed";
+      challengeAction.streak += 1;
     }
     await challengeAction.save();
 
