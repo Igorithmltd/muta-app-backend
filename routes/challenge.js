@@ -508,11 +508,11 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
  *       - Challenges
  *     parameters:
  *       - in: params
- *         name: type
+ *         name: challengeId
  *         schema:
  *           id: string
  *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Challenge action id
+ *         description: Challenge id
  *         example: 6863ece6b0d40e2dd2eabe12
  *     responses:
  *       200:

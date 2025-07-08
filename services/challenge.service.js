@@ -312,9 +312,10 @@ class ChallengeService extends BaseService {
 
   async getChallengeAction(req) {
     try {
-      const challengeActionId = req.params.id;
+      const challengeId = req.params.id;
+      const userId = req.user.id
 
-      const challengeAction = await ChallengeActionModel.findById(challengeActionId).populate("challengeId");
+      const challengeAction = await ChallengeActionModel.findOne({challengeId: challengeId, userId: userId}).populate("challengeId");
       if (!challengeAction) {
         return BaseService.sendFailedResponse({
           error: "Challenge action not found",
