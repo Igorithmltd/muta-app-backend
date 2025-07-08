@@ -178,6 +178,24 @@ class CartService extends BaseService {
       });
     }
   }
+  async getCart(req) {
+    try {
+      const userId = req.user.id;
+      
+      let cart = await CartModel.findOne({ user: userId });
+      if (!cart) {
+        return BaseService.sendFailedResponse({ error: "Cart not found" });
+      }
+
+      return BaseService.sendSuccessResponse({
+        message: cart,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
 }
 
 module.exports = CartService;

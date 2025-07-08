@@ -74,6 +74,12 @@ exports.ROUTE_GET_PRODUCT_CATEGORY = '/get-product-category'
 exports.ROUTE_UPDATE_PRODUCT_CATEGORY = '/update-product-category'
 exports.ROUTE_DELETE_PRODUCT_CATEGORY = '/delete-product-category'
 
+//cart
+exports.ROUTE_ADD_TO_CART = '/add-to-cart'
+exports.ROUTE_GET_CART = '/get-cart'
+exports.ROUTE_UPDATE_CART = '/update-cart'
+exports.ROUTE_REMOVE_FROM_CART = '/remove-from-cart'
+
 
 //seeding
 exports.ROUTE_SEED = '/seed'
