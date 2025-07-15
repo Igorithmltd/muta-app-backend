@@ -223,6 +223,7 @@ class ChallengeService extends BaseService {
     if (joinedChallenge) {
       return BaseService.sendSuccessResponse({
         message: "You have already joined this challenge",
+        challenge: joinedChallenge,
       });
     }
 

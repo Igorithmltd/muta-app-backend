@@ -18,15 +18,15 @@ const ChallengeSchema = new mongoose.Schema(
         status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
       }
     ],
-    startDate: { type: Date, default: Date.now },
-    endDate: { type: Date },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
   },
   { timestamps: true }
 );
 
 
 ChallengeSchema.pre("save", function (next) {
-  if (this.type === "weekly" && !this.endDate) {
+  if(this.type === "weekly" && !this.endDate) {
     const today = new Date(this.startDate || Date.now());
     const endDate = new Date(today);
     endDate.setDate(today.getDate() + 6); // Adds 6 days
