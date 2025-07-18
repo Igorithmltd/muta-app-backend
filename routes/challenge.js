@@ -425,9 +425,6 @@ router.delete(ROUTE_DELETE_CHALLENGE + "/:id", adminAuth, (req, res) => {
  *                     status:
  *                         type: string
  *                         example: "in-progress"
- *                     streak:
- *                         type: number
- *                         example: 0
  *                     challenge:
  *                         type: object
  *                         properties:
@@ -538,9 +535,6 @@ router.put(ROUTE_JOIN_CHALLENGE, auth, (req, res) => {
  *                     status:
  *                       type: string
  *                       example: "in-progress"
- *                     streak:
- *                       type: number
- *                       example: 0
  *                     challengeId:
  *                       type: object
  *                       properties:
@@ -715,9 +709,6 @@ router.put(ROUTE_CHALLENGE_TASK, auth, (req, res) => {
  *                         goal:
  *                           type: string
  *                           example: "fourth goal"
- *                         streak:
- *                           type: number
- *                           example: 0
  *                         status:
  *                           type: string
  *                           example: "in-progress"
@@ -818,9 +809,6 @@ router.get(ROUTE_GET_DAILY_CHALLENGE, auth, (req, res) => {
  *                         title:
  *                           type: string
  *                           example: "fourth challenge"
- *                         streak:
- *                           type: number
- *                           example: 0
  *                         status:
  *                           type: string
  *                           example: "in-progress"
