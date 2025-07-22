@@ -492,9 +492,7 @@ class DietServicee extends BaseService {
       const { title } = req.query;
 
       if (!title) {
-        return res
-          .status(400)
-          .json({ message: "Title query parameter is required" });
+        return BaseService.sendFailedResponse({ error: "Title query parameter is required" });
       }
       const diets = await DietModel.find({
         title: { $regex: title, $options: "i" },
@@ -511,17 +509,36 @@ class DietServicee extends BaseService {
   async getDietByCategory() {
     try {
       const { id } = req.params;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
       if (!id) {
-        return res.status(400).json({ message: "Category ID is required" });
+        return BaseService.sendFailedResponse({ error: "Category ID is required" });
       }
 
-      const diets = await DietModel.find({ category: id }).populate(
-        "category"
-      );
+      const [allDiet, totalCount] = await Promise.all([
+        DietModel.find({category: id})
+          .populate("category")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        DietModel.find({category: id}).countDocuments(),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / limit);
 
       return BaseService.sendSuccessResponse({
-        message: diets,
+        message: "Diets fetched successfully.",
+        data: {
+          diets: allDiet,
+          pagination: {
+            totalCount,
+            totalPages,
+            currentPage: page,
+            pageSize: limit,
+          },
+        },
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
