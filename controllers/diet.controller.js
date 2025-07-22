@@ -83,6 +83,30 @@ class DietController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, activeDiets.data)
     }
+    async getDietCategories(req, res){
+        const dietService = new DietService()
+        const getDietCategories = await dietService.getDietCategories(req)
+        if(!getDietCategories.success){
+            return BaseController.sendFailedResponse(res, getDietCategories.data)
+        }
+        return BaseController.sendSuccessResponse(res, getDietCategories.data)
+    }
+    async searchDietByTitle(req, res){
+        const dietService = new DietService()
+        const searchDietByTitle = await dietService.searchDietByTitle(req)
+        if(!searchDietByTitle.success){
+            return BaseController.sendFailedResponse(res, searchDietByTitle.data)
+        }
+        return BaseController.sendSuccessResponse(res, searchDietByTitle.data)
+    }
+    async getDietByCategory(req, res){
+        const dietService = new DietService()
+        const getDietByCategory = await dietService.getDietByCategory(req)
+        if(!getDietByCategory.success){
+            return BaseController.sendFailedResponse(res, getDietByCategory.data)
+        }
+        return BaseController.sendSuccessResponse(res, getDietByCategory.data)
+    }
 }
 
 module.exports = DietController;

@@ -22,7 +22,7 @@ class UserService extends BaseService {
       const validateRule = {
         email: "email|required",
         password: "string|required",
-        userType: "string|required"
+        userType: "string|required",
       };
 
       const validateMessage = {
@@ -86,7 +86,7 @@ class UserService extends BaseService {
 
       const validateRule = {
         idToken: "string|required",
-        userType: "string|required"
+        userType: "string|required",
       };
 
       const validateMessage = {
@@ -98,13 +98,12 @@ class UserService extends BaseService {
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-      
+
       const ticket = await client.verifyIdToken({
         idToken: post.idToken,
         audience: GOOGLE_CLIENT_ID,
       });
 
-      
       const payload = ticket.getPayload();
       const {
         sub: googleId,
@@ -114,14 +113,16 @@ class UserService extends BaseService {
         given_name,
         family_name,
       } = payload;
-      
-      const username = email ? email.split('@')[0] : name?.replace(/\s+/g, '').toLowerCase();
-      
-      const firstName = given_name || name?.split(' ')[0] || '';
-      const lastName = family_name || name?.split(' ').slice(1).join(' ') || '';
-      
+
+      const username = email
+        ? email.split("@")[0]
+        : name?.replace(/\s+/g, "").toLowerCase();
+
+      const firstName = given_name || name?.split(" ")[0] || "";
+      const lastName = family_name || name?.split(" ").slice(1).join(" ") || "";
+
       // Check if user exists in DB, otherwise create (pseudo code)
-      const userWithSub = await UserModel.findOne({googleId, email});
+      const userWithSub = await UserModel.findOne({ googleId, email });
 
       if (userWithSub) {
         const accessToken = await userWithSub.generateAccessToken(
@@ -130,7 +131,11 @@ class UserService extends BaseService {
         const refreshToken = await userWithSub.generateRefreshToken(
           process.env.REFRESH_TOKEN_SECRET || ""
         );
-        return BaseService.sendSuccessResponse({message: accessToken, user: userWithSub, refreshToken})
+        return BaseService.sendSuccessResponse({
+          message: accessToken,
+          user: userWithSub,
+          refreshToken,
+        });
       }
 
       const userObject = {
@@ -139,15 +144,14 @@ class UserService extends BaseService {
         lastName,
         username,
         email,
-        image: {imageUrl: picture, publicId: ""},
+        image: { imageUrl: picture, publicId: "" },
         isVerified: true,
-        userType: post.userType
-      }
-      
-      
-      const newUser = new UserModel(userObject)
+        userType: post.userType,
+      };
 
-      await newUser.save()
+      const newUser = new UserModel(userObject);
+
+      await newUser.save();
 
       // Generate your own JWT/session token
       const accessToken = await newUser.generateAccessToken(
@@ -173,11 +177,13 @@ class UserService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: accessToken,
         user: newUser,
-        refreshToken
+        refreshToken,
       });
     } catch (error) {
       console.log(error);
-      return BaseService.sendFailedResponse({ error: this.server_error_message });
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
   async verifyOTP(req) {
@@ -205,19 +211,19 @@ class UserService extends BaseService {
       const userExists = await UserModel.findOne({ email });
       if (empty(userExists)) {
         return BaseService.sendFailedResponse({
-          error: "User not found. Please try again later"
+          error: "User not found. Please try again later",
         });
       }
 
       if (empty(userExists.otp)) {
-        return BaseService.sendFailedResponse({error: "OTP not found"});
+        return BaseService.sendFailedResponse({ error: "OTP not found" });
       }
 
       if (userExists.otp !== otp) {
-        return BaseService.sendFailedResponse({error: "Invalid OTP"});
+        return BaseService.sendFailedResponse({ error: "Invalid OTP" });
       }
       if (userExists.otpExpiresAt < new Date()) {
-        return BaseService.sendFailedResponse({error: "OTP expired"});
+        return BaseService.sendFailedResponse({ error: "OTP expired" });
       }
 
       userExists.isVerified = true;
@@ -241,7 +247,7 @@ class UserService extends BaseService {
         message: "OTP verified successfullly",
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({ error });
     }
   }
@@ -282,16 +288,18 @@ class UserService extends BaseService {
         );
       }
 
-      if(userExists.servicePlatform !== "local") {
-        return BaseService.sendSuccessResponse({ error: `Please login using the ${userExists.servicePlatform} platform` });
+      if (userExists.servicePlatform !== "local") {
+        return BaseService.sendSuccessResponse({
+          error: `Please login using the ${userExists.servicePlatform} platform`,
+        });
       }
 
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
-          error: "Wrong email or password"
+          error: "Wrong email or password",
         });
       }
-      
+
       const accessToken = await userExists.generateAccessToken(
         process.env.ACCESS_TOKEN_SECRET || ""
       );
@@ -309,7 +317,11 @@ class UserService extends BaseService {
       // res.header("Authorization", `Bearer ${accessToken}`);
       // res.header("refresh_token", `Bearer ${refreshToken}`);
 
-      return BaseService.sendSuccessResponse({ message: accessToken, user: userExists, refreshToken });
+      return BaseService.sendSuccessResponse({
+        message: accessToken,
+        user: userExists,
+        refreshToken,
+      });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse({ error });
@@ -697,27 +709,29 @@ class UserService extends BaseService {
       });
     } catch (err) {
       console.log(err, "the err");
-      return BaseService.sendFailedResponse({ error: "Something went wrong. Please try again later." });
+      return BaseService.sendFailedResponse({
+        error: "Something went wrong. Please try again later.",
+      });
     }
   }
   async completeOnboarding(req) {
     try {
       const post = req.body;
       const userId = req.user.id;
-      const userType = req.user
+      const userType = req.user;
 
       let validateRule = {
         firstName: "string|required",
         lastName: "string|required",
         gender: "string|required",
-      }
+      };
 
-      if(userType){
-        if(userType == 'user'){
-          validateRule.age = "integer|required"
-        }else{
-          validateRule.yearsOfExperience = "integer|required"
-          validateRule.location = "string|required"
+      if (userType) {
+        if (userType == "user") {
+          validateRule.age = "integer|required";
+        } else {
+          validateRule.yearsOfExperience = "integer|required";
+          validateRule.location = "string|required";
         }
       }
 
@@ -725,7 +739,7 @@ class UserService extends BaseService {
         required: ":attribute is required",
         string: ":attribute must be a string",
         integer: ":attribute must be a string",
-        array: ":attribute must be an array"
+        array: ":attribute must be an array",
       };
 
       const validateResult = validateData(post, validateRule, validateMessage);
@@ -739,50 +753,61 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      
-      if(userType == 'user'){
-        if(post.fitnessLevel && !["beginner", "intermediate", "advanced"].includes(post.fitnessLevel)) {
-          return BaseService.sendFailedResponse({ error: "Invalid fitness level" });
+      if (userType == "user") {
+        if (
+          post.fitnessLevel &&
+          !["beginner", "intermediate", "advanced"].includes(post.fitnessLevel)
+        ) {
+          return BaseService.sendFailedResponse({
+            error: "Invalid fitness level",
+          });
         }
-        if(post.focusArea && !Array.isArray(post.focusArea)) {
-          return BaseService.sendFailedResponse({ error: "Focus area must be an array" });
+        if (post.focusArea && !Array.isArray(post.focusArea)) {
+          return BaseService.sendFailedResponse({
+            error: "Focus area must be an array",
+          });
         }
-      }else{
-        if(post.specialty && !Array.isArray(post.specialty)) {
-          return BaseService.sendFailedResponse({ error: "Specialty must be an array" });
+      } else {
+        if (post.specialty && !Array.isArray(post.specialty)) {
+          return BaseService.sendFailedResponse({
+            error: "Specialty must be an array",
+          });
         }
       }
-      const userExists = await UserModel.findById(userId)
+      const userExists = await UserModel.findById(userId);
 
-      if(userExists.isRegistrationComplete){
+      if (userExists.isRegistrationComplete) {
         return BaseService.sendSuccessResponse({
           message: "Onboarding completed successfully",
         });
       }
 
-
       const onboardingData = {
         age: post.age,
         gender: post.gender,
         firstName: post.firstName,
-        ...(post.weight && {weight: post.weight}),
-        ...(post.height && {height: post.height}),
-        ...(post.focusArea && {focusArea: post.focusArea}),
-        ...(post.fitnessLevel && {fitnessLevel: post.fitnessLevel}),
-        ...(post.specialty && {specialty: post.specialty}),
-        ...(post.location && {location: post.location}),
-        ...(post.yearsOfExperience && {yearsOfExperience: post.yearsOfExperience}),
+        ...(post.weight && { weight: post.weight }),
+        ...(post.height && { height: post.height }),
+        ...(post.focusArea && { focusArea: post.focusArea }),
+        ...(post.fitnessLevel && { fitnessLevel: post.fitnessLevel }),
+        ...(post.specialty && { specialty: post.specialty }),
+        ...(post.location && { location: post.location }),
+        ...(post.yearsOfExperience && {
+          yearsOfExperience: post.yearsOfExperience,
+        }),
         isRegistrationComplete: true,
-      }
-      
-      await UserModel.findByIdAndUpdate(userId, onboardingData, {new: true});
+      };
+
+      await UserModel.findByIdAndUpdate(userId, onboardingData, { new: true });
 
       return BaseService.sendSuccessResponse({
         message: "Onboarding completed successfully",
       });
     } catch (err) {
-      console.log(err)
-      return BaseService.sendFailedResponse({ error: "Something went wrong. Please try again later." });
+      console.log(err);
+      return BaseService.sendFailedResponse({
+        error: "Something went wrong. Please try again later.",
+      });
     }
   }
   async profileImageUpload(req) {
@@ -821,8 +846,8 @@ class UserService extends BaseService {
   }
   async getDailyNugget(req) {
     try {
-      const userId = req.user.id
-      const today = new Date().toISOString().split('T')[0];
+      const userId = req.user.id;
+      const today = new Date().toISOString().split("T")[0];
       const nuggets = await NuggetModel.find();
 
       // Simple hash function based on date string
@@ -830,14 +855,14 @@ class UserService extends BaseService {
       for (let i = 0; i < today.length; i++) {
         hash = today.charCodeAt(i) + ((hash << 5) - hash);
       }
-      
+
       const index = Math.abs(hash) % nuggets.length;
 
       const nugget = nuggets[index];
       const hasLiked = nugget.likedBy.includes(userId);
-    
+
       return BaseService.sendSuccessResponse({
-        message: {nugget, hasLiked},
+        message: { nugget, hasLiked },
       });
     } catch (error) {
       console.log(error);
@@ -848,8 +873,8 @@ class UserService extends BaseService {
   }
   async likeUnLikeNugget(req) {
     try {
-      const userId = req.user.id
-      const nuggetId = req.params.id
+      const userId = req.user.id;
+      const nuggetId = req.params.id;
       const nugget = await NuggetModel.findById(nuggetId);
 
       if (empty(nugget)) {
@@ -858,18 +883,20 @@ class UserService extends BaseService {
         });
       }
       const hasLiked = nugget.likedBy.includes(userId);
-      let likeNugget = false
+      let likeNugget = false;
       if (hasLiked) {
-        likeNugget = false
-        nugget.likedBy = nugget.likedBy.filter(id => id.toString() !== userId);
+        likeNugget = false;
+        nugget.likedBy = nugget.likedBy.filter(
+          (id) => id.toString() !== userId
+        );
         nugget.likes -= 1;
       } else {
-        likeNugget = true
+        likeNugget = true;
         nugget.likedBy.push(userId);
         nugget.likes += 1;
       }
       await nugget.save();
-    
+
       return BaseService.sendSuccessResponse({
         message: `${likeNugget ? "Liked" : "Unliked"} nugget successfully`,
       });
@@ -882,10 +909,10 @@ class UserService extends BaseService {
   }
   async editNugget(req) {
     try {
-      const nuggetId = req.params.id
+      const nuggetId = req.params.id;
       const nugget = await NuggetModel.findById(nuggetId);
 
-      const post = req.body
+      const post = req.body;
       const validateRule = {
         title: "string|required",
       };
@@ -905,7 +932,7 @@ class UserService extends BaseService {
       }
       nugget.title = post.title || nugget.title;
       await nugget.save();
-    
+
       return BaseService.sendSuccessResponse({
         message: "nugget updated successfully",
       });
@@ -918,8 +945,8 @@ class UserService extends BaseService {
   }
   async increaseNuggetDownloadCount(req) {
     try {
-      const userId = req.user.id
-      const nuggetId = req.params.id
+      const userId = req.user.id;
+      const nuggetId = req.params.id;
       const nugget = await NuggetModel.findById(nuggetId);
 
       if (empty(nugget)) {
@@ -936,8 +963,7 @@ class UserService extends BaseService {
         nugget.downloadedBy.push(userId);
         await nugget.save();
       }
-      
-    
+
       return BaseService.sendSuccessResponse({
         message: "nugget successfully downloaded",
       });
@@ -950,8 +976,8 @@ class UserService extends BaseService {
   }
   async increaseNuggetShareCount(req) {
     try {
-      const userId = req.user.id
-      const nuggetId = req.params.id
+      const userId = req.user.id;
+      const nuggetId = req.params.id;
       const nugget = await NuggetModel.findById(nuggetId);
 
       if (empty(nugget)) {
@@ -968,8 +994,7 @@ class UserService extends BaseService {
         nugget.sharedBy.push(userId);
         await nugget.save();
       }
-      
-    
+
       return BaseService.sendSuccessResponse({
         message: "nugget shared successfully",
       });
@@ -988,37 +1013,198 @@ class UserService extends BaseService {
     const bmi = weight / (heightInMeters * heightInMeters);
     return parseFloat(bmi.toFixed(2)); // Return BMI rounded to two decimal places
 
-      //     | BMI Range   | Category          |
-      // | ----------- | ----------------- |
-      // | < 18.5      | Underweight       |
-      // | 18.5 – 24.9 | Normal weight     |
-      // | 25.0 – 29.9 | Overweight        |
-      // | 30.0 – 34.9 | Obese (Class I)   |
-      // | 35.0 – 39.9 | Obese (Class II)  |
-      // | ≥ 40.0      | Obese (Class III) |
-
+    //     | BMI Range   | Category          |
+    // | ----------- | ----------------- |
+    // | < 18.5      | Underweight       |
+    // | 18.5 – 24.9 | Normal weight     |
+    // | 25.0 – 29.9 | Overweight        |
+    // | 30.0 – 34.9 | Obese (Class I)   |
+    // | 35.0 – 39.9 | Obese (Class II)  |
+    // | ≥ 40.0      | Obese (Class III) |
   }
-  async adminDashboardStat(){
+  async adminDashboardStat() {
     try {
-      const response = {}
-      const totalUsers = await UserModel.find({userType: 'user'}).countDocuments();
+      const response = {};
+      const totalUsers = await UserModel.find({
+        userType: "user",
+      }).countDocuments();
       const totalDietPlans = await DietModel.countDocuments();
       const totalWorkoutPlans = await WorkoutPlanModel.countDocuments();
-      const totalVerifiedCoaches = await UserModel.find({userType: 'coach', isVerifiedCoach: true}).countDocuments();
+      const totalVerifiedCoaches = await UserModel.find({
+        userType: "coach",
+        isVerifiedCoach: true,
+      }).countDocuments();
       // const totalPendingOrders = await OrderModel.find({status: 'pending'}).countDocuments();
-      response['totalUsers'] = totalUsers
-      response['totalDietPlans'] = totalDietPlans
-      response['totalWorkoutPlans'] = totalWorkoutPlans
-      response['totalVerifiedCoaches'] = totalVerifiedCoaches
+      response["totalUsers"] = totalUsers;
+      response["totalDietPlans"] = totalDietPlans;
+      response["totalWorkoutPlans"] = totalWorkoutPlans;
+      response["totalVerifiedCoaches"] = totalVerifiedCoaches;
 
       return BaseService.sendSuccessResponse({
         message: response,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async applyCoachVerificationBadge() {
+    try {
+      const userId = req.user.id
+      const post = req.body;
+      const validateRule = {
+        firstName: "string|required",
+        lastName: "string|required",
+        governmentIssuedId: "object|required",
+        "governmentIssuedId.imageUrl": "string|required",
+        "governmentIssuedId.publicId": "string|required",
+        coachCertificate: "object|required",
+        "coachCertificate.imageUrl": "string|required",
+        "coachCertificate.publicId": "string|required",
+        yearsOfExperience: "integer|required",
+      };
+      const validateMessage = {
+        required: ":attribute is required",
+        string: ":attribute must be a string",
+      };
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      user.coachVerification = {
+        status: "pending",
+        firstName: post.firstName,
+        lastName: post.lastName,
+        governmentIssuedId: post.governmentIssuedId,
+        coachCertificate: post.coachCertificate,
+        yearsOfExperience: post.yearsOfExperience,
+        submittedAt: new Date(),
+        reviewedAt: null,
+        reviewedBy: null,
+      };
+
+      await user.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Coach verification application submitted successfully",
       });
 
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
+    }
+  }
+  async logUserWeight(req, res) {
+    try {
+      const userId = req.user.id;
+
+      const { value, unit } = req.body;
+
+      const validateRule = {
+        value: "numeric|required|min:1",
+        unit: "string|in:kg,lbs",
+      };
+
+      const validateResult = validateData(req.body, validateRule, {
+        required: ":attribute is required.",
+        "in.unit": "Weight unit must be either 'kg' or 'lbs'.",
+      });
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found." });
+      }
+
+      user.weight = {
+        value: Number(value),
+        unit: unit || "kg",
+        updatedAt: new Date(),
+      };
+
+      await user.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Weight updated successfully",
+        data: user.weight,
+      });
+    } catch (err) {
+      console.error(err);
+      return BaseService.sendFailedResponse("Internal server error");
+    }
+  }
+  async getCoachApplications(req, res) {
+    try {
+      const { status } = req.query;
+      const query = status ? { "coachVerification.status": status } : {};
+  
+      const coaches = await UserModel.find(query, {
+        password: 0
+      }).sort({ "coachVerification.submittedAt": -1 });
+  
+      return BaseService.sendSuccessResponse({ data: coaches });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({ error: "Failed to fetch coach applications" });
+    }
+  }
+  async approveCoach(req, res) {
+    try {
+      const adminId = req.user.id; // Assuming this is an admin
+      const { userId } = req.params;
+  
+      const user = await UserModel.findById(userId);
+      if (!user || !user.coachVerification) {
+        return BaseService.sendFailedResponse({ error: "User or application not found" });
+      }
+  
+      user.coachVerification.status = "approved";
+      user.coachVerification.reviewedAt = new Date();
+      user.coachVerification.reviewedBy = adminId;
+  
+      await user.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: "Coach application approved successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({ error: "Failed to approve application" });
+    }
+  }
+  async rejectCoach(req, res) {
+    try {
+      const adminId = req.user.id;
+      const { userId } = req.params;
+  
+      const user = await UserModel.findById(userId);
+      if (!user || !user.coachVerification) {
+        return BaseService.sendFailedResponse({ error: "User or application not found" });
+      }
+  
+      user.coachVerification.status = "rejected";
+      user.coachVerification.reviewedAt = new Date();
+      user.coachVerification.reviewedBy = adminId;
+  
+      await user.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: "Coach application rejected successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({ error: "Failed to reject application" });
     }
   }
 }

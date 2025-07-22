@@ -13,6 +13,11 @@ const {
   ROUTE_CREATE_NUGGET,
   ROUTE_UPGRADE_PLAN,
   ROUTE_DASHBOARD_STAT,
+  ROUTE_LOG_WEIGHT,
+  ROUTE_COACH_VERIFICATION_APPLY,
+  ROUTE_COACH_VERIFICATIONS,
+  ROUTE_COACH_VERIFICATION_REJECT,
+  ROUTE_COACH_VERIFICATION_APPROVE,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -178,16 +183,23 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res) => {
  *                 description: Optional fitness level
  *                 example: intermediate
  *               weight:
- *                 type: string
+ *                 type: object
  *                 description: Optional weight of the user
- *                 example: "178 lbs"
+ *                 properties:
+ *                   value:
+ *                     type: number
+ *                     example: 72.5
+ *                   unit:
+ *                     type: string
+ *                     enum: [kg, lbs]
+ *                     example: kg
  *               height:
  *                 type: string
  *                 description: Optional height of the user
  *                 example: "5'7\""
  *               location:
  *                 type: string
- *                 description: Optional height of the user
+ *                 description: Optional location of the user
  *                 example: "Awka, NG"
  *               yearsOfExperience:
  *                 type: integer
@@ -544,7 +556,7 @@ router.put(ROUTE_UPGRADE_PLAN, auth, (req, res) => {
 
 /**
  * @swagger
- * /admin/dashboard-stat:
+ * /users/dashboard-stat:
  *   get:
  *     summary: Get dashboard statistics
  *     description: Returns dashboard statistics.
@@ -587,6 +599,265 @@ router.put(ROUTE_UPGRADE_PLAN, auth, (req, res) => {
 router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.adminDashboardStat(req, res);
+});
+/**
+ * @swagger
+ * /users/log-weight:
+ *   post:
+ *     summary: Log or update the user's weight
+ *     description: Allows a logged-in user to record or update their current body weight.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - value
+ *             properties:
+ *               value:
+ *                 type: number
+ *                 example: 72.5
+ *                 description: The weight value
+ *               unit:
+ *                 type: string
+ *                 enum: [kg, lbs]
+ *                 default: kg
+ *                 example: kg
+ *                 description: The unit of the weight
+ *     responses:
+ *       200:
+ *         description: Weight updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Weight updated successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     value:
+ *                       type: number
+ *                       example: 72.5
+ *                     unit:
+ *                       type: string
+ *                       example: kg
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-07-21T10:30:00.123Z
+ *       400:
+ *         description: Bad request – validation failed
+ *       401:
+ *         description: Unauthorized – missing or invalid token
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_LOG_WEIGHT, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.logUserWeight(req, res);
+});
+
+/**
+ * @swagger
+ * /users/coach-verification-apply:
+ *   post:
+ *     summary: Submit coach verification application
+ *     description: Allows a coach to apply for verification with required credentials.
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - governmentIssuedId
+ *               - coachCertificate
+ *               - yearsOfExperience
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *               governmentIssuedId:
+ *                 type: object
+ *                 properties:
+ *                   imageUrl:
+ *                     type: string
+ *                     example: https://example.com/id.jpg
+ *                   publicId:
+ *                     type: string
+ *                     example: gov_id_123
+ *               coachCertificate:
+ *                 type: object
+ *                 properties:
+ *                   imageUrl:
+ *                     type: string
+ *                     example: https://example.com/cert.jpg
+ *                   publicId:
+ *                     type: string
+ *                     example: cert_456
+ *               yearsOfExperience:
+ *                 type: integer
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: Application submitted successfully
+ *       400:
+ *         description: Bad request – missing or invalid fields
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_COACH_VERIFICATION_APPLY, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.applyCoachVerificationBadge(req, res);
+});
+
+/**
+ * @swagger
+ * /users/coach-verifications:
+ *   get:
+ *     summary: Get coach verification applications
+ *     description: Fetch all coach applications filtered by status (pending, approved, rejected).
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *         description: Filter applications by verification status
+ *     responses:
+ *       200:
+ *         description: List of coach applications
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       coachVerification:
+ *                         type: object
+ *                         properties:
+ *                           status:
+ *                             type: string
+ *                           firstName:
+ *                             type: string
+ *                           lastName:
+ *                             type: string
+ *                           submittedAt:
+ *                             type: string
+ *                             format: date-time
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_COACH_VERIFICATIONS, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.getCoachApplications(req, res);
+});
+
+/**
+ * @swagger
+ * /users/coach-verification-reject/{userId}:
+ *   put:
+ *     summary: Reject a coach verification application
+ *     description: Admin rejects a coach's application for verification.
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user (coach)
+ *     responses:
+ *       200:
+ *         description: Application rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Coach application rejected successfully
+ *       404:
+ *         description: User or application not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_COACH_VERIFICATION_REJECT+"/:userId", adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.rejectCoach(req, res);
+});
+
+/**
+ * @swagger
+ * /users/coach-verification-approve/{userId}:
+ *   put:
+ *     summary: Approve a coach verification application
+ *     description: Admin approves a coach's application for verification.
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user (coach)
+ *     responses:
+ *       200:
+ *         description: Application approved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Coach application approved successfully
+ *       404:
+ *         description: User or application not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_COACH_VERIFICATION_APPROVE+"/userId", adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.approveCoach(req, res);
 });
 
 module.exports = router;

@@ -22,8 +22,13 @@ exports.ROUTE_CREATE_NUGGET = '/create-nugget'
 exports.ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT = '/increase-nugget-download-count'
 exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
 exports.ROUTE_UPGRADE_PLAN = '/upgrade-plan'
+exports.ROUTE_LOG_WEIGHT = '/log-weight'
 
 //admin
+exports.ROUTE_COACH_VERIFICATION_APPLY = '/coach-verification-apply'
+exports.ROUTE_COACH_VERIFICATIONS = '/coach-verifications'
+exports.ROUTE_COACH_VERIFICATION_APPROVE = '/coach-verification-approve'
+exports.ROUTE_COACH_VERIFICATION_REJECT = '/coach-verification-reject'
 exports.ROUTE_DASHBOARD_STAT = '/dashboard-stat'
 
 //challenge
@@ -69,6 +74,9 @@ exports.ROUTE_GET_DIET_ACTION = '/get-diet-action'
 exports.ROUTE_RESET_DIET_ACTION = '/reset-diet-action'
 exports.ROUTE_RECOMMENDED_DIETS = '/recommended-diets'
 exports.ROUTE_ACTIVE_DIETS = '/active-diets'
+exports.ROUTE_GET_DIET_CATEGORIES = '/get-diet-categories'
+exports.ROUTE_SEARCH_DIET_TITLE = '/search-diet-title'
+exports.ROUTE_SEARCH_DIET_BY_CATEGORY = '/search-diet-by-category'
 
 
 

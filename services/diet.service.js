@@ -1,5 +1,6 @@
 const DietModel = require("../models/diet.model");
 const DietActionModel = require("../models/dietAction.model");
+const DietCategoryModel = require("../models/dietCategory.model");
 const { empty } = require("../util");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
@@ -460,6 +461,67 @@ class DietServicee extends BaseService {
       }
       return BaseService.sendSuccessResponse({
         message: activeDiets,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getDietCategories() {
+    try {
+      const dietCategories = await DietCategoryModel.find({}).sort({
+        createdAt: -1,
+      });
+      if (empty(dietCategories)) {
+        return BaseService.sendFailedResponse({
+          error: "No diet categories found",
+        });
+      }
+      return BaseService.sendSuccessResponse({
+        message: dietCategories,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async searchDietByTitle() {
+    try {
+      const { title } = req.query;
+
+      if (!title) {
+        return res
+          .status(400)
+          .json({ message: "Title query parameter is required" });
+      }
+      const diets = await DietModel.find({
+        title: { $regex: title, $options: "i" },
+      }).populate("category");
+      return BaseService.sendSuccessResponse({
+        message: diets,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getDietByCategory() {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json({ message: "Category ID is required" });
+      }
+
+      const diets = await DietModel.find({ category: id }).populate(
+        "category"
+      );
+
+      return BaseService.sendSuccessResponse({
+        message: diets,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({

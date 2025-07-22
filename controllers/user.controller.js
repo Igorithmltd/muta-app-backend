@@ -154,6 +154,46 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, adminDashboardStat.data)
     }
+    async applyCoachVerificationBadge(req, res){
+        const userService = new UserService()
+        const applyCoachVerificationBadge = await userService.applyCoachVerificationBadge(req)
+        if(!applyCoachVerificationBadge.success){
+            return BaseController.sendFailedResponse(res, applyCoachVerificationBadge.data)
+        }
+        return BaseController.sendSuccessResponse(res, applyCoachVerificationBadge.data)
+    }
+    async logUserWeight(req, res){
+        const userService = new UserService()
+        const logUserWeight = await userService.logUserWeight(req)
+        if(!logUserWeight.success){
+            return BaseController.sendFailedResponse(res, logUserWeight.data)
+        }
+        return BaseController.sendSuccessResponse(res, logUserWeight.data)
+    }
+    async getCoachApplications(req, res){
+        const userService = new UserService()
+        const getCoachApplications = await userService.getCoachApplications(req)
+        if(!getCoachApplications.success){
+            return BaseController.sendFailedResponse(res, getCoachApplications.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCoachApplications.data)
+    }
+    async approveCoach(req, res){
+        const userService = new UserService()
+        const approveCoach = await userService.approveCoach(req)
+        if(!approveCoach.success){
+            return BaseController.sendFailedResponse(res, approveCoach.data)
+        }
+        return BaseController.sendSuccessResponse(res, approveCoach.data)
+    }
+    async rejectCoach(req, res){
+        const userService = new UserService()
+        const rejectCoach = await userService.rejectCoach(req)
+        if(!rejectCoach.success){
+            return BaseController.sendFailedResponse(res, rejectCoach.data)
+        }
+        return BaseController.sendSuccessResponse(res, rejectCoach.data)
+    }
 }
 
 module.exports = UserController

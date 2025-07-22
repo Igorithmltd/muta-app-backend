@@ -14,6 +14,9 @@ const {
   ROUTE_RESET_DIET_ACTION,
   ROUTE_RECOMMENDED_DIETS,
   ROUTE_ACTIVE_DIETS,
+  ROUTE_GET_DIET_CATEGORIES,
+  ROUTE_SEARCH_DIET_TITLE,
+  ROUTE_SEARCH_DIET_BY_CATEGORY,
 } = require("../util/page-route");
 
 /**
@@ -937,6 +940,344 @@ router.get(ROUTE_RECOMMENDED_DIETS, [auth], (req, res) => {
 router.get(ROUTE_ACTIVE_DIETS, [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.activeDiets(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/get-diet-categories:
+ *   get:
+ *     summary: Get all diet categories
+ *     description: Retrieve a list of all available diet categories.
+ *     tags:
+ *       - Diets
+ *     responses:
+ *       200:
+ *         description: A list of diet categories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 64d21b5b2a4f8b35c4fabcde
+ *                   title:
+ *                     type: string
+ *                     example: Vegetarian
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2025-07-21T12:34:56.789Z
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2025-07-21T12:34:56.789Z
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_DIET_CATEGORIES, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.getDietCategories(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/search-diet-title:
+ *   get:
+ *     summary: Search diets by title
+ *     description: Retrieve a list of diets that match the given title (case-insensitive).
+ *     tags:
+ *       - Diets
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Title or part of the diet title to search
+*     responses:
+ *       200:
+ *         description: List of diets returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     diets:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863feb5182f03a90c60ad47"
+ *                           title:
+ *                             type: string
+ *                             example: "third diet"
+ *                           description:
+ *                             type: string
+ *                             example: "third diet description"
+ *                           calories:
+ *                             type: integer
+ *                             example: 54
+ *                           duration:
+ *                             type: integer
+ *                             example: 5
+ *                           tags:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["here", "there"]
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://example.com/image.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "public_id"
+ *                           category:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863d1d9f94e880960616e38"
+ *                               title:
+ *                                 type: string
+ *                                 example: "breathing"
+ *                               createdAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               updatedAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               __v:
+ *                                 type: integer
+ *                                 example: 0
+ *                           dailyMealBreakdown:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 breakfastTitle:
+ *                                   type: string
+ *                                   example: "Oats and eggs"
+ *                                 mealType:
+ *                                   type: string
+ *                                   example: "breakfast"
+ *                                 crabs:
+ *                                   type: integer
+ *                                   example: 44
+ *                                 protein:
+ *                                   type: integer
+ *                                   example: 55
+ *                                 fats:
+ *                                   type: integer
+ *                                   example: 12
+ *                                 calories:
+ *                                   type: integer
+ *                                   example: 433
+ *                                 recommendedTime:
+ *                                   type: string
+ *                                   example: "2025-07-01T07:00:00Z"
+ *                                 missedBy:
+ *                                   type: string
+ *                                   example: "2025-07-01T08:00:00Z"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863feb5182f03a90c60ad48"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         totalCount:
+ *                           type: integer
+ *                           example: 24
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 3
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 1
+ *                         pageSize:
+ *                           type: integer
+ *                           example: 10
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_SEARCH_DIET_TITLE, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.searchDietByTitle(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/search-diet-by-category:
+ *   get:
+ *     summary: Search diets by category
+ *     description: Retrieve a list of diets that match the given category (case-insensitive).
+ *     tags:
+ *       - Diets
+ *     parameters:
+ *       - in: params
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Id or part of the diet id to search
+*     responses:
+ *       200:
+ *         description: List of diets returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     diets:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863feb5182f03a90c60ad47"
+ *                           title:
+ *                             type: string
+ *                             example: "third diet"
+ *                           description:
+ *                             type: string
+ *                             example: "third diet description"
+ *                           calories:
+ *                             type: integer
+ *                             example: 54
+ *                           duration:
+ *                             type: integer
+ *                             example: 5
+ *                           tags:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["here", "there"]
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://example.com/image.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "public_id"
+ *                           category:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863d1d9f94e880960616e38"
+ *                               title:
+ *                                 type: string
+ *                                 example: "breathing"
+ *                               createdAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               updatedAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               __v:
+ *                                 type: integer
+ *                                 example: 0
+ *                           dailyMealBreakdown:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 breakfastTitle:
+ *                                   type: string
+ *                                   example: "Oats and eggs"
+ *                                 mealType:
+ *                                   type: string
+ *                                   example: "breakfast"
+ *                                 crabs:
+ *                                   type: integer
+ *                                   example: 44
+ *                                 protein:
+ *                                   type: integer
+ *                                   example: 55
+ *                                 fats:
+ *                                   type: integer
+ *                                   example: 12
+ *                                 calories:
+ *                                   type: integer
+ *                                   example: 433
+ *                                 recommendedTime:
+ *                                   type: string
+ *                                   example: "2025-07-01T07:00:00Z"
+ *                                 missedBy:
+ *                                   type: string
+ *                                   example: "2025-07-01T08:00:00Z"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863feb5182f03a90c60ad48"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         totalCount:
+ *                           type: integer
+ *                           example: 24
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 3
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 1
+ *                         pageSize:
+ *                           type: integer
+ *                           example: 10
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_SEARCH_DIET_BY_CATEGORY+"/:id", [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.getDietByCategory(req, res);
 });
 
 module.exports = router;
