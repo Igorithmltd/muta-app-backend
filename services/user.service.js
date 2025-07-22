@@ -1130,7 +1130,6 @@ class UserService extends BaseService {
       user.weight = {
         value: Number(value),
         unit: unit || "kg",
-        updatedAt: new Date(),
       };
 
       await user.save();

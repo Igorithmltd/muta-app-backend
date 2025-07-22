@@ -1145,7 +1145,7 @@ router.get(ROUTE_SEARCH_DIET_TITLE, [auth], (req, res) => {
  *         schema:
  *           type: string
  *         required: true
- *         description: Id or part of the diet id to search
+ *         description: Id category or part of the diet category id to search
 *     responses:
  *       200:
  *         description: List of diets returned successfully
