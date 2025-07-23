@@ -123,13 +123,13 @@ class DietController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, getDietMeals.data)
     }
-    async rateDietMeals(req, res){
+    async rateDietPlan(req, res){
         const dietService = new DietService()
-        const rateDietMeals = await dietService.rateDietMeals(req)
-        if(!rateDietMeals.success){
-            return BaseController.sendFailedResponse(res, rateDietMeals.data)
+        const rateDietPlan = await dietService.rateDietPlan(req)
+        if(!rateDietPlan.success){
+            return BaseController.sendFailedResponse(res, rateDietPlan.data)
         }
-        return BaseController.sendSuccessResponse(res, rateDietMeals.data)
+        return BaseController.sendSuccessResponse(res, rateDietPlan.data)
     }
 }
 

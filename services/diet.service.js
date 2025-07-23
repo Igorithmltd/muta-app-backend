@@ -686,7 +686,7 @@ class DietServicee extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }  
-  async rateDietMeals(req) {
+  async rateDietPlan(req) {
     try {
       const userId = req.user.id;
       const { dietId, rating, review } = req.body;

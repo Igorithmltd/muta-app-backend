@@ -51,13 +51,13 @@ class WorkoutplanService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      // Check if the challenge already exists
+      // Check if the workoutplan already exists
       const existingWorkoutplan = await WorkoutPlanModel.findOne({
         title: post.title,
       });
       if (existingWorkoutplan) {
         return BaseService.sendFailedResponse({
-          error: "Challenge with this title already exists",
+          error: "Workoutplan with this title already exists",
         });
       }
 
@@ -115,20 +115,29 @@ class WorkoutplanService extends BaseService {
   async getWorkoutplan(req) {
     try {
       const workoutplanId = req.params.id;
-
+  
       const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
       if (!workoutplan) {
         return BaseService.sendFailedResponse({
           error: "Workout plan not found",
         });
       }
-
-      return BaseService.sendSuccessResponse({ message: workoutplan });
+  
+      // Count how many users joined this workout plan
+      const userCount = await WorkoutPlanActionModel.countDocuments({
+        workoutPlanId: workoutplanId,
+      });
+  
+      return BaseService.sendSuccessResponse({
+        workoutplan,
+        userCount,
+        totalRatings: workoutplan.totalRatings || 0,
+      });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }
+  }  
   async updateWorkoutplan(req) {
     try {
       const workoutplanId = req.params.id;
@@ -368,7 +377,7 @@ class WorkoutplanService extends BaseService {
     foundRound.status = "completed";
   
     // Increment streak
-    workoutplanAction.streak += 1;
+    // workoutplanAction.streak += 1;
   
     // Check if all rounds are completed (iterate all planRounds.rounds)
     const allRounds = workoutplanAction.planRounds.flatMap(day => day.rounds);
@@ -438,7 +447,7 @@ class WorkoutplanService extends BaseService {
       }
 
       // Reset progress, status, and all daily task statuses
-      workoutplanAction.streak = 0;
+      // workoutplanAction.streak = 0;
       workoutplanAction.status = "in-progress";
 
       workoutplanAction.rounds = workoutplanAction.rounds.map(
@@ -500,6 +509,69 @@ class WorkoutplanService extends BaseService {
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
+      });
+    }
+  }
+  async rateWorkoutplan(req) {
+    try {
+      const userId = req.user.id;
+      const workoutplanId = req.params.id;
+      const { rating, review } = req.body;
+  
+      // Basic validation
+      if (!rating || rating < 1 || rating > 5) {
+        return BaseService.sendFailedResponse({
+          error: "Rating must be an integer between 1 and 5",
+        });
+      }
+  
+      // Find workout plan
+      const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
+      if (!workoutplan) {
+        return BaseService.sendFailedResponse({
+          error: "Workout plan not found",
+        });
+      }
+  
+      // Check if user already rated
+      const existingRatingIndex = workoutplan.ratings.findIndex(
+        (r) => r.userId.toString() === userId.toString()
+      );
+  
+      if (existingRatingIndex !== -1) {
+        // Update existing rating and review
+        workoutplan.ratings[existingRatingIndex].rating = rating;
+        if (review !== undefined) {
+          workoutplan.ratings[existingRatingIndex].review = review;
+        }
+        workoutplan.ratings[existingRatingIndex].createdAt = new Date();
+      } else {
+        // Add new rating
+        workoutplan.ratings.push({
+          userId,
+          rating,
+          review,
+          createdAt: new Date(),
+        });
+      }
+  
+      // Recalculate averageRating and totalRatings
+      const totalRatings = workoutplan.ratings.length;
+      const sumRatings = workoutplan.ratings.reduce((acc, curr) => acc + curr.rating, 0);
+      workoutplan.totalRatings = totalRatings;
+      workoutplan.averageRating = totalRatings ? (sumRatings / totalRatings).toFixed(2) : 0;
+  
+      await workoutplan.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: "Rating submitted successfully",
+        averageRating: workoutplan.averageRating,
+        totalRatings: workoutplan.totalRatings,
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({
+        error: "Server error while rating workout plan",
       });
     }
   }

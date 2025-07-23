@@ -60,6 +60,7 @@ exports.ROUTE_DELETE_WORKOUTPLAN = '/delete-workoutplan'
 exports.ROUTE_RESET_WORKOUTPLAN_ACTION = '/reset-workoutplan-action'
 exports.ROUTE_RECOMMENDED_WORKOUTPLANS = '/recommended-workoutplans'
 exports.ROUTE_ACTIVE_WORKOUTPLANS = '/active-workoutplans'
+exports.ROUTE_RATE_WORKOUTPLAN = '/rate-workoutplan'
 
 
 

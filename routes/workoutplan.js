@@ -1,7 +1,7 @@
 const WorkoutplanController = require("../controllers/workoutplan.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
-const { ROUTE_CREATE_WORKOUTPLAN, ROUTE_GET_ALL_WORKOUTPLANS, ROUTE_GET_WORKOUTPLAN, ROUTE_UPDATE_WORKOUTPLAN, ROUTE_DELETE_WORKOUTPLAN, ROUTE_JOIN_WORKOUTPLAN, ROUTE_GET_WORKOUTPLAN_ACTION, ROUTE_WORKOUTPLAN_TASK, ROUTE_RESET_WORKOUTPLAN_ACTION, ROUTE_RECOMMENDED_WORKOUTPLANS, ROUTE_ACTIVE_WORKOUTPLANS } = require("../util/page-route");
+const { ROUTE_CREATE_WORKOUTPLAN, ROUTE_GET_ALL_WORKOUTPLANS, ROUTE_GET_WORKOUTPLAN, ROUTE_UPDATE_WORKOUTPLAN, ROUTE_DELETE_WORKOUTPLAN, ROUTE_JOIN_WORKOUTPLAN, ROUTE_GET_WORKOUTPLAN_ACTION, ROUTE_WORKOUTPLAN_TASK, ROUTE_RESET_WORKOUTPLAN_ACTION, ROUTE_RECOMMENDED_WORKOUTPLANS, ROUTE_ACTIVE_WORKOUTPLANS, ROUTE_RATE_WORKOUTPLAN } = require("../util/page-route");
 
 const router = require("express").Router();
 
@@ -949,6 +949,89 @@ router.get(ROUTE_RECOMMENDED_WORKOUTPLANS, auth, (req, res) => {
 router.get(ROUTE_ACTIVE_WORKOUTPLANS, auth, (req, res) => {
   const workoutplanController = new WorkoutplanController();
   return workoutplanController.activeWorkoutplans(req, res);
+});
+
+/**
+ * @swagger
+ * /rate-workoutplan/{id}:
+ *   post:
+ *     summary: Rate a workout plan
+ *     tags:
+ *       - Workoutplan
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the workout plan to rate
+ *         schema:
+ *           type: string
+ *           example: "60d21b4667d0d8992e610c85"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 description: Rating value from 1 to 5
+ *                 example: 4
+ *               review:
+ *                 type: string
+ *                 description: Optional review text
+ *                 example: "Great workout plan, highly recommend!"
+ *     responses:
+ *       200:
+ *         description: Rating submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Rating submitted successfully"
+ *                 averageRating:
+ *                   type: string
+ *                   example: "4.50"
+ *                 totalRatings:
+ *                   type: integer
+ *                   example: 12
+ *       400:
+ *         description: Invalid input or missing parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Rating must be an integer between 1 and 5"
+ *       404:
+ *         description: Workout plan not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Workout plan not found"
+ *       500:
+ *         description: Server error while rating workout plan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Server error while rating workout plan"
+ */
+router.post(ROUTE_RATE_WORKOUTPLAN, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.rateWorkoutplan(req, res);
 });
 
 module.exports = router;

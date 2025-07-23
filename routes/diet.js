@@ -1813,7 +1813,7 @@ router.get(ROUTE_GET_DIET_PLAN_MEALS+"/:id", [auth], (req, res) => {
  */
 router.post(ROUTE_RATE_DIET_PLAN, [auth], (req, res) => {
   const dietController = new DietController();
-  return dietController.rateDietMeals(req, res);
+  return dietController.rateDietPlan(req, res);
 });
 
 module.exports = router;

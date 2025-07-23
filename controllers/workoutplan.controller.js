@@ -90,6 +90,14 @@ class WorkoutplanController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, activeWorkoutplans.data)
     }
+    async rateWorkoutplan(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const rateWorkoutplan = await workoutplanService.rateWorkoutplan(req)
+        if(!rateWorkoutplan.success){
+            return BaseController.sendFailedResponse(res, rateWorkoutplan.data)
+        }
+        return BaseController.sendSuccessResponse(res, rateWorkoutplan.data)
+    }
 }
 
 module.exports = WorkoutplanController
