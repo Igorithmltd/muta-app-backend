@@ -16,7 +16,14 @@ const UserSchema = new mongoose.Schema(
       unit: { type: String, enum: ["kg", "lbs"], default: "kg" },
     },
     bmi: { type: Number },
-    height: { type: String },
+    height: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ["cm", "ft"],
+        default: "ft",
+      },
+    },
     focusArea: [String],
     fitnessLevel: {
       type: String,
@@ -84,7 +91,7 @@ const UserSchema = new mongoose.Schema(
       status: {
         type: String,
         enum: ["pending", "approved", "rejected"],
-        default: "pending"
+        default: "pending",
       },
       governmentIssuedId: {
         imageUrl: { type: String },

@@ -170,6 +170,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, logUserWeight.data)
     }
+    async logUserHeight(req, res){
+        const userService = new UserService()
+        const logUserHeight = await userService.logUserHeight(req)
+        if(!logUserHeight.success){
+            return BaseController.sendFailedResponse(res, logUserHeight.data)
+        }
+        return BaseController.sendSuccessResponse(res, logUserHeight.data)
+    }
     async getCoachApplications(req, res){
         const userService = new UserService()
         const getCoachApplications = await userService.getCoachApplications(req)

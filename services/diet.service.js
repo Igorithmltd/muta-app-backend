@@ -127,19 +127,33 @@ class DietServicee extends BaseService {
   async getDiet(req) {
     try {
       const dietId = req.params.id;
-
+  
+      // Find the diet by ID
       const diet = await DietModel.findById(dietId);
       if (!diet) {
         return BaseService.sendFailedResponse({ error: "Diet not found" });
       }
-
-      return BaseService.sendSuccessResponse({ message: diet });
+  
+      // Count how many users have joined this diet (dietActions)
+      const usersOnDietCount = await DietActionModel.countDocuments({ dietId });
+  
+      // Number of ratings can come from totalRatings or length of ratings array
+      const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+  
+      return BaseService.sendSuccessResponse({
+        message: {
+          ...diet.toObject(),
+          usersOnDietCount,
+          numberOfRatings,
+        },
+      });
     } catch (error) {
+      console.error("Error fetching diet:", error);
       return BaseService.sendFailedResponse({
         error: "An error occurred while fetching diet.",
       });
     }
-  }
+  }  
   async updateDiet(req) {
     try {
       const dietId = req.params.id;

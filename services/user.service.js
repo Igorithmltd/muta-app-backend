@@ -1143,6 +1143,47 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse("Internal server error");
     }
   }
+  async logUserHeight(req, res) {
+    try {
+      const userId = req.user.id;
+  
+      const { value, unit } = req.body;
+  
+      const validateRule = {
+        value: "numeric|required|min:1",
+        unit: "string|in:cm,ft",
+      };
+  
+      const validateResult = validateData(req.body, validateRule, {
+        required: ":attribute is required.",
+        "in.unit": "Height unit must be either 'cm' or 'ft'.",
+      });
+  
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+  
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found." });
+      }
+  
+      user.height = {
+        value: Number(value),
+        unit: unit || "cm",
+      };
+  
+      await user.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: "Height updated successfully",
+        data: user.height,
+      });
+    } catch (err) {
+      console.error(err);
+      return BaseService.sendFailedResponse("Internal server error");
+    }
+  }  
   async getCoachApplications(req, res) {
     try {
       const { status } = req.query;

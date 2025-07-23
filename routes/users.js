@@ -18,6 +18,7 @@ const {
   ROUTE_COACH_VERIFICATIONS,
   ROUTE_COACH_VERIFICATION_REJECT,
   ROUTE_COACH_VERIFICATION_APPROVE,
+  ROUTE_LOG_HEIGHT,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -194,9 +195,16 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res) => {
  *                     enum: [kg, lbs]
  *                     example: kg
  *               height:
- *                 type: string
+ *                 type: object
  *                 description: Optional height of the user
- *                 example: "5'7\""
+ *                 properties:
+ *                   value:
+ *                     type: number
+ *                     example: 72
+ *                   unit:
+ *                     type: string
+ *                     enum: [cm, ft]
+ *                     example: cm
  *               location:
  *                 type: string
  *                 description: Optional location of the user
@@ -663,6 +671,71 @@ router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
 router.post(ROUTE_LOG_WEIGHT, auth, (req, res) => {
   const userController = new UserController();
   return userController.logUserWeight(req, res);
+});
+
+/**
+ * @swagger
+ * /users/log-height:
+ *   post:
+ *     summary: Log or update the user's height
+ *     description: Allows a logged-in user to record or update their current body height.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - value
+ *             properties:
+ *               value:
+ *                 type: number
+ *                 example: 181
+ *                 description: The height value
+ *               unit:
+ *                 type: string
+ *                 enum: [cm, ft]
+ *                 default: cm
+ *                 example: cm
+ *                 description: The unit of the height
+ *     responses:
+ *       200:
+ *         description: Height updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Height updated successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     value:
+ *                       type: number
+ *                       example: 181
+ *                     unit:
+ *                       type: string
+ *                       example: cm
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-07-21T10:30:00.123Z
+ *       400:
+ *         description: Bad request – validation failed
+ *       401:
+ *         description: Unauthorized – missing or invalid token
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_LOG_HEIGHT, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.logUserHeight(req, res);
 });
 
 /**

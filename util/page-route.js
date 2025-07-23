@@ -23,6 +23,7 @@ exports.ROUTE_INCREASE_NUGGET_DOWNLOAD_COUNT = '/increase-nugget-download-count'
 exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
 exports.ROUTE_UPGRADE_PLAN = '/upgrade-plan'
 exports.ROUTE_LOG_WEIGHT = '/log-weight'
+exports.ROUTE_LOG_HEIGHT = '/log-height'
 
 //admin
 exports.ROUTE_COACH_VERIFICATION_APPLY = '/coach-verification-apply'

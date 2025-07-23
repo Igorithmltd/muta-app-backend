@@ -469,6 +469,14 @@ router.put(ROUTE_DIET_TASK, [auth], (req, res) => {
  *     summary: Get diet
  *     tags:
  *       - Diets
+ *     parameters:
+ *       - in: path
+ *         name: dietId
+ *         required: true
+ *         description: ID of the diet to retrieve
+ *         schema:
+ *           type: string
+ *         example: "6863feb5182f03a90c60ad47"
  *     responses:
  *       200:
  *         description: diet returned successfully
@@ -484,100 +492,117 @@ router.put(ROUTE_DIET_TASK, [auth], (req, res) => {
  *                   type: object
  *                   properties:
  *                     message:
- *                         type: object
- *                         properties:
- *                           image:
- *                             type: object
- *                             properties:
- *                               imageUrl:
- *                                 type: string
- *                                 example: "image_url"
- *                               publicId:
- *                                 type: string
- *                                 example: "public_id"
- *                           _id:
- *                             type: string
- *                             example: "6863feb5182f03a90c60ad47"
- *                           title:
- *                             type: string
- *                             example: "third diet"
- *                           description:
- *                             type: string
- *                             example: "third diet description"
- *                           category:
- *                             type: object
- *                             properties:
- *                               _id:
- *                                 type: string
- *                                 example: "6863d1d9f94e880960616e38"
- *                               title:
- *                                 type: string
- *                                 example: "breathing"
- *                               createdAt:
- *                                 type: string
- *                                 format: date-time
- *                                 example: "2025-07-01T12:17:29.709Z"
- *                               updatedAt:
- *                                 type: string
- *                                 format: date-time
- *                                 example: "2025-07-01T12:17:29.709Z"
- *                               __v:
- *                                 type: integer
- *                                 example: 0
- *                           calories:
- *                             type: integer
- *                             example: 54
- *                           tags:
- *                             type: array
- *                             items:
+ *                       type: object
+ *                       properties:
+ *                         image:
+ *                           type: object
+ *                           properties:
+ *                             imageUrl:
  *                               type: string
- *                             example: ["here", "there"]
- *                           duration:
- *                             type: integer
- *                             example: 5
- *                           dailyMealBreakdown:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 breakfastTitle:
- *                                   type: string
- *                                   example: "breakfastTitle"
- *                                 mealType:
- *                                   type: string
- *                                   example: "breakfast"
- *                                 crabs:
- *                                   type: integer
- *                                   example: 44
- *                                 protein:
- *                                   type: integer
- *                                   example: 55
- *                                 fats:
- *                                   type: integer
- *                                   example: 122
- *                                 calories:
- *                                   type: integer
- *                                   example: 433
- *                                 recommendedTime:
- *                                   type: string
- *                                   example: "09:00:00"
- *                                 missedBy:
- *                                   type: string
- *                                   example: "16:00:00"
- *                                 _id:
- *                                   type: string
- *                                   example: "6863feb5182f03a90c60ad48"
- *                           createdAt:
+ *                               example: "image_url"
+ *                             publicId:
+ *                               type: string
+ *                               example: "public_id"
+ *                         _id:
+ *                           type: string
+ *                           example: "6863feb5182f03a90c60ad47"
+ *                         title:
+ *                           type: string
+ *                           example: "third diet"
+ *                         description:
+ *                           type: string
+ *                           example: "third diet description"
+ *                         category:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               example: "6863d1d9f94e880960616e38"
+ *                             title:
+ *                               type: string
+ *                               example: "breathing"
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
+ *                               example: "2025-07-01T12:17:29.709Z"
+ *                             updatedAt:
+ *                               type: string
+ *                               format: date-time
+ *                               example: "2025-07-01T12:17:29.709Z"
+ *                             __v:
+ *                               type: integer
+ *                               example: 0
+ *                         calories:
+ *                           type: integer
+ *                           example: 54
+ *                         tags:
+ *                           type: array
+ *                           items:
  *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T15:28:53.228Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T15:28:53.228Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
+ *                           example: ["here", "there"]
+ *                         duration:
+ *                           type: integer
+ *                           example: 5
+ *                         dailyMealBreakdown:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               dayLabel:
+ *                                 type: string
+ *                                 example: "Day 1"
+ *                               meals:
+ *                                 type: array
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                     mealTitle:
+ *                                       type: string
+ *                                       example: "breakfastTitle"
+ *                                     mealType:
+ *                                       type: string
+ *                                       example: "breakfast"
+ *                                     crabs:
+ *                                       type: integer
+ *                                       example: 44
+ *                                     protein:
+ *                                       type: integer
+ *                                       example: 55
+ *                                     fats:
+ *                                       type: integer
+ *                                       example: 122
+ *                                     calories:
+ *                                       type: integer
+ *                                       example: 433
+ *                                     recommendedTime:
+ *                                       type: string
+ *                                       example: "09:00:00"
+ *                                     missedBy:
+ *                                       type: string
+ *                                       example: "16:00:00"
+ *                                     status:
+ *                                       type: string
+ *                                       example: "in-progress"
+ *                                     _id:
+ *                                       type: string
+ *                                       example: "6863feb5182f03a90c60ad48"
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T15:28:53.228Z"
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-01T15:28:53.228Z"
+ *                         __v:
+ *                           type: integer
+ *                           example: 0
+ *                         usersOnDietCount:
+ *                           type: integer
+ *                           example: 15
+ *                         numberOfRatings:
+ *                           type: integer
+ *                           example: 42
  *       500:
  *         description: Server error
  */

@@ -7,19 +7,30 @@ const WorkoutPlanActionSchema = new mongoose.Schema(
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
     streak: { type: Number, default: 0 },
     status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
-    rounds: [
+    planRounds: [
       {
-        title: { type: String, required: true },
-        duration: { type: Number, required: true },
-        set: { type: Number, required: true },
-        animation: { type: String, required: true },
-        reps: { type: Number, required: true },
-        restBetweenSet: { type: Number, required: true },
-        instruction: { type: String, required: true },
-        commonMistakesToAvoid: [String],
-        breathingTips: [String],
-        focusArea: [String],
-        status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
+        dayLabel: { type: String, required: true },
+        dayDate: { type: String, required: true }, // e.g. "Jan 14"
+        rounds: [
+          {
+            title: { type: String, required: true },
+            duration: { type: Number, required: true },
+            set: { type: Number, required: true },
+            animation: { type: String, required: true },
+            reps: { type: Number, required: true },
+            restBetweenSet: { type: Number, required: true },
+            instruction: { type: String, required: true },
+            commonMistakesToAvoid: [String],
+            breathingTips: [String],
+            focusArea: [String],
+            status: {
+              type: String,
+              required: true,
+              enum: ["completed", "in-progress"],
+              default: "in-progress",
+            },
+          },
+        ],
       },
     ],
   },
