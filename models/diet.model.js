@@ -25,25 +25,30 @@ const DietSchema = new mongoose.Schema(
     duration: { type: Number, required: true },
     dailyMealBreakdown: [
       {
-        breakfastTitle: { type: String, required: true },
-        crabs: { type: Number, required: true },
-        protein: { type: Number, required: true },
-        fats: { type: Number, required: true },
-        calories: { type: Number, required: true },
-        recommendedTime: { type: String, required: true },
-        missedBy: { type: String, required: true },
-        mealType: {
-          type: String,
-          required: true,
-          enum: ["breakfast", "lunch", "dinner"],
-        },
-        status: {
-          type: String,
-          enum: ["pending", "completed", "missed"],
-          default: "pending",
-        },
-        // day: { type: String, required: true },
-      },
+        dayLabel: { type: String, required: true }, // e.g. "Day 1", "Day 2", or "Monday"
+        meals: [
+          {
+            mealTitle: { type: String, required: true },
+            crabs: { type: Number, required: true },
+            protein: { type: Number, required: true },
+            fats: { type: Number, required: true },
+            calories: { type: Number, required: true },
+            recommendedTime: { type: String, required: true },
+            missedBy: { type: String, required: true },
+            mealType: {
+              type: String,
+              required: true,
+              enum: ["breakfast", "lunch", "dinner", "snack"],
+            },
+            status: {
+              type: String,
+              required: true,
+              enum: ["completed", "in-progress", "missed"],
+              default: "in-progress",
+            },
+          }
+        ]
+      }
     ],
     ratings: [
       {
