@@ -17,6 +17,9 @@ const {
   ROUTE_GET_DIET_CATEGORIES,
   ROUTE_SEARCH_DIET_TITLE,
   ROUTE_SEARCH_DIET_BY_CATEGORY,
+  ROUTE_GET_COMPLETED_DIET_PLANS,
+  ROUTE_GET_DIET_PLAN_MEALS,
+  ROUTE_RATE_DIET_PLAN,
 } = require("../util/page-route");
 
 /**
@@ -108,10 +111,10 @@ const {
  *                       example: 433
  *                     recommendedTime:
  *                       type: string
- *                       example: "01/05/2025"
+ *                       example: "09:00:00"
  *                     missedBy:
  *                       type: string
- *                       example: "01/05/2025"
+ *                       example: "16:00:00"
  *     responses:
  *       201:
  *         description: Diet created successfully
@@ -247,10 +250,10 @@ router.post(ROUTE_CREATE_DIET, [adminAuth], (req, res) => {
  *                                   example: 433
  *                                 recommendedTime:
  *                                   type: string
- *                                   example: "2025-07-01T07:00:00Z"
+ *                                   example: "09:00:00"
  *                                 missedBy:
  *                                   type: string
- *                                   example: "2025-07-01T08:00:00Z"
+ *                                   example: "16:00:00"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863feb5182f03a90c60ad48"
@@ -375,10 +378,10 @@ router.get(ROUTE_GET_ALL_DIETS, [auth], (req, res) => {
  *                             example: 400
  *                           recommendedTime:
  *                             type: string
- *                             example: "08:00 AM"
+ *                             example: "09:00:00"
  *                           missedBy:
  *                             type: string
- *                             example: "10:00 AM"
+ *                             example: "16:00:00"
  *                           day:
  *                             type: string
  *                             example: "July 5"
@@ -397,6 +400,63 @@ router.put(ROUTE_JOIN_DIET, [auth], (req, res) => {
   return dietController.joinDiet(req, res);
 });
 
+/**
+ * @swagger
+ * /diet/diet-task:
+ *   put:
+ *     summary: Mark a diet task as completed or missed
+ *     description: Mark a specific meal task in a user's diet plan as either completed or missed. Updates the user's progress and potentially completes the entire diet.
+ *     tags:
+ *       - Diets
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dietId
+ *               - dietTaskId
+ *               - status
+ *             properties:
+ *               dietId:
+ *                 type: string
+ *                 description: ID of the diet plan the task belongs to
+ *                 example: "64f123abc456def7890123"
+ *               dietTaskId:
+ *                 type: string
+ *                 description: ID of the specific meal task to update
+ *                 example: "64f456abc123def7890456"
+ *               status:
+ *                 type: string
+ *                 enum: [completed, missed]
+ *                 description: Status to mark the task with
+ *                 example: "completed"
+ *     responses:
+ *       200:
+ *         description: Task status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Task marked as completed"
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: object
+ *       404:
+ *         description: Diet or task not found
+ *       500:
+ *         description: Internal server error
+ */
 router.put(ROUTE_DIET_TASK, [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.markDietTask(req, res);
@@ -500,10 +560,10 @@ router.put(ROUTE_DIET_TASK, [auth], (req, res) => {
  *                                   example: 433
  *                                 recommendedTime:
  *                                   type: string
- *                                   example: "01/05/2025"
+ *                                   example: "09:00:00"
  *                                 missedBy:
  *                                   type: string
- *                                   example: "01/05/2025"
+ *                                   example: "16:00:00"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863feb5182f03a90c60ad48"
@@ -790,10 +850,10 @@ router.put(ROUTE_RESET_DIET_ACTION, [auth], (req, res) => {
  *                                   example: 433
  *                                 recommendedTime:
  *                                   type: string
- *                                   example: "2025-07-01T07:00:00Z"
+ *                                   example: "09:00:00"
  *                                 missedBy:
  *                                   type: string
- *                                   example: "2025-07-01T08:00:00Z"
+ *                                   example: "16:00:00"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863feb5182f03a90c60ad48"
@@ -916,10 +976,10 @@ router.get(ROUTE_RECOMMENDED_DIETS, [auth], (req, res) => {
  *                                   example: 433
  *                                 recommendedTime:
  *                                   type: string
- *                                   example: "2025-07-01T07:00:00Z"
+ *                                   example: "09:00:00"
  *                                 missedBy:
  *                                   type: string
- *                                   example: "2025-07-01T08:00:00Z"
+ *                                   example: "16:00:00"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863feb5182f03a90c60ad48"
@@ -1090,10 +1150,10 @@ router.get(ROUTE_GET_DIET_CATEGORIES, [auth], (req, res) => {
  *                                   example: 433
  *                                 recommendedTime:
  *                                   type: string
- *                                   example: "2025-07-01T07:00:00Z"
+ *                                   example: "09:00:00"
  *                                 missedBy:
  *                                   type: string
- *                                   example: "2025-07-01T08:00:00Z"
+ *                                   example: "16:00:00"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863feb5182f03a90c60ad48"
@@ -1239,10 +1299,10 @@ router.get(ROUTE_SEARCH_DIET_TITLE, [auth], (req, res) => {
  *                                   example: 433
  *                                 recommendedTime:
  *                                   type: string
- *                                   example: "2025-07-01T07:00:00Z"
+ *                                   example: "09:00:00"
  *                                 missedBy:
  *                                   type: string
- *                                   example: "2025-07-01T08:00:00Z"
+ *                                   example: "16:00:00"
  *                                 _id:
  *                                   type: string
  *                                   example: "6863feb5182f03a90c60ad48"
@@ -1278,6 +1338,316 @@ router.get(ROUTE_SEARCH_DIET_TITLE, [auth], (req, res) => {
 router.get(ROUTE_SEARCH_DIET_BY_CATEGORY+"/:id", [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.getDietByCategory(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/get-completed-diet-plans:
+ *   get:
+ *     summary: Get all completed diets (paginated)
+ *     tags:
+ *       - Diets
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number (default is 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of items per page (default is 10)
+ *     responses:
+ *       200:
+ *         description: List of diets returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     diets:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863feb5182f03a90c60ad47"
+ *                           title:
+ *                             type: string
+ *                             example: "third diet"
+ *                           description:
+ *                             type: string
+ *                             example: "third diet description"
+ *                           calories:
+ *                             type: integer
+ *                             example: 54
+ *                           status:
+ *                             type: string
+ *                             example: "completed"
+ *                           duration:
+ *                             type: integer
+ *                             example: 5
+ *                           tags:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["here", "there"]
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://example.com/image.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "public_id"
+ *                           category:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863d1d9f94e880960616e38"
+ *                               title:
+ *                                 type: string
+ *                                 example: "breathing"
+ *                               createdAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               updatedAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               __v:
+ *                                 type: integer
+ *                                 example: 0
+ *                           dailyMealBreakdown:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 breakfastTitle:
+ *                                   type: string
+ *                                   example: "Oats and eggs"
+ *                                 mealType:
+ *                                   type: string
+ *                                   example: "breakfast"
+ *                                 crabs:
+ *                                   type: integer
+ *                                   example: 44
+ *                                 protein:
+ *                                   type: integer
+ *                                   example: 55
+ *                                 fats:
+ *                                   type: integer
+ *                                   example: 12
+ *                                 calories:
+ *                                   type: integer
+ *                                   example: 433
+ *                                 recommendedTime:
+ *                                   type: string
+ *                                   example: "09:00:00"
+ *                                 missedBy:
+ *                                   type: string
+ *                                   example: "16:00:00"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863feb5182f03a90c60ad48"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         totalCount:
+ *                           type: integer
+ *                           example: 24
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 3
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 1
+ *                         pageSize:
+ *                           type: integer
+ *                           example: 10
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_COMPLETED_DIET_PLANS, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.getCompletedPlans(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/get-diet-plan-meals/{dietId}:
+ *   get:
+ *     summary: Get daily meal breakdown for a specific diet
+ *     tags:
+ *       - Diets
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: dietId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the diet to fetch daily breakdown for
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved daily meal breakdown
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     dailyMealBreakdown:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           breakfastTitle:
+ *                             type: string
+ *                             example: "Oats with banana"
+ *                           crabs:
+ *                             type: number
+ *                             example: 30
+ *                           protein:
+ *                             type: number
+ *                             example: 15
+ *                           fats:
+ *                             type: number
+ *                             example: 10
+ *                           calories:
+ *                             type: number
+ *                             example: 300
+ *                           recommendedTime:
+ *                             type: string
+ *                             example: "08:00:00"
+ *                           missedBy:
+ *                             type: string
+ *                             example: "10:00:00"
+ *                           mealType:
+ *                             type: string
+ *                             enum: [breakfast, lunch, dinner]
+ *                             example: "breakfast"
+ *                           status:
+ *                             type: string
+ *                             enum: [completed, in-progress, missed]
+ *                             example: "in-progress"
+ *                           day:
+ *                             type: string
+ *                             example: "Monday"
+ *       404:
+ *         description: Diet action not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Diet action not found for this user
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Server error while retrieving meal breakdown
+ */
+router.get(ROUTE_GET_DIET_PLAN_MEALS+"/:id", [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.getDietMeals(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/rate-diet-plan:
+ *   post:
+ *     summary: Rate a diet plan and optionally leave a review
+ *     tags:
+ *       - Diets
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dietId
+ *               - rating
+ *             properties:
+ *               dietId:
+ *                 type: string
+ *                 description: The ID of the diet to rate
+ *               rating:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 4
+ *               review:
+ *                 type: string
+ *                 example: "Great plan! Helped me stay on track."
+ *     responses:
+ *       200:
+ *         description: Diet rated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Diet rated successfully
+ *       400:
+ *         description: Bad input (e.g., already rated)
+ *       404:
+ *         description: Diet not found
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_RATE_DIET_PLAN, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.rateDietMeals(req, res);
 });
 
 module.exports = router;

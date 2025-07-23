@@ -1,5 +1,5 @@
 require("dotenv").config();
-// require("./lib/cron/updateSavingProgress.js");
+require("./lib/cron/updateDietStatus.js");
 const express = require("express");
 const socketIO = require("socket.io");
 const rateLimit = require("express-rate-limit");

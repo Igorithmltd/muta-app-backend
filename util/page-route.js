@@ -77,6 +77,9 @@ exports.ROUTE_ACTIVE_DIETS = '/active-diets'
 exports.ROUTE_GET_DIET_CATEGORIES = '/get-diet-categories'
 exports.ROUTE_SEARCH_DIET_TITLE = '/search-diet-title'
 exports.ROUTE_SEARCH_DIET_BY_CATEGORY = '/search-diet-by-category'
+exports.ROUTE_GET_COMPLETED_DIET_PLANS = '/get-completed-diet-plans'
+exports.ROUTE_GET_DIET_PLAN_MEALS = '/get-diet-plan-meals'
+exports.ROUTE_RATE_DIET_PLAN = '/rate-diet-plan'
 
 
 

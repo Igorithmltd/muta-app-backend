@@ -21,10 +21,12 @@ const DietActionSchema = new mongoose.Schema(
           required: true,
           enum: ["breakfast", "lunch", "dinner"],
         },
-        status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
+        status: { type: String, required: true, enum: ["completed", "in-progress", "missed"], default: "in-progress" },
         day: { type: String, required: true },
       },
     ],
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true }, 
   },
   { timestamps: true }
 );
