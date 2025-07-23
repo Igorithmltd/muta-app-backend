@@ -12,19 +12,29 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API documentation for your Muta App",
     },
-    // components: {
-    //   schemas: {
-    //     Saving: SavingSchema,
-    //   },
-    // },
     servers: [
       {
         url: "https://muta-app-backend.onrender.com/api",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ["./routes/*.js"],
 };
+
 
 const swaggerSpec = swaggerJsDoc(swaggerOptions);
 

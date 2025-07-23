@@ -25,7 +25,7 @@ const DietSchema = new mongoose.Schema(
     duration: { type: Number, required: true },
     dailyMealBreakdown: [
       {
-        dayLabel: { type: String, required: true }, // e.g. "Day 1", "Day 2", or "Monday"
+        dayLabel: { type: String, required: true },
         meals: [
           {
             mealTitle: { type: String, required: true },

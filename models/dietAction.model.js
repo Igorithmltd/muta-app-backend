@@ -10,6 +10,7 @@ const DietActionSchema = new mongoose.Schema(
     dailyMealBreakdown: [
       {
         dayLabel: { type: String, required: true }, // e.g. "Day 1", "Day 2", or "Monday"
+        dayDate: { type: String, required: true }, // e.g. "2023-10-01"
         meals: [
           {
             mealTitle: { type: String, required: true },

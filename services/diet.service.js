@@ -199,49 +199,53 @@ class DietServicee extends BaseService {
     try {
       const userId = req.user.id;
       const post = req.body;
-
+  
       const validateRule = {
         dietId: "string|required",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
       const diet = await DietModel.findById(post.dietId);
       if (!diet) {
         return BaseService.sendFailedResponse({
           error: "Diet not found",
         });
       }
-
+  
       const alreadyJoined = await DietActionModel.findOne({
         userId,
         dietId: post.dietId,
       });
-
+  
       if (alreadyJoined) {
         return BaseService.sendSuccessResponse({
           message: "You have already joined this diet plan",
         });
       }
-
+  
       // Calculate start and end dates
       const startDate = moment();
       const endDate = startDate.clone().add(diet.duration - 1, "days");
-
-      // Add day fields to the dailyMealBreakdown (e.g., "Day 1", "Day 2", etc.)
-      const breakdownWithDays = diet.dailyMealBreakdown.map((item, index) => ({
-        ...(item.toObject?.() ?? item),
-        day: `Day ${index + 1}`,
-      }));
-
+  
+      // Add day and dayDate fields to dailyMealBreakdown based on user startDate
+      const breakdownWithDays = diet.dailyMealBreakdown.map((item, index) => {
+        const dayDate = startDate.clone().add(index, "days").format("YYYY-MM-DD");
+        return {
+          ...(item.toObject?.() ?? item),
+          day: `Day ${index + 1}`,
+          dayDate, // <-- here
+        };
+      });
+  
       const newUserDiet = new DietActionModel({
         userId,
         dietId: post.dietId,
@@ -249,10 +253,10 @@ class DietServicee extends BaseService {
         endDate: endDate.toDate(),
         dailyMealBreakdown: breakdownWithDays,
       });
-
+  
       await newUserDiet.save();
       await newUserDiet.populate("dietId");
-
+  
       return BaseService.sendSuccessResponse({
         message: "Diet joined successfully",
         diet: newUserDiet,
@@ -262,101 +266,140 @@ class DietServicee extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  
   async markDietTask(req) {
     try {
       const userId = req.user.id;
       const post = req.body;
-
+  
       const validateRule = {
         dietTaskId: "string|required",
         dietId: "string|required",
         status: "string|required|in:completed,missed",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
         in: "Invalid :attribute. Must be one of: completed, missed",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
       const diet = await DietModel.findById(post.dietId);
       if (!diet) {
         return BaseService.sendFailedResponse({ error: "Diet not found" });
       }
-
+  
       const dietAction = await DietActionModel.findOne({
         userId,
         dietId: post.dietId,
       }).populate("dietId");
-
+  
       if (!dietAction) {
         return BaseService.sendFailedResponse({
           error: "You have not joined this diet",
         });
       }
-
-      const dietTask = dietAction.dailyMealBreakdown.find(
-        (task) => task._id.toString() === post.dietTaskId.toString()
+  
+      // Find the day object containing the meal task
+      const dayObj = dietAction.dailyMealBreakdown.find(day =>
+        day.meals.some(meal => meal._id.toString() === post.dietTaskId.toString())
       );
-
-      if (!dietTask) {
+  
+      if (!dayObj) {
         return BaseService.sendFailedResponse({ error: "Diet task not found" });
       }
-
+  
+      // Find the specific meal task
+      const foundTask = dayObj.meals.find(
+        meal => meal._id.toString() === post.dietTaskId.toString()
+      );
+  
+      if (!foundTask) {
+        return BaseService.sendFailedResponse({ error: "Diet task not found" });
+      }
+  
       if (dietAction.status === "completed") {
         return BaseService.sendSuccessResponse({
           message: "You have already completed this diet",
         });
       }
-
-      if (dietTask.status === "completed" || dietTask.status === "missed") {
+  
+      if (foundTask.status === "completed" || foundTask.status === "missed") {
         return BaseService.sendSuccessResponse({
-          message: `You have already marked this task as ${dietTask.status}`,
+          message: `You have already marked this task as ${foundTask.status}`,
         });
       }
-
-      const currentTime = moment().format("HH:mm:ss");
-      const missedByTime = dietTask.missedBy;
-
-      // ✅ Determine final task status
-      let taskStatus = post.status;
-      if (
-        moment(currentTime, "HH:mm:ss").isAfter(
-          moment(missedByTime, "HH:mm:ss")
-        )
-      ) {
-        taskStatus = "missed";
+  
+      const moment = require("moment");
+  
+      // Assume each day object has a dayDate field in 'YYYY-MM-DD' format
+      if (!dayObj.dayDate) {
+        return BaseService.sendFailedResponse({
+          error: "Day date missing for the diet task",
+        });
       }
-
-      dietTask.status = taskStatus;
-
-      // ✅ Recalculate progress
-      const totalTasks = dietAction.dailyMealBreakdown.length;
-      const completedTasks = dietAction.dailyMealBreakdown.filter(
-        (task) => task.status === "completed"
-      ).length;
-
+  
+      const taskDayDate = moment(dayObj.dayDate, "YYYY-MM-DD").startOf("day");
+      const today = moment().startOf("day");
+  
+      // Prevent marking tasks for future days
+      if (taskDayDate.isAfter(today)) {
+        return BaseService.sendFailedResponse({
+          error: "You cannot mark a task for a future day.",
+        });
+      }
+  
+      let taskStatus = post.status;
+  
+      // If task is for today, check missedBy time
+      if (taskDayDate.isSame(today)) {
+        const currentTime = moment();
+        const missedByTime = moment(foundTask.missedBy, "HH:mm:ss");
+  
+        if (currentTime.isAfter(missedByTime)) {
+          taskStatus = "missed"; // Automatically mark as missed if time passed
+        }
+      }
+  
+      // For past days, you may choose to auto mark missed or allow marking as completed
+      // Here, we allow marking as requested (either completed or missed)
+  
+      foundTask.status = taskStatus;
+  
+      // Recalculate progress
+      let totalTasks = 0;
+      let completedTasks = 0;
+      let allMarked = true;
+  
+      for (const day of dietAction.dailyMealBreakdown) {
+        for (const meal of day.meals) {
+          totalTasks += 1;
+          if (meal.status === "completed") {
+            completedTasks += 1;
+          }
+          if (!["completed", "missed"].includes(meal.status)) {
+            allMarked = false;
+          }
+        }
+      }
+  
       const progress =
         totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
       dietAction.progress = progress;
-
-      const allMarked = dietAction.dailyMealBreakdown.every(
-        (task) => task.status === "completed" || task.status === "missed"
-      );
-
-      const today = moment().startOf("day");
+  
       const endDate = moment(dietAction.endDate).startOf("day");
-
+  
+      // Mark dietAction as completed if all tasks are marked or endDate passed
       if (allMarked || today.isSameOrAfter(endDate)) {
         dietAction.status = "completed";
       }
-
+  
       await dietAction.save();
-
+  
       return BaseService.sendSuccessResponse({
         message:
           taskStatus === "missed"
@@ -367,7 +410,7 @@ class DietServicee extends BaseService {
       console.error("Error marking task:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }
+  }  
   async getDietAction(req) {
     try {
       const dietId = req.params.id;
@@ -597,26 +640,38 @@ class DietServicee extends BaseService {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-
+  
       const dietAction = await DietActionModel.findOne({
         userId,
         dietId: id,
       });
-
+  
       if (!dietAction) {
         return BaseService.sendFailedResponse({
           error: "Diet action not found for this user",
         });
       }
-
+  
+      const todayDate = moment().format("YYYY-MM-DD");
+  
+      const todayMealDay = dietAction.dailyMealBreakdown.find(
+        (day) => moment(day.day).format("YYYY-MM-DD") === todayDate
+      );
+  
+      if (!todayMealDay) {
+        return BaseService.sendFailedResponse({
+          error: "No meals scheduled for today",
+        });
+      }
+  
       return BaseService.sendSuccessResponse({
-        message: dietAction.dailyMealBreakdown,
+        message: todayMealDay.meals,
       });
     } catch (error) {
-      console.error("Error fetching completed plans:", error);
+      console.error("Error fetching today's meals:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }
+  }  
   async rateDietMeals(req) {
     try {
       const userId = req.user.id;

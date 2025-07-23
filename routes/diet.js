@@ -464,7 +464,7 @@ router.put(ROUTE_DIET_TASK, [auth], (req, res) => {
 
 /**
  * @swagger
- * /diet/get-diet:
+ * /diet/get-diet/{dietId}:
  *   get:
  *     summary: Get diet
  *     tags:
@@ -586,6 +586,147 @@ router.get(ROUTE_GET_DIET + "/:id", [auth], (req, res) => {
   return dietController.getDiet(req, res);
 });
 
+/**
+ * @swagger
+ * /diet/get-diet-action/{id}:
+ *   get:
+ *     summary: Get the user's diet action for a specific diet plan
+ *     tags:
+ *       - Diets
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the diet to retrieve the action for
+ *         schema:
+ *           type: string
+ *         example: "64e9b7e5f14a3b1234567890"
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Diet action fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "64e9b7e5f14a3b1234567890"
+ *                     dietId:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                         title:
+ *                           type: string
+ *                         description:
+ *                           type: string
+ *                         category:
+ *                           type: string
+ *                         calories:
+ *                           type: number
+ *                         tags:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         duration:
+ *                           type: number
+ *                         image:
+ *                           type: object
+ *                           properties:
+ *                             imageUrl:
+ *                               type: string
+ *                             publicId:
+ *                               type: string
+ *                         status:
+ *                           type: string
+ *                           enum: [active, inactive]
+ *                         recommended:
+ *                           type: string
+ *                           enum: [YES, NO]
+ *                     userId:
+ *                       type: string
+ *                       example: "64e5b4f1a2c3d45678901234"
+ *                     progress:
+ *                       type: number
+ *                       example: 50
+ *                     status:
+ *                       type: string
+ *                       enum: [completed, in-progress]
+ *                       example: in-progress
+ *                     startDate:
+ *                       type: string
+ *                       format: date
+ *                       example: "2025-07-01"
+ *                     endDate:
+ *                       type: string
+ *                       format: date
+ *                       example: "2025-07-07"
+ *                     dailyMealBreakdown:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           dayLabel:
+ *                             type: string
+ *                             example: "Day 1"
+ *                           meals:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 mealTitle:
+ *                                   type: string
+ *                                   example: "Avocado Toast"
+ *                                 crabs:
+ *                                   type: number
+ *                                   example: 30
+ *                                 protein:
+ *                                   type: number
+ *                                   example: 10
+ *                                 fats:
+ *                                   type: number
+ *                                   example: 15
+ *                                 calories:
+ *                                   type: number
+ *                                   example: 350
+ *                                 recommendedTime:
+ *                                   type: string
+ *                                   example: "08:00:00"
+ *                                 missedBy:
+ *                                   type: string
+ *                                   example: "09:30:00"
+ *                                 mealType:
+ *                                   type: string
+ *                                   enum: [breakfast, lunch, dinner, snack]
+ *                                 status:
+ *                                   type: string
+ *                                   enum: [completed, in-progress, missed]
+ *                                   example: in-progress
+ *       404:
+ *         description: Diet action not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Diet action not found
+ *       500:
+ *         description: Server error
+ */
 router.get(ROUTE_GET_DIET_ACTION + "/:id", [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.getDietAction(req, res);
