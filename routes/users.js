@@ -446,7 +446,7 @@ router.post(ROUTE_CREATE_NUGGET, adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /userss/increase-nugget-download-count/{id}:
+ * /users/increase-nugget-download-count/{id}:
  *   put:
  *     summary: download a nugget
  *     description: records the download status for the current user on a specific nugget.
@@ -837,18 +837,111 @@ router.post(ROUTE_COACH_VERIFICATION_APPLY, auth, (req, res) => {
  *                     properties:
  *                       _id:
  *                         type: string
+ *                         example: "682d9eeae409bc720a7684ec"
+ *                       email:
+ *                         type: string
+ *                         example: "chiemelapromise30@gmail.com"
+ *                       username:
+ *                         type: string
+ *                         example: "chinedujeremiah2002"
+ *                       firstName:
+ *                         type: string
+ *                         example: "Promise"
+ *                       lastName:
+ *                         type: string
+ *                         example: "Jeremiah"
+ *                       phoneNumber:
+ *                         type: string
+ *                         example: ""
+ *                       googleId:
+ *                         type: string
+ *                         example: "102285321489484478003"
+ *                       userType:
+ *                         type: string
+ *                         example: "user"
+ *                       status:
+ *                         type: string
+ *                         example: "inactive"
+ *                       isRegistrationComplete:
+ *                         type: boolean
+ *                         example: true
+ *                       isVerified:
+ *                         type: boolean
+ *                         example: true
+ *                       servicePlatform:
+ *                         type: string
+ *                         example: "local"
+ *                       age:
+ *                         type: integer
+ *                         example: 28
+ *                       gender:
+ *                         type: string
+ *                         example: "male"
+ *                       location:
+ *                         type: string
+ *                         example: "promise"
+ *                       dailyStreak:
+ *                         type: integer
+ *                         example: 0
+ *                       weeklyStreak:
+ *                         type: integer
+ *                         example: 0
+ *                       lastDailyStreakDate:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-07-08T21:14:28.119Z"
+ *                       favorites:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       weight:
+ *                         type: object
+ *                         properties:
+ *                           value:
+ *                             type: string
+ *                             example: "102"
+ *                           unit:
+ *                             type: string
+ *                             example: "kg"
+ *                       height:
+ *                         type: object
+ *                         properties:
+ *                           unit:
+ *                             type: string
+ *                             example: "ft"
  *                       coachVerification:
  *                         type: object
  *                         properties:
  *                           status:
  *                             type: string
- *                           firstName:
+ *                             example: "pending"
+ *                       image:
+ *                         type: object
+ *                         properties:
+ *                           imageUrl:
  *                             type: string
- *                           lastName:
+ *                             example: "https://static.vecteezy.com/system/resources/previews/005/544/718/non_2x/profile-icon-design-free-vector.jpg"
+ *                           publicId:
  *                             type: string
- *                           submittedAt:
- *                             type: string
- *                             format: date-time
+ *                             example: ""
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-05-21T09:37:46.773Z"
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-06-07T10:17:16.153Z"
+ *                       otp:
+ *                         type: string
+ *                         example: ""
+ *                       otpExpiresAt:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                       __v:
+ *                         type: integer
+ *                         example: 0
  *       500:
  *         description: Server error
  */

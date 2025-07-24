@@ -88,6 +88,11 @@ exports.ROUTE_RATE_DIET_PLAN = '/rate-diet-plan'
 //categories
 exports.ROUTE_CATEGORY = '/category'
 
+//chat
+exports.ROUTE_CREATE_PRIVATE_CHAT = '/create-private-chat'
+exports.ROUTE_GET_CHATS = '/get-chats'
+exports.ROUTE_GET_CHAT_MESSAGES = '/get-chat-messages'
+
 //products
 exports.ROUTE_CREATE_PRODUCT = '/create-product'
 exports.ROUTE_GET_ALL_PRODUCTS = '/get-all-products'
