@@ -567,7 +567,7 @@ class DietServicee extends BaseService {
       });
     }
   }
-  async searchDietByTitle() {
+  async searchDietByTitle(req) {
     try {
       const { title } = req.query;
 
@@ -583,12 +583,13 @@ class DietServicee extends BaseService {
         message: diets,
       });
     } catch (error) {
+      console.log(error, "the error");
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
     }
   }
-  async getDietByCategory() {
+  async getDietByCategory(req) {
     try {
       const { id } = req.params;
       const page = parseInt(req.query.page) || 1;

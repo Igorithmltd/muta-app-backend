@@ -628,8 +628,8 @@ router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
  *               - value
  *             properties:
  *               value:
- *                 type: number
- *                 example: 72.5
+ *                 type: string
+ *                 example: "72.5"
  *                 description: The weight value
  *               unit:
  *                 type: string
@@ -693,8 +693,8 @@ router.post(ROUTE_LOG_WEIGHT, auth, (req, res) => {
  *               - value
  *             properties:
  *               value:
- *                 type: number
- *                 example: 181
+ *                 type: string
+ *                 example: "181"
  *                 description: The height value
  *               unit:
  *                 type: string
