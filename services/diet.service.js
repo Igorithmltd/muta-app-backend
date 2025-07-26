@@ -92,32 +92,48 @@ class DietServicee extends BaseService {
   async getAllDiets(req) {
     try {
       const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-      const [allDiet, totalCount] = await Promise.all([
-        DietModel.find({})
-          .populate("category")
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit),
-        DietModel.countDocuments(),
-      ]);
+    // Fetch diets and total count in parallel
+    const [allDiet, totalCount] = await Promise.all([
+      DietModel.find({})
+        .populate("category")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(), // Use lean() to allow direct object manipulation
+      DietModel.countDocuments(),
+    ]);
 
-      const totalPages = Math.ceil(totalCount / limit);
+    // Enrich each diet with user count and ratings
+    const enrichedDiets = await Promise.all(
+      allDiet.map(async (diet) => {
+        const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
+        const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+        
+        return {
+          ...diet,
+          usersOnDietCount,
+          numberOfRatings,
+        };
+      })
+    );
 
-      return BaseService.sendSuccessResponse({
-        message: "Diets fetched successfully.",
-        data: {
-          diets: allDiet,
-          pagination: {
-            totalCount,
-            totalPages,
-            currentPage: page,
-            pageSize: limit,
-          },
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return BaseService.sendSuccessResponse({
+      message: "Diets fetched successfully.",
+      data: {
+        diets: enrichedDiets,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: page,
+          pageSize: limit,
         },
-      });
+      },
+    });
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: "An error occurred while fetching diets.",
@@ -280,7 +296,6 @@ class DietServicee extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  
   async markDietTask(req) {
     try {
       const userId = req.user.id;
@@ -437,6 +452,7 @@ class DietServicee extends BaseService {
       if (!dietAction) {
         return BaseService.sendFailedResponse({
           error: "Diet action not found",
+          statusCode: 404
         });
       }
 
@@ -508,46 +524,78 @@ class DietServicee extends BaseService {
     try {
       const recommendedDiets = await DietModel.find({
         recommended: "YES",
-        // status: "active",
       })
         .populate("category")
-        .sort({ createdAt: -1 });
-      if (empty(recommendedDiets)) {
+        .sort({ createdAt: -1 })
+        .lean();
+  
+      if (!recommendedDiets.length) {
         return BaseService.sendFailedResponse({
           error: "No recommended diets found",
         });
       }
+  
+      const enrichedDiets = await Promise.all(
+        recommendedDiets.map(async (diet) => {
+          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
+          const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+  
+          return {
+            ...diet,
+            usersOnDietCount,
+            numberOfRatings,
+          };
+        })
+      );
+  
       return BaseService.sendSuccessResponse({
-        message: recommendedDiets,
+        message: enrichedDiets,
       });
     } catch (error) {
+      console.error("Error in recommendedDiets:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
     }
-  }
+  }  
   async activeDiets() {
     try {
       const activeDiets = await DietModel.find({
-        // recommended: "YES",
         status: "active",
       })
         .populate("category")
-        .sort({ createdAt: -1 });
-      if (empty(activeDiets)) {
+        .sort({ createdAt: -1 })
+        .lean();
+  
+      if (!activeDiets.length) {
         return BaseService.sendFailedResponse({
           error: "No active diets found",
         });
       }
+  
+      const enrichedDiets = await Promise.all(
+        activeDiets.map(async (diet) => {
+          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
+          const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+  
+          return {
+            ...diet,
+            usersOnDietCount,
+            numberOfRatings,
+          };
+        })
+      );
+  
       return BaseService.sendSuccessResponse({
-        message: activeDiets,
+        message: enrichedDiets,
       });
     } catch (error) {
+      console.error("Error in activeDiets:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
     }
-  }
+  }  
   async getDietCategories() {
     try {
       const dietCategories = await DietCategoryModel.find({}).sort({
@@ -570,53 +618,82 @@ class DietServicee extends BaseService {
   async searchDietByTitle(req) {
     try {
       const { title } = req.query;
-
+  
       if (!title) {
         return BaseService.sendFailedResponse({
           error: "Title query parameter is required",
         });
       }
+  
       const diets = await DietModel.find({
         title: { $regex: title, $options: "i" },
-      }).populate("category");
+      })
+        .populate("category")
+        .lean();
+  
+      const enrichedDiets = await Promise.all(
+        diets.map(async (diet) => {
+          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
+          const numberOfRatings = diet.totalRatings || (diet.ratings?.length || 0);
+          return {
+            ...diet,
+            usersOnDietCount,
+            numberOfRatings,
+          };
+        })
+      );
+  
       return BaseService.sendSuccessResponse({
-        message: diets,
+        message: enrichedDiets,
       });
     } catch (error) {
-      console.log(error, "the error");
+      console.error("Error in searchDietByTitle:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
     }
-  }
+  }  
   async getDietByCategory(req) {
     try {
       const { id } = req.params;
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
-
+  
       if (!id) {
         return BaseService.sendFailedResponse({
           error: "Category ID is required",
         });
       }
-
-      const [allDiet, totalCount] = await Promise.all([
+  
+      const [diets, totalCount] = await Promise.all([
         DietModel.find({ category: id })
           .populate("category")
           .sort({ createdAt: -1 })
           .skip(skip)
-          .limit(limit),
-        DietModel.find({ category: id }).countDocuments(),
+          .limit(limit)
+          .lean(),
+        DietModel.countDocuments({ category: id }),
       ]);
-
+  
+      const enrichedDiets = await Promise.all(
+        diets.map(async (diet) => {
+          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
+          const numberOfRatings = diet.totalRatings || (diet.ratings?.length || 0);
+          return {
+            ...diet,
+            usersOnDietCount,
+            numberOfRatings,
+          };
+        })
+      );
+  
       const totalPages = Math.ceil(totalCount / limit);
-
+  
       return BaseService.sendSuccessResponse({
         message: "Diets fetched successfully.",
         data: {
-          diets: allDiet,
+          diets: enrichedDiets,
           pagination: {
             totalCount,
             totalPages,
@@ -626,11 +703,12 @@ class DietServicee extends BaseService {
         },
       });
     } catch (error) {
+      console.error("Error in getDietByCategory:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
     }
-  }
+  }  
   async getCompletedPlans(req) {
     try {
       const userId = req.user.id;
