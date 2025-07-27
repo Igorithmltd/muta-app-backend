@@ -25,8 +25,9 @@ class WorkoutplanService extends BaseService {
         "planRounds.*.rounds": "array|required",
         "planRounds.*.rounds.*.title": "string|required",
         "planRounds.*.rounds.*.duration": "integer|required",
-        "planRounds.*.rounds.*.set": "integer|required",
-        "planRounds.*.rounds.*.reps": "integer|required",
+        "planRounds.*.rounds.*.set": "integer",
+        "planRounds.*.rounds.*.workoutExerciseType": "string|required|in:time,set-reps",
+        "planRounds.*.rounds.*.reps": "integer",
         "planRounds.*.rounds.*.restBetweenSet": "integer|required",
         "planRounds.*.rounds.*.instruction": "string|required",
         "planRounds.*.rounds.*.animation": "string|required",
@@ -50,6 +51,27 @@ class WorkoutplanService extends BaseService {
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
+
+      post.planRounds.forEach((day) => {
+        day.rounds.forEach((round) => {
+          if (round.workoutExerciseType === "set-reps") {
+            // Require reps and set, remove duration
+            if (round.set == null || round.reps == null) {
+              return BaseService.sendFailedResponse({ error: "Rounds with 'set-reps' type must include 'set' and 'reps'." });
+            }
+            delete round.duration;
+          } else if (round.workoutExerciseType === "time") {
+            // Require duration, remove set and reps
+            if (round.duration == null) {
+              return BaseService.sendFailedResponse({ error: "Rounds with 'time' type must include 'duration'." });
+            }
+            delete round.set;
+            delete round.reps;
+          } else {
+            return BaseService.sendFailedResponse({ error: "Invalid workoutExerciseType value in one of the rounds." });
+          }
+        });
+      });
 
       // Check if the workoutplan already exists
       const existingWorkoutplan = await WorkoutPlanModel.findOne({

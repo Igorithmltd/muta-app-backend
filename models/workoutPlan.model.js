@@ -39,11 +39,13 @@ const WorkoutPlanSchema = new mongoose.Schema(
             title: { type: String, required: true },
             duration: { type: Number, required: true },
             set: { type: Number, required: true },
+            // time: { type: Number, required: true },
             animation: { type: String, required: true },
             reps: { type: Number, required: true },
             restBetweenSet: { type: Number, required: true },
             instruction: { type: String, required: true },
             commonMistakesToAvoid: [String],
+            workoutExerciseType: {type: String, required: true, enum: ["time", "set-reps"]},
             breathingTips: [String],
             focusArea: [String],
             status: {
