@@ -24,6 +24,18 @@ exports.ROUTE_INCREASE_NUGGET_SHARE_COUNT = '/increase-nugget-share-count'
 exports.ROUTE_UPGRADE_PLAN = '/upgrade-plan'
 exports.ROUTE_LOG_WEIGHT = '/log-weight'
 exports.ROUTE_LOG_HEIGHT = '/log-height'
+exports.ROUTE_CHANGE_PASSWORD = '/change-password'
+exports.ROUTE_GET_COACHES_BY_SPECIALTY = '/get-coaches-by-specialty'
+
+//plans
+exports.ROUTE_CREATE_PLAN = '/create-plan'
+exports.ROUTE_GET_ALL_PLANS = '/get-all-plans'
+exports.ROUTE_GET_PLAN = '/get-plan'
+exports.ROUTE_UPDATE_PLAN = '/update-plan'
+exports.ROUTE_DELETE_PLAN = '/delete-plan'
+exports.ROUTE_SUBSCRIBE_PLAN = '/subscribe-plan'
+exports.ROUTE_REDEEM_PLAN = '/redeem-plan'
+
 
 //admin
 exports.ROUTE_COACH_VERIFICATION_APPLY = '/coach-verification-apply'
@@ -133,3 +145,11 @@ exports.ROUTE_IMAGE_UPLOAD_SINGLE = '/image-upload-single'
 
 //email
 exports.ROUTE_SEND_EMAIL = '/send-email'
+
+//call
+exports.ROUTE_INITIATE_CALL = '/initiate-call'
+exports.ROUTE_END_CALL = '/end-call'
+exports.ROUTE_RECEIVE_CALL = '/receive-call'
+exports.ROUTE_MISS_CALL = '/miss-call'
+exports.ROUTE_REJECT_CALL = '/reject-call'
+exports.ROUTE_GET_USER_CALL_LOGS = '/get-user-call-logs'

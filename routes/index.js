@@ -11,6 +11,7 @@ const workoutplanRouter = require('./workoutplan')
 const cartRouter = require('./cart')
 const orderRouter = require('./order')
 const chatRouter = require('./chat')
+const callLogRouter = require('./call-log')
 // const adminRouter = require('./admin')
 
 
@@ -25,6 +26,7 @@ router.use('/workoutplan', workoutplanRouter)
 router.use('/cart', cartRouter)
 router.use('/order', orderRouter)
 router.use('/chat', chatRouter)
+router.use('/calls', callLogRouter)
 // router.use('/admin', adminRouter)
 
 module.exports = router

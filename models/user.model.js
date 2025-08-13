@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema(
     },
     bmi: { type: Number },
     height: {
-      value: Number,
+      value: Number, 
       unit: {
         type: String,
         enum: ["cm", "ft"],
@@ -72,7 +72,12 @@ const UserSchema = new mongoose.Schema(
     },
     subscriptionPlan: {
       type: String,
-      enum: ["basic", "premium"],
+    },
+    subscriptionStart: { type: Date },
+    subscriptionExpiry: { type: Date },
+    coachAssigned: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     specialty: [String],
     yearsOfExperience: { type: Number, default: 0 },

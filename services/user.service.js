@@ -13,6 +13,9 @@ const { EXPIRES_AT } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
 const DietModel = require("../models/diet.model");
 const WorkoutPlanModel = require("../models/workoutPlan.model");
+const { default: mongoose } = require("mongoose");
+const PlanModel = require("../models/plan.model");
+const CouponModel = require("../models/coupon.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -1051,7 +1054,7 @@ class UserService extends BaseService {
   }
   async applyCoachVerificationBadge() {
     try {
-      const userId = req.user.id
+      const userId = req.user.id;
       const post = req.body;
       const validateRule = {
         firstName: "string|required",
@@ -1095,7 +1098,6 @@ class UserService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: "Coach verification application submitted successfully",
       });
-
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
@@ -1146,35 +1148,35 @@ class UserService extends BaseService {
   async logUserHeight(req, res) {
     try {
       const userId = req.user.id;
-  
+
       const { value, unit } = req.body;
-  
+
       const validateRule = {
         value: "numeric|required|min:1",
         unit: "string|in:cm,ft",
       };
-  
+
       const validateResult = validateData(req.body, validateRule, {
         required: ":attribute is required.",
         "in.unit": "Height unit must be either 'cm' or 'ft'.",
       });
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found." });
       }
-  
+
       user.height = {
         value: Number(value),
         unit: unit || "cm",
       };
-  
+
       await user.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Height updated successfully",
         data: user.height,
@@ -1183,68 +1185,421 @@ class UserService extends BaseService {
       console.error(err);
       return BaseService.sendFailedResponse("Internal server error");
     }
-  }  
+  }
   async getCoachApplications(req, res) {
     try {
       const { status } = req.query;
       const query = status ? { "coachVerification.status": status } : {};
-  
+
       const coaches = await UserModel.find(query, {
-        password: 0
+        password: 0,
       }).sort({ "coachVerification.submittedAt": -1 });
-  
+
       return BaseService.sendSuccessResponse({ data: coaches });
     } catch (error) {
       console.error(error);
-      return BaseService.sendFailedResponse({ error: "Failed to fetch coach applications" });
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch coach applications",
+      });
     }
   }
   async approveCoach(req, res) {
     try {
       const adminId = req.user.id; // Assuming this is an admin
       const { userId } = req.params;
-  
+
       const user = await UserModel.findById(userId);
       if (!user || !user.coachVerification) {
-        return BaseService.sendFailedResponse({ error: "User or application not found" });
+        return BaseService.sendFailedResponse({
+          error: "User or application not found",
+        });
       }
-  
+
       user.coachVerification.status = "approved";
       user.coachVerification.reviewedAt = new Date();
       user.coachVerification.reviewedBy = adminId;
-  
+
       await user.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Coach application approved successfully",
       });
     } catch (error) {
       console.error(error);
-      return BaseService.sendFailedResponse({ error: "Failed to approve application" });
+      return BaseService.sendFailedResponse({
+        error: "Failed to approve application",
+      });
     }
   }
   async rejectCoach(req, res) {
     try {
       const adminId = req.user.id;
       const { userId } = req.params;
-  
+
       const user = await UserModel.findById(userId);
       if (!user || !user.coachVerification) {
-        return BaseService.sendFailedResponse({ error: "User or application not found" });
+        return BaseService.sendFailedResponse({
+          error: "User or application not found",
+        });
       }
-  
+
       user.coachVerification.status = "rejected";
       user.coachVerification.reviewedAt = new Date();
       user.coachVerification.reviewedBy = adminId;
-  
+
       await user.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Coach application rejected successfully",
       });
     } catch (error) {
       console.error(error);
-      return BaseService.sendFailedResponse({ error: "Failed to reject application" });
+      return BaseService.sendFailedResponse({
+        error: "Failed to reject application",
+      });
+    }
+  }
+  async changePassword(req) {
+    try {
+      const userId = req.user.id;
+      const { oldPassword, newPassword } = req.body;
+
+      // Validate input
+      if (!oldPassword || !newPassword) {
+        return BaseService.sendFailedResponse({
+          error: "All fields are required.",
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return BaseService.sendFailedResponse({
+          error: "New password and confirmation do not match.",
+        });
+      }
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found." });
+      }
+
+      if (!user.password) {
+        return BaseService.sendFailedResponse({
+          error: "No password set for this user.",
+        });
+      }
+
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return BaseService.sendFailedResponse({
+          error: "Old password is incorrect.",
+        });
+      }
+
+      user.password = newPassword;
+
+      await user.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Password changed successfully.",
+      });
+    } catch (error) {
+      console.log(error, "the admin error");
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+  async getCoachBySpecialty(req) {
+    try {
+      const { specialty } = req.query;
+      const specialties = specialty;
+
+      const query = {
+        userType: "coach",
+      };
+
+      if (specialties) {
+        query.specialty = {
+          $in: Array.isArray(specialties) ? specialties : [specialties],
+        };
+      }
+      const coaches = await UserModel.find(query);
+
+      return BaseService.sendSuccessResponse({
+        message: coaches,
+      });
+    } catch (error) {
+      console.log(error, "the admin error");
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
+
+  async subscribePlan(req, res) {
+    try {
+      const { coachId, planId, isGift, recipientEmail } = req.body;
+      const userId = req.user.id;
+
+      // Validate coachId
+      if (!mongoose.isValidObjectId(coachId)) {
+        return BaseService.sendFailedResponse({ error: "Invalid coach ID" });
+      }
+      // Validate planId
+      if (!mongoose.isValidObjectId(planId)) {
+        return BaseService.sendFailedResponse({ error: "Invalid plan ID" });
+      }
+
+      // Find coach
+      const coach = await UserModel.findOne({
+        _id: coachId,
+        userType: "coach",
+      });
+      if (!coach) {
+        return BaseService.sendFailedResponse({ error: "Coach not found" });
+      }
+
+      // Find plan
+      const plan = await PlanModel.findById(planId);
+      if (!plan) {
+        return BaseService.sendFailedResponse({ error: "Plan not found" });
+      }
+
+      if (isGift) {
+        if (!recipientEmail) {
+          return BaseService.sendFailedResponse({
+            error: "Recipient email required for gift",
+          });
+        }
+
+        // Generate coupon code
+        const couponCode =
+          "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+
+        // Save coupon in DB
+        await CouponModel.create({
+          code: couponCode,
+          coachId,
+          planId,
+          giftedByUserId: userId,
+          recipientEmail,
+          used: false,
+          expiresAt: post.expiresAt
+            ? new Date(post.expiresAt)
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // fallback to 30 days if not provided
+        });
+
+        const emailHtml = `
+            <p>Hi, ${recipientEmail}</p>
+            <p>You have received a ${plan.duration} premium subscription gift for coach ${coach.firstName}.</p>
+            <p>Your coupon code is: <b>${couponCode}</b></p>
+            <p>Use this coupon on your account to activate your subscription.</p>
+            <p>Enjoy your training!</p>
+          `;
+
+        await sendEmail({
+          from: "Muta App <no-reply@fitnessapp.com>",
+          subject: `You've received a gift subscription!`,
+          to: user.email,
+          html: emailHtml,
+        });
+
+        // Optionally send email notification here
+
+        return BaseService.sendSuccessResponse({ message: couponCode });
+      } else {
+        // Subscribe user directly
+        const user = await UserModel.findById(userId);
+
+        // Calculate expiry date based on plan.duration
+        let expiryDate = new Date();
+        if (plan.duration === "monthly") {
+          expiryDate.setMonth(expiryDate.getMonth() + 1);
+        } else if (plan.duration === "yearly") {
+          expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        }
+
+        user.subscriptionPlan = plan.name; // e.g., 'premium'
+        user.subscriptionExpiry = expiryDate;
+        user.subscriptionStart = new Date();
+        user.coachAssigned = coachId;
+
+        await user.save();
+
+        const emailHtml = `
+            <p>Hi, ${user.firstName}</p>
+            <p>You have subscribed a ${plan.duration} premium subscription gift for coach ${coach.firstName}.</p>
+            <p>Enjoy your training!</p>
+          `;
+
+        await sendEmail({
+          from: "Muta App <no-reply@fitnessapp.com>",
+          subject: `You've subscribe successfully!`,
+          to: user.email,
+          html: emailHtml,
+        });
+
+        return BaseService.sendSuccessResponse({
+          message: "Subscription successful",
+        });
+      }
+    } catch (error) {
+      console.error("Subscription error:", error);
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
+  async redeemCoupon(req, res) {
+    try {
+      const { couponCode } = req.body;
+      const userId = req.user._id;
+      const user = await UserModel.findById(userId);
+      const userEmail = user.email;
+
+      // Find coupon by code
+      const coupon = await CouponModel.findOne({ code: couponCode });
+      if (!coupon) {
+        return BaseService.sendFailedResponse({ error: "Coupon not found" });
+      }
+
+      // Check expiration
+      if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+        return BaseService.sendFailedResponse({ error: "Coupon has expired" });
+      }
+
+      // Check if already used
+      if (coupon.used) {
+        return BaseService.sendFailedResponse({
+          error: "Coupon has already been used",
+        });
+      }
+
+      // Verify recipient email matches logged in user
+      if (coupon.recipientEmail.toLowerCase() !== userEmail.toLowerCase()) {
+        return BaseService.sendFailedResponse({
+          error: "Coupon not valid for this user",
+        });
+      }
+
+      // Check if user already has a subscription
+      if (
+        user.subscriptionPlan === "premium" &&
+        user.subscriptionExpiry > new Date()
+      ) {
+        return BaseService.sendFailedResponse({
+          error: "User already has an active subscription",
+        });
+      }
+
+      const plan = await PlanModel.findOne({ _id: coupon.planId });
+      // Set subscription expiry based on planDuration
+      let expiryDate = new Date();
+      if (plan.duration === "monthly") {
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
+      } else {
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      }
+
+      // Update user subscription & coach
+      user.subscriptionPlan = "premium";
+      user.subscriptionExpiry = expiryDate;
+      user.subscriptionStart = new Date();
+      user.coachAssigned = coupon.coachId; // Assign coach from coupon
+      await user.save();
+
+      // Mark coupon as used
+      coupon.used = true;
+      coupon.usedByUserId = userId;
+      await coupon.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Subscription redeemed successfully",
+      });
+    } catch (error) {
+      console.error("Subscription error:", error);
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
+  async createPlan(req, res){
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        name: "email|required",
+        duration: "string|required",
+        price: "integer|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "email.email": "Please provide a valid :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+      const { name, duration, price } = post;
+      const plan = new PlanModel({ name, duration, price, ...(post.features && {features: post.features}) });
+      await plan.save();
+      return BaseService.sendSuccessResponse({message: plan});
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: "Failed to create plan" });
+    }
+  }
+  async getPlans(req, res){
+    try {
+      const plans = await PlanModel.find();
+      return BaseService.sendSuccessResponse({message: plans});
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: "Failed to get plans" });
+    }
+  }
+  async getPlan(req, res){
+    try {
+      if(!req.params.id){
+        return BaseService.sendFailedResponse({ error: "Plan ID is required" });
+      }
+      const plan = await PlanModel.findById(req.params.id);
+      if (!plan) return BaseService.sendFailedResponse({ error: "Plan not found" });
+      return BaseService.sendSuccessResponse({message: plan});
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: "Failed to get plan" });
+    }
+  }
+  async updatePlan(req, res){
+    try {
+      if(!req.params.id){
+        return BaseService.sendFailedResponse({ error: "Plan ID is required" });
+      }
+      const plan = await PlanModel.findById(req.params.id);
+
+      if (!plan) return BaseService.sendFailedResponse({ error: "Plan not found" });
+
+      await PlanModel.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true }
+      );
+  
+      return BaseService.sendSuccessResponse({message: 'Plan updated successfully'});
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: "Failed to update plan" });
+    }
+  }
+  async deletePlan(req, res){
+    try {
+      if(!req.params.id){
+        return BaseService.sendFailedResponse({ error: "Plan ID is required" });
+      }
+      const plan = await PlanModel.findById(req.params.id);
+
+      if (!plan) return BaseService.sendFailedResponse({ error: "Plan not found" });
+
+      await PlanModel.findByIdAndDelete(
+        req.params.id
+      );
+  
+      return BaseService.sendSuccessResponse({message: 'Plan deleted successfully'});
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: "Failed to delete plan" });
     }
   }
 }

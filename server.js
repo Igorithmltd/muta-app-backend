@@ -1,5 +1,6 @@
 require("dotenv").config();
 require("./lib/cron/updateDietStatus.js");
+require("./lib/cron/updateSubscriptionPlan.js");
 const express = require("express");
 const socketIO = require("socket.io");
 const rateLimit = require("express-rate-limit");
@@ -14,6 +15,7 @@ const AppError = require("./util/appError.js");
 // const ChatModel = require("./models/chat.model.js");
 const MessageModel = require("./models/message.model.js");
 const setupSwagger = require("./swagger");
+const CallLogModel = require("./models/call-log.model.js");
 
 const port = process.env.PORT || 5000;
 const mongoURL = process.env.MONGODB_URL;
@@ -108,6 +110,18 @@ io.on("connection", async (socket) => {
       userId,
       message: `User ${userId} joined the room.`,
     });
+  });
+
+  // =================== LISTEN TO CALL ACTIONS ===================
+  socket.on("end_call", async (data) => {
+    // Update DB and notify other party
+    const { sessionId } = data;
+    const callLog = await CallLogModel.findOneAndUpdate(
+      { sessionId },
+      { status: 'ended', endTime: new Date() }
+    );
+
+    io.to(callLog.receiverId.toString()).emit("call_ended", callLog);
   });
 
   // =================== LEAVE ROOM ===================

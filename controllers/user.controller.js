@@ -202,6 +202,78 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, rejectCoach.data)
     }
+    async changePassword(req, res){
+        const userService = new UserService()
+        const changePassword = await userService.changePassword(req)
+        if(!changePassword.success){
+            return BaseController.sendFailedResponse(res, changePassword.data)
+        }
+        return BaseController.sendSuccessResponse(res, changePassword.data)
+    }
+    async getCoachBySpecialty(req, res){
+        const userService = new UserService()
+        const getCoachBySpecialty = await userService.getCoachBySpecialty(req)
+        if(!getCoachBySpecialty.success){
+            return BaseController.sendFailedResponse(res, getCoachBySpecialty.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCoachBySpecialty.data)
+    }
+    async subscribePlan(req, res){
+        const userService = new UserService()
+        const subscribePlan = await userService.subscribePlan(req)
+        if(!subscribePlan.success){
+            return BaseController.sendFailedResponse(res, subscribePlan.data)
+        }
+        return BaseController.sendSuccessResponse(res, subscribePlan.data)
+    }
+    async redeemCoupon(req, res){
+        const userService = new UserService()
+        const redeemCoupon = await userService.redeemCoupon(req)
+        if(!redeemCoupon.success){
+            return BaseController.sendFailedResponse(res, redeemCoupon.data)
+        }
+        return BaseController.sendSuccessResponse(res, redeemCoupon.data)
+    }
+    async createPlan(req, res){
+        const userService = new UserService()
+        const createPlan = await userService.createPlan(req)
+        if(!createPlan.success){
+            return BaseController.sendFailedResponse(res, createPlan.data)
+        }
+        return BaseController.sendSuccessResponse(res, createPlan.data)
+    }
+    async getPlans(req, res){
+        const userService = new UserService()
+        const getPlans = await userService.getPlans(req)
+        if(!getPlans.success){
+            return BaseController.sendFailedResponse(res, getPlans.data)
+        }
+        return BaseController.sendSuccessResponse(res, getPlans.data)
+    }
+    async getPlan(req, res){
+        const userService = new UserService()
+        const getPlan = await userService.getPlan(req)
+        if(!getPlan.success){
+            return BaseController.sendFailedResponse(res, getPlan.data)
+        }
+        return BaseController.sendSuccessResponse(res, getPlan.data)
+    }
+    async updatePlan(req, res){
+        const userService = new UserService()
+        const updatePlan = await userService.updatePlan(req)
+        if(!updatePlan.success){
+            return BaseController.sendFailedResponse(res, updatePlan.data)
+        }
+        return BaseController.sendSuccessResponse(res, updatePlan.data)
+    }
+    async deletePlan(req, res){
+        const userService = new UserService()
+        const deletePlan = await userService.deletePlan(req)
+        if(!deletePlan.success){
+            return BaseController.sendFailedResponse(res, deletePlan.data)
+        }
+        return BaseController.sendSuccessResponse(res, deletePlan.data)
+    }
 }
 
 module.exports = UserController

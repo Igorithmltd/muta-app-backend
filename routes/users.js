@@ -19,6 +19,15 @@ const {
   ROUTE_COACH_VERIFICATION_REJECT,
   ROUTE_COACH_VERIFICATION_APPROVE,
   ROUTE_LOG_HEIGHT,
+  ROUTE_CHANGE_PASSWORD,
+  ROUTE_GET_COACHES_BY_SPECIALTY,
+  ROUTE_CREATE_PLAN,
+  ROUTE_GET_ALL_PLANS,
+  ROUTE_GET_PLAN,
+  ROUTE_UPDATE_PLAN,
+  ROUTE_DELETE_PLAN,
+  ROUTE_SUBSCRIBE_PLAN,
+  ROUTE_REDEEM_PLAN,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1024,6 +1033,390 @@ router.put(ROUTE_COACH_VERIFICATION_REJECT+"/:userId", adminAuth, (req, res) => 
 router.put(ROUTE_COACH_VERIFICATION_APPROVE+"/userId", adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.approveCoach(req, res);
+});
+
+/**
+ * @swagger
+ * /users/change-password:
+ *   put:
+ *     summary: Change user password
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 example: currentPassword123
+ *               newPassword:
+ *                 type: string
+ *                 example: newSecurePassword456
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password changed successfully.
+ *       400:
+ *         description: Bad request (e.g. incorrect old password, mismatch, or missing fields)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Old password is incorrect.
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put(ROUTE_CHANGE_PASSWORD, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.approveCoach(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-coaches-by-specialty:
+ *   get:
+ *     summary: Get list of coaches filtered by specialties
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: query
+ *         name: specialty
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         description: |
+ *           One or more specialties to filter coaches by.
+ *           Use multiple `specialty` parameters to specify multiple specialties.
+ *           Example: ?specialty=yoga&specialty=cardio
+ *         required: false
+ *         style: form
+ *         explode: true
+ *     responses:
+ *       200:
+ *         description: List of matching coaches
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 60d21b4667d0d8992e610c85
+ *                   firstName:
+ *                     type: string
+ *                     example: Jane
+ *                   lastName:
+ *                     type: string
+ *                     example: Doe
+ *                   specialty:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["yoga", "meditation"]
+ *                   userType:
+ *                     type: string
+ *                     example: coach
+ *                   isVerifiedCoach:
+ *                     type: boolean
+ *                     example: true
+ *                   image:
+ *                     type: object
+ *                     properties:
+ *                       imageUrl:
+ *                         type: string
+ *                         example: https://example.com/jane.jpg
+ *                       publicId:
+ *                         type: string
+ *                         example: abc123
+ *       400:
+ *         description: Invalid query parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_GET_COACHES_BY_SPECIALTY, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getCoachBySpecialty(req, res);
+});
+
+/**
+ * @swagger
+ * /users/subscribe-plan:
+ *   post:
+ *     summary: Subscribe to a plan or gift a subscription
+ *     tags: [Plans]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - coachId
+ *               - planId
+ *               - isGift
+ *             properties:
+ *               coachId:
+ *                 type: string
+ *                 description: ID of the coach to subscribe to
+ *               planId:
+ *                 type: string
+ *                 description: ID of the subscription plan
+ *               isGift:
+ *                 type: boolean
+ *                 description: Whether the plan is being gifted
+ *               recipientEmail:
+ *                 type: string
+ *                 description: Email of the gift recipient (required if isGift is true)
+ *               expiresAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Expiration date of the gift coupon (optional)
+ *     responses:
+ *       200:
+ *         description: Success (either coupon generated or subscription completed)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 couponCode:
+ *                   type: string
+ *                   description: Returned if the plan is gifted
+ *                 message:
+ *                   type: string
+ *                 subscriptionExpiry:
+ *                   type: string
+ *                   format: date-time
+ *                 plan:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     duration:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     currency:
+ *                       type: string
+ *       400:
+ *         description: Bad request or missing/invalid fields
+ *       404:
+ *         description: Coach or plan not found
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_SUBSCRIBE_PLAN, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.subscribePlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/redeem-plan:
+ *   post:
+ *     summary: Redeem a gifted subscription using a coupon code
+ *     tags: [Plans]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - couponCode
+ *             properties:
+ *               couponCode:
+ *                 type: string
+ *                 description: The coupon code to redeem
+ *     responses:
+ *       200:
+ *         description: Subscription redeemed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Subscription redeemed successfully
+ *       400:
+ *         description: Invalid or missing coupon code
+ *       403:
+ *         description: Coupon not valid for this user or already used
+ *       404:
+ *         description: Coupon or plan not found
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_REDEEM_PLAN, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.redeemCoupon(req, res);
+});
+
+/**
+ * @swagger
+ * /users/create-plan:
+ *   post:
+ *     summary: Create a new subscription plan
+ *     tags: [Plans]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Plan'
+ *     responses:
+ *       201:
+ *         description: Plan created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Plan'
+ *       400:
+ *         description: Validation error
+ */
+router.post(ROUTE_CREATE_PLAN, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.createPlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-all-plans:
+ *   get:
+ *     summary: Get all subscription plans
+ *     tags: [Plans]
+ *     responses:
+ *       200:
+ *         description: List of all plans
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Plan'
+ */
+router.get(ROUTE_GET_ALL_PLANS, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getPlans(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-plan/{id}:
+ *   get:
+ *     summary: Get a plan by ID
+ *     tags: [Plans]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The plan ID
+ *     responses:
+ *       200:
+ *         description: The requested plan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Plan'
+ *       404:
+ *         description: Plan not found
+ */
+router.get(ROUTE_GET_PLAN+"/:id", auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getPlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/update-plan/{id}:
+ *   put:
+ *     summary: Update a plan by ID
+ *     tags: [Plans]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The plan ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Plan'
+ *     responses:
+ *       200:
+ *         description: Plan updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Plan'
+ *       404:
+ *         description: Plan not found
+ */
+router.put(ROUTE_UPDATE_PLAN, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.updatePlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/delete-plan/{id}:
+ *   delete:
+ *     summary: Delete a plan by ID
+ *     tags: [Plans]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The plan ID
+ *     responses:
+ *       200:
+ *         description: Plan deleted successfully
+ *       404:
+ *         description: Plan not found
+ */
+router.delete(ROUTE_DELETE_PLAN, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.deletePlan(req, res);
 });
 
 module.exports = router;
