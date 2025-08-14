@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const ProductModel = require("../models/product.model");
 const ProductCategoryModel = require("../models/productCategory.model");
 const UserModel = require("../models/user.model");
@@ -25,11 +26,7 @@ class ProductService extends BaseService {
         "integer.integer": ":attribute must be a integer.",
       };
 
-      const validateResult = validateData(
-        post,
-        validateRule,
-        validateMessage
-      );
+      const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
@@ -42,8 +39,8 @@ class ProductService extends BaseService {
           error: "Product with this title already exists",
         });
       }
-        const newProduct = new ProductModel(post);
-        await newProduct.save();
+      const newProduct = new ProductModel(post);
+      await newProduct.save();
       return BaseService.sendSuccessResponse({
         message: "Product created successfully",
       });
@@ -52,16 +49,18 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getAllProducts(req){
+  async getAllProducts(req) {
     try {
-        const filter = req.query.category ? {category: req.query.category} : {}
-        const allProducts = await ProductModel.find(filter)
-        return BaseService.sendSuccessResponse({message: allProducts})
+      const filter = req.query.category ? { category: req.query.category } : {};
+      const allProducts = await ProductModel.find(filter);
+      return BaseService.sendSuccessResponse({ message: allProducts });
     } catch (error) {
-        return BaseService.sendFailedResponse({error: this.server_error_message})
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
-  async updateProduct(req){
+  async updateProduct(req) {
     try {
       const { id } = req.params;
       const post = req.body;
@@ -75,11 +74,13 @@ class ProductService extends BaseService {
 
       const existingProduct = await ProductModel.findOne({
         title: post.title,
-        _id: {$ne: id}
+        _id: { $ne: id },
       });
 
-      if(existingProduct){
-        return BaseService.sendFailedResponse({error: 'Product with this title already exists'})
+      if (existingProduct) {
+        return BaseService.sendFailedResponse({
+          error: "Product with this title already exists",
+        });
       }
 
       await ProductModel.updateOne({ _id: id }, post);
@@ -91,7 +92,7 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getProduct(req){
+  async getProduct(req) {
     try {
       const { id } = req.params;
 
@@ -102,13 +103,13 @@ class ProductService extends BaseService {
         });
       }
 
-      return BaseService.sendSuccessResponse({message: product});
+      return BaseService.sendSuccessResponse({ message: product });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async deleteProduct(req){
+  async deleteProduct(req) {
     try {
       const { id } = req.params;
 
@@ -119,7 +120,9 @@ class ProductService extends BaseService {
       }
       const product = await ProductModel.findByIdAndDelete(id);
 
-      return BaseService.sendSuccessResponse({message: 'Product deleted successfully'});
+      return BaseService.sendSuccessResponse({
+        message: "Product deleted successfully",
+      });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
@@ -137,11 +140,7 @@ class ProductService extends BaseService {
         "integer.integer": ":attribute must be a integer.",
       };
 
-      const validateResult = validateData(
-        post,
-        validateRule,
-        validateMessage
-      );
+      const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
@@ -154,8 +153,8 @@ class ProductService extends BaseService {
           error: "Product with this title already exists",
         });
       }
-        const newProductCategory = new ProductCategoryModel(post);
-        await newProductCategory.save();
+      const newProductCategory = new ProductCategoryModel(post);
+      await newProductCategory.save();
       return BaseService.sendSuccessResponse({
         message: "Product category created successfully",
       });
@@ -164,15 +163,17 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getAllProductsCategories(req){
+  async getAllProductsCategories(req) {
     try {
-        const allProductsCategory = await ProductCategoryModel.find()
-        return BaseService.sendSuccessResponse({message: allProductsCategory})
+      const allProductsCategory = await ProductCategoryModel.find();
+      return BaseService.sendSuccessResponse({ message: allProductsCategory });
     } catch (error) {
-        return BaseService.sendFailedResponse({error: this.server_error_message})
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
-  async updateProductCategory(req){
+  async updateProductCategory(req) {
     try {
       const { id } = req.params;
       const post = req.body;
@@ -186,11 +187,13 @@ class ProductService extends BaseService {
 
       const existingProductCategory = await ProductModel.findOne({
         title: post.title,
-        _id: {$ne: id}
+        _id: { $ne: id },
       });
 
-      if(existingProductCategory){
-        return BaseService.sendFailedResponse({error: 'Product category with this title already exists'})
+      if (existingProductCategory) {
+        return BaseService.sendFailedResponse({
+          error: "Product category with this title already exists",
+        });
       }
 
       await ProductCategoryModel.updateOne({ _id: id }, post);
@@ -202,7 +205,7 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getProductCategory(req){
+  async getProductCategory(req) {
     try {
       const { id } = req.params;
 
@@ -213,13 +216,13 @@ class ProductService extends BaseService {
         });
       }
 
-      return BaseService.sendSuccessResponse({message: productCategory});
+      return BaseService.sendSuccessResponse({ message: productCategory });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async deleteProductCategory(req){
+  async deleteProductCategory(req) {
     try {
       const { id } = req.params;
 
@@ -230,7 +233,9 @@ class ProductService extends BaseService {
       }
       const productCategory = await ProductCategoryModel.findByIdAndDelete(id);
 
-      return BaseService.sendSuccessResponse({message: 'Product category deleted successfully'});
+      return BaseService.sendSuccessResponse({
+        message: "Product category deleted successfully",
+      });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
@@ -240,47 +245,135 @@ class ProductService extends BaseService {
     try {
       const userId = req.user.id;
       const { productId } = req.body;
-  
+
       const product = await ProductModel.findById(productId);
       if (!product) {
         return BaseService.sendFailedResponse({ error: "Product not found" });
       }
-  
+
       const user = await UserModel.findById(userId);
       if (user.favorites.includes(productId)) {
-        return BaseService.sendSuccessResponse({ message: "Product is already in favorites" });
+        return BaseService.sendSuccessResponse({
+          message: "Product is already in favorites",
+        });
       }
-  
+
       user.favorites.push(productId);
       await user.save();
-  
+
       return BaseService.sendSuccessResponse({
-        message: "Product added to favorites"
+        message: "Product added to favorites",
       });
     } catch (error) {
-      return BaseService.sendFailedResponse({error: this.server_error_message});
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
   async removeFavoriteProduct(req) {
     try {
       const userId = req.user.id;
       const { productId } = req.body;
-  
+
       const user = await UserModel.findById(userId);
       if (!user.favorites.includes(productId)) {
-        return BaseService.sendFailedResponse({ message: "Product is not in favorites" });
+        return BaseService.sendFailedResponse({
+          message: "Product is not in favorites",
+        });
       }
-  
+
       user.favorites = user.favorites.filter(
         (favId) => favId.toString() !== productId
       );
       await user.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Product removed from favorites",
       });
     } catch (error) {
-      return BaseService.sendFailedResponse({ error: this.server_error_message });
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async reviewProduct(req) {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const { rating, comment } = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return BaseService.sendFailedResponse({ error: "Invalid product ID" });
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        return BaseService.sendFailedResponse({
+          error: "Rating must be between 1 and 5",
+        });
+      }
+
+      const product = await ProductModel.findById(id);
+      if (!product)
+        return BaseService.sendFailedResponse({ error: "Product not found" });
+
+      // Check if user has already reviewed
+      const existingReviewIndex = product.reviews.findIndex(
+        (r) => r.user.toString() === userId
+      );
+
+      if (existingReviewIndex !== -1) {
+        // Update existing review
+        product.reviews[existingReviewIndex].rating = rating;
+        product.reviews[existingReviewIndex].comment =
+          comment || product.reviews[existingReviewIndex].comment;
+        product.reviews[existingReviewIndex].createdAt = new Date();
+      } else {
+        // Add new review
+        product.reviews.push({
+          user: userId,
+          rating,
+          comment,
+          createdAt: new Date(),
+        });
+      }
+
+      // Recalculate average rating and number of reviews
+      product.numReviews = product.reviews.length;
+      product.rating =
+        product.reviews.reduce((acc, item) => acc + item.rating, 0) /
+        product.numReviews;
+
+      await product.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "Review added successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getAllProductReview(req) {
+    try {
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return BaseService.sendFailedResponse({ error: "Invalid product ID" });
+      }
+
+      const product = await ProductModel.findById(id).select("reviews");
+
+      if (!product)
+        return BaseService.sendFailedResponse({ error: "Product not found" });
+
+      return BaseService.sendSuccessResponse({
+        message: product.reviews,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
 }

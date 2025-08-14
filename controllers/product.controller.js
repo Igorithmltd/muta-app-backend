@@ -100,6 +100,22 @@ class ProductController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, removeFavoriteProduct.data)
     }
+    async reviewProduct(req, res){
+        const productService = new ProductService()
+        const reviewProduct = await productService.reviewProduct(req)
+        if(!reviewProduct.success){
+            return BaseController.sendFailedResponse(res, reviewProduct.data)
+        }
+        return BaseController.sendSuccessResponse(res, reviewProduct.data)
+    }
+    async getAllProductReview(req, res){
+        const productService = new ProductService()
+        const getAllProductReview = await productService.getAllProductReview(req)
+        if(!getAllProductReview.success){
+            return BaseController.sendFailedResponse(res, getAllProductReview.data)
+        }
+        return BaseController.sendSuccessResponse(res, getAllProductReview.data)
+    }
 }
 
 module.exports = ProductController

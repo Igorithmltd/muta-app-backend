@@ -28,6 +28,12 @@ const {
   ROUTE_DELETE_PLAN,
   ROUTE_SUBSCRIBE_PLAN,
   ROUTE_REDEEM_PLAN,
+  ROUTE_LOG_SLEEP,
+  ROUTE_GET_SLEEP_LOGS,
+  ROUTE_LOG_WATER,
+  ROUTE_GET_WATER_LOGS,
+  ROUTE_GET_NOTIFICATIONS,
+  ROUTE_BROADCAST_NOTIFICATION,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1417,6 +1423,298 @@ router.put(ROUTE_UPDATE_PLAN, adminAuth, (req, res) => {
 router.delete(ROUTE_DELETE_PLAN, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.deletePlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/log-sleep:
+ *   put:
+ *     summary: Log last night's sleep hours
+ *     tags: [Sleep]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Sleep hours to log
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - hours
+ *             properties:
+ *               hours:
+ *                 type: number
+ *                 minimum: 0
+ *                 maximum: 24
+ *                 example: 7.5
+ *     responses:
+ *       200:
+ *         description: Sleep entry updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 entry:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     userId:
+ *                       type: string
+ *                     date:
+ *                       type: string
+ *                       format: date
+ *                     hours:
+ *                       type: number
+ *       400:
+ *         description: Invalid request (e.g., invalid hours)
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_LOG_SLEEP, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.logSleep(req, res);
+});
+
+/**
+* @swagger
+* /users/log-water:
+*   put:
+*     summary: Log or update today's water intake in litres
+*     tags: [Water]
+*     security:
+*       - bearerAuth: []
+*     requestBody:
+*       description: Amount of water consumed today (in litres)
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             required:
+*               - litres
+*             properties:
+*               litres:
+*                 type: number
+*                 minimum: 0
+*                 example: 1.5
+*     responses:
+*       200:
+*         description: Water intake logged or updated
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   example: Water intake updated
+*       401:
+*         description: Unauthorized
+*       500:
+*         description: Server error
+*/
+router.put(ROUTE_LOG_WATER, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.logWater(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-sleep-logs:
+ *   get:
+ *     summary: Get sleep hours for the past 7 days
+ *     tags: [Sleep]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Sleep data for the last 7 days
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-08-13"
+ *                       hours:
+ *                         type: number
+ *                         example: 6.5
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_SLEEP_LOGS, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getSleepLog(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-water-logs:
+ *   get:
+ *     summary: Get today's water intake
+ *     tags: [Water]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Today's water intake data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 date:
+ *                   type: string
+ *                   format: date
+ *                   example: "2025-08-14"
+ *                 litres:
+ *                   type: number
+ *                   example: 1.5
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getWaterLog(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-notifications:
+ *   get:
+ *     summary: Get notifications for the authenticated user
+ *     description: Returns a list of notifications with title, description, and formatted time (e.g., "Tue, 12:09 PM").
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []   # Assuming JWT Bearer token auth
+ *     responses:
+ *       200:
+ *         description: List of notifications retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         description: Notification ID
+ *                         example: "64df2139a1e4f3c00123abcd"
+ *                       title:
+ *                         type: string
+ *                         description: Notification title
+ *                         example: "Workout Reminder"
+ *                       description:
+ *                         type: string
+ *                         description: Notification description
+ *                         example: "Don't forget to complete your workout today!"
+ *                       time:
+ *                         type: string
+ *                         description: Formatted notification time (e.g., "Tue, 12:09 PM")
+ *                         example: "Tue, 12:09 PM"
+ *       401:
+ *         description: Unauthorized - user not authenticated
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_NOTIFICATIONS  , auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getNotifications(req, res);
+});
+
+/**
+ * @swagger
+ * /users/broadcast-notification:
+ *   post:
+ *     summary: Send a notification to all regular users (excluding coaches and admins)
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: The notification title
+ *                 example: Your workout streak is alive
+ *               description:
+ *                 type: string
+ *                 description: The notification message body
+ *                 example: You have logged workouts for day 2. Keep it going - Consistency is your secret weapon!
+ *     responses:
+ *       200:
+ *         description: Notification sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Notification sent to 150 users successfully
+ *       400:
+ *         description: Bad request - missing title or description
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Title and description are required
+ *       404:
+ *         description: No regular users found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: No regular users found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.post(ROUTE_BROADCAST_NOTIFICATION, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.broadcastNotification(req, res);
 });
 
 module.exports = router;

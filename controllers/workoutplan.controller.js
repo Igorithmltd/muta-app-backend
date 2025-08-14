@@ -90,6 +90,22 @@ class WorkoutplanController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, activeWorkoutplans.data)
     }
+    async getCompletedWorkoutPlans(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const getCompletedWorkoutPlanss = await workoutplanService.getCompletedWorkoutPlans(req)
+        if(!getCompletedWorkoutPlanss.success){
+            return BaseController.sendFailedResponse(res, getCompletedWorkoutPlanss.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCompletedWorkoutPlanss.data)
+    }
+    async popularWorkoutPlans(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const popularWorkoutPlans = await workoutplanService.popularWorkoutPlans(req)
+        if(!popularWorkoutPlans.success){
+            return BaseController.sendFailedResponse(res, popularWorkoutPlans.data)
+        }
+        return BaseController.sendSuccessResponse(res, popularWorkoutPlans.data)
+    }
     async rateWorkoutplan(req, res){
         const workoutplanService = new WorkoutplanService()
         const rateWorkoutplan = await workoutplanService.rateWorkoutplan(req)

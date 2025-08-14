@@ -15,26 +15,14 @@ const ProductSchema = new mongoose.Schema(
       imageUrl: { type: String },
       publicId: { type: String },
     }],
-    rating: { type: Number, default: 0 }, // average rating
+    rating: { type: Number, default: 0 },
     numReviews: { type: Number, default: 0 },
     reviews: [
       {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          // required: true,
-        },
+        user: {type: mongoose.Schema.Types.ObjectId,ref: "User",},
         comment: { type: String },
-        rating: {
-          type: Number,
-          // required: true,
-          min: 1,
-          max: 5,
-        },
-        createdAt: {
-          type: Date,
-          // default: Date.now,
-        },
+        rating: {type: Number,min: 1,max: 5,},
+        createdAt: {type: Date,},
       },
     ],
   },

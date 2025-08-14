@@ -274,6 +274,54 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deletePlan.data)
     }
+    async logSleep(req, res){
+        const userService = new UserService()
+        const logSleep = await userService.logSleep(req)
+        if(!logSleep.success){
+            return BaseController.sendFailedResponse(res, logSleep.data)
+        }
+        return BaseController.sendSuccessResponse(res, logSleep.data)
+    }
+    async logWater(req, res){
+        const userService = new UserService()
+        const logWater = await userService.logWater(req)
+        if(!logWater.success){
+            return BaseController.sendFailedResponse(res, logWater.data)
+        }
+        return BaseController.sendSuccessResponse(res, logWater.data)
+    }
+    async getSleepLog(req, res){
+        const userService = new UserService()
+        const getSleepLog = await userService.getSleepLog(req)
+        if(!getSleepLog.success){
+            return BaseController.sendFailedResponse(res, getSleepLog.data)
+        }
+        return BaseController.sendSuccessResponse(res, getSleepLog.data)
+    }
+    async getWaterLog(req, res){
+        const userService = new UserService()
+        const getWaterLog = await userService.getWaterLog(req)
+        if(!getWaterLog.success){
+            return BaseController.sendFailedResponse(res, getWaterLog.data)
+        }
+        return BaseController.sendSuccessResponse(res, getWaterLog.data)
+    }
+    async getNotifications(req, res){
+        const userService = new UserService()
+        const getNotifications = await userService.getNotifications(req)
+        if(!getNotifications.success){
+            return BaseController.sendFailedResponse(res, getNotifications.data)
+        }
+        return BaseController.sendSuccessResponse(res, getNotifications.data)
+    }
+    async broadcastNotification(req, res){
+        const userService = new UserService()
+        const broadcastNotification = await userService.broadcastNotification(req)
+        if(!broadcastNotification.success){
+            return BaseController.sendFailedResponse(res, broadcastNotification.data)
+        }
+        return BaseController.sendSuccessResponse(res, broadcastNotification.data)
+    }
 }
 
 module.exports = UserController

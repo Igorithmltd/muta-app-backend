@@ -10,7 +10,7 @@ class ChallengeService extends BaseService {
   async createChallenge(req) {
     try {
       const post = req.body;
-
+  
       const validateRule = {
         title: "string|required",
         goal: "string|required",
@@ -25,21 +25,20 @@ class ChallengeService extends BaseService {
         "image.imageUrl": "string|required",
         "image.publicId": "string|required",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
         "in.difficulty": "Please provide a valid :attribute level.",
         array: ":attribute must be an array.",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
-      // Check if the challenge already exists
+  
       const existingChallenge = await ChallengeModel.findOne({
         title: post.title,
       });
@@ -48,16 +47,16 @@ class ChallengeService extends BaseService {
           error: "Challenge with this title already exists",
         });
       }
-
+  
       const startDate = new Date(post.startDate);
       let endDate = new Date(startDate);
-
+  
       if (post.type === "weekly") {
         endDate.setDate(startDate.getDate() + 6);
       } else {
         endDate = startDate;
       }
-
+  
       const newChallenge = {
         title: post.title,
         goal: post.goal,
@@ -72,31 +71,39 @@ class ChallengeService extends BaseService {
         startDate,
         endDate,
       };
-
+  
       if (post.type == "weekly" && post.end_date) {
         const today = new Date();
         const daysToAdd = 6;
-
+  
         const endDate = new Date(today);
         endDate.setDate(today.getDate() + daysToAdd);
-        console.log({ endDate });
         newChallenge.endDate = endDate;
       }
-      // return console.log('newChallenge')
-
-      // Create a new challenge
+  
       const challenge = new ChallengeModel(newChallenge);
-      // Save the challenge to the database
       const savedChallenge = await challenge.save();
-
+  
+      // --- Notification creation for all users (non-coach/admin) ---
+      const users = await UserModel.find({ userType: "user" }, "_id");
+      const notifications = users.map((u) => ({
+        userId: u._id,
+        title: `New challenge: ${savedChallenge.title}`,
+        description: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`,
+        time: new Date(),
+      }));
+  
+      // Bulk insert notifications
+      await NotificationModel.insertMany(notifications);
+  
       return BaseService.sendSuccessResponse({
         message: "Challenge created successfully",
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      return BaseService.sendFailedResponse("Internal server error");
     }
-  }
+  }  
   async getChallenges(req) {
     try {
       const type = req.query.type || "";

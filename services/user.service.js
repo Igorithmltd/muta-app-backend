@@ -8,6 +8,7 @@ const {
   generateOTP,
   verifyRefreshToken,
   signAccessToken,
+  formatNotificationTime,
 } = require("../util/helper");
 const { EXPIRES_AT } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
@@ -16,6 +17,9 @@ const WorkoutPlanModel = require("../models/workoutPlan.model");
 const { default: mongoose } = require("mongoose");
 const PlanModel = require("../models/plan.model");
 const CouponModel = require("../models/coupon.model");
+const SleepEntryModel = require("../models/sleep-entry.model");
+const WaterEntryModel = require("../models/water-entry.model");
+const NotificationModel = require("../models/notification.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -1107,44 +1111,81 @@ class UserService extends BaseService {
   async logUserWeight(req, res) {
     try {
       const userId = req.user.id;
-
+  
       const { value, unit } = req.body;
-
+  
       const validateRule = {
         value: "numeric|required|min:1",
         unit: "string|in:kg,lbs",
       };
-
+  
       const validateResult = validateData(req.body, validateRule, {
         required: ":attribute is required.",
         "in.unit": "Weight unit must be either 'kg' or 'lbs'.",
       });
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found." });
       }
-
+  
+      const oldWeight = user.weight?.value || null;
+      const oldUnit = user.weight?.unit || "kg";
+  
+      // Convert old weight to new unit if different (optional, assuming kg and lbs conversion)
+      let oldWeightInNewUnit = oldWeight;
+      if (oldWeight !== null && oldUnit !== unit) {
+        if (unit === "kg" && oldUnit === "lbs") {
+          oldWeightInNewUnit = oldWeight / 2.20462;
+        } else if (unit === "lbs" && oldUnit === "kg") {
+          oldWeightInNewUnit = oldWeight * 2.20462;
+        }
+      }
+  
       user.weight = {
         value: Number(value),
         unit: unit || "kg",
       };
-
+  
       await user.save();
-
+  
+      // Compare weight and prepare notification message
+      let notificationTitle = "Weight Update";
+      let notificationDescription;
+  
+      if (oldWeightInNewUnit === null) {
+        notificationDescription = `Your weight of ${value} ${unit} has been recorded.`;
+      } else {
+        const diff = Number(value) - oldWeightInNewUnit;
+        if (diff > 0) {
+          notificationDescription = `You have gained ${diff.toFixed(2)} ${unit}. Keep tracking your progress!`;
+        } else if (diff < 0) {
+          notificationDescription = `Great job! You have lost ${Math.abs(diff).toFixed(2)} ${unit}. Keep it up!`;
+        } else {
+          notificationDescription = `Your weight remains the same at ${value} ${unit}. Keep maintaining it!`;
+        }
+      }
+  
+      // Create notification for the user
+      await NotificationModel.create({
+        userId,
+        title: notificationTitle,
+        description: notificationDescription,
+        time: new Date(),
+      });
+  
       return BaseService.sendSuccessResponse({
-        message: "Weight updated successfully",
-        data: user.weight,
+        message: "Weight updated successfully"
       });
     } catch (err) {
       console.error(err);
       return BaseService.sendFailedResponse("Internal server error");
     }
-  }
+  }  
   async logUserHeight(req, res) {
     try {
       const userId = req.user.id;
@@ -1516,7 +1557,7 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
-  async createPlan(req, res){
+  async createPlan(req, res) {
     try {
       const post = req.body;
 
@@ -1537,69 +1578,280 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
       const { name, duration, price } = post;
-      const plan = new PlanModel({ name, duration, price, ...(post.features && {features: post.features}) });
+      const plan = new PlanModel({
+        name,
+        duration,
+        price,
+        ...(post.features && { features: post.features }),
+      });
       await plan.save();
-      return BaseService.sendSuccessResponse({message: plan});
+      return BaseService.sendSuccessResponse({ message: plan });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: "Failed to create plan" });
     }
   }
-  async getPlans(req, res){
+  async getPlans(req, res) {
     try {
       const plans = await PlanModel.find();
-      return BaseService.sendSuccessResponse({message: plans});
+      return BaseService.sendSuccessResponse({ message: plans });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: "Failed to get plans" });
     }
   }
-  async getPlan(req, res){
+  async getPlan(req, res) {
     try {
-      if(!req.params.id){
+      if (!req.params.id) {
         return BaseService.sendFailedResponse({ error: "Plan ID is required" });
       }
       const plan = await PlanModel.findById(req.params.id);
-      if (!plan) return BaseService.sendFailedResponse({ error: "Plan not found" });
-      return BaseService.sendSuccessResponse({message: plan});
+      if (!plan)
+        return BaseService.sendFailedResponse({ error: "Plan not found" });
+      return BaseService.sendSuccessResponse({ message: plan });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: "Failed to get plan" });
     }
   }
-  async updatePlan(req, res){
+  async updatePlan(req, res) {
     try {
-      if(!req.params.id){
+      if (!req.params.id) {
         return BaseService.sendFailedResponse({ error: "Plan ID is required" });
       }
       const plan = await PlanModel.findById(req.params.id);
 
-      if (!plan) return BaseService.sendFailedResponse({ error: "Plan not found" });
+      if (!plan)
+        return BaseService.sendFailedResponse({ error: "Plan not found" });
 
-      await PlanModel.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
-  
-      return BaseService.sendSuccessResponse({message: 'Plan updated successfully'});
+      await PlanModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+      return BaseService.sendSuccessResponse({
+        message: "Plan updated successfully",
+      });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: "Failed to update plan" });
     }
   }
-  async deletePlan(req, res){
+  async deletePlan(req, res) {
     try {
-      if(!req.params.id){
+      if (!req.params.id) {
         return BaseService.sendFailedResponse({ error: "Plan ID is required" });
       }
       const plan = await PlanModel.findById(req.params.id);
 
-      if (!plan) return BaseService.sendFailedResponse({ error: "Plan not found" });
+      if (!plan)
+        return BaseService.sendFailedResponse({ error: "Plan not found" });
 
-      await PlanModel.findByIdAndDelete(
-        req.params.id
-      );
-  
-      return BaseService.sendSuccessResponse({message: 'Plan deleted successfully'});
+      await PlanModel.findByIdAndDelete(req.params.id);
+
+      return BaseService.sendSuccessResponse({
+        message: "Plan deleted successfully",
+      });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: "Failed to delete plan" });
+    }
+  }
+  async logSleep(req) {
+    try {
+      const { hours } = req.body;
+      const userId = req.user.id;
+
+      if (typeof hours !== "number" || hours < 0 || hours > 24) {
+        return BaseService.sendFailedResponse({ error: "Invalid hours" });
+      }
+
+      // Calculate last night (previous day at midnight)
+      const now = new Date();
+      const lastNight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - 1
+      );
+
+      // Upsert (insert if not exists, update if it does)
+      const entry = await SleepEntryModel.findOneAndUpdate(
+        { userId, date: lastNight },
+        { hours },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      // Remove entries older than 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      await SleepEntryModel.deleteMany({ userId, date: { $lt: sevenDaysAgo } });
+
+      return BaseService.sendSuccessResponse({
+        message: "Sleep hour logged successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to log sleep hour",
+      });
+    }
+  }
+  async logWater(req) {
+    try {
+      const { litres } = req.body;
+      const userId = req.user.id;
+
+      if (typeof litres !== "number" || litres < 0) {
+        return BaseService.sendFailedResponse({
+          error: "Invalid litres value",
+        });
+      }
+
+      // Get today's date (at midnight)
+      const today = new Date();
+      const todayMidnight = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
+
+      // Upsert: update or insert today's water record
+      const entry = await WaterEntryModel.findOneAndUpdate(
+        { userId, date: todayMidnight },
+        { litres },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      return BaseService.sendSuccessResponse({
+        message: "Water intake logged successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to log sleep hour",
+      });
+    }
+  }
+  async getSleepLog(req) {
+    try {
+      const userId = req.user.id;
+
+      const today = new Date();
+      const past7 = [];
+
+      // Get last 7 days in order (oldest to newest)
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - i
+        );
+        past7.push(d);
+      }
+
+      // Get matching entries from DB
+      const entries = await SleepEntryModel.find({
+        userId,
+        date: {
+          $gte: past7[0],
+          $lte: past7[6],
+        },
+      });
+
+      // Map entries by date string
+      const sleepMap = {};
+      entries.forEach((e) => {
+        const key = e.date.toISOString().slice(0, 10); // YYYY-MM-DD
+        sleepMap[key] = e.hours;
+      });
+
+      const sleepData = past7.map((d) => {
+        const key = d.toISOString().slice(0, 10);
+        return {
+          date: key,
+          hours: sleepMap[key] || 0,
+        };
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: sleepData,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async getWaterLog(req) {
+    try {
+      const userId = req.user.id;
+
+      const today = new Date();
+      const todayMidnight = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
+
+      const entry = await WaterEntry.findOne({ userId, date: todayMidnight });
+
+      return BaseService.sendSuccessResponse({
+        message: entry,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async getNotifications(req) {
+    try {
+      const userId = req.user.id;
+
+      const notifications = await NotificationModel.find({ userId }).sort({
+        timestamp: -1,
+      });
+
+      const formattedNotifications = notifications.map((notif) => ({
+        id: notif._id,
+        title: notif.title,
+        description: notif.description,
+        time: formatNotificationTime(notif.timestamp),
+      }));
+
+      return BaseService.sendSuccessResponse({
+        message: formattedNotifications,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async broadcastNotification(req) {
+    try {
+      const { title, description } = req.body;
+
+      if (!title || !description) {
+        return BaseService.sendFailedResponse({ error: "Title and description are required" });
+      }
+
+      // Find all regular users (not coach or admin)
+      const users = await UserModel.find({
+        userType: { $nin: ["coach", "admin"] },
+      }).select("_id");
+
+      if (users.length === 0) {
+        return res.status(404).json({ message: "No regular users found" });
+      }
+
+      // Prepare notification docs for bulk insert
+      const notifications = users.map((user) => ({
+        userId: user._id,
+        title,
+        description,
+        createdAt: new Date(),
+      }));
+
+      await NotificationModel.insertMany(notifications);
+
+      return BaseService.sendSuccessResponse({
+        message: 'Notification broadcasted successfully',
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
     }
   }
 }

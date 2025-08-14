@@ -27,3 +27,8 @@ module.exports.getCurrentWeekNumber = ()=> {
     return 1 + Math.ceil((firstThursday - target) / 604800000);
   }
   
+  module.exports.formatNotificationTime = (date)=> {
+    // Example output: "Tue, 12:09 PM"
+    const options = { weekday: "short", hour: "numeric", minute: "numeric" };
+    return new Intl.DateTimeFormat("en-US", options).format(date);
+  }

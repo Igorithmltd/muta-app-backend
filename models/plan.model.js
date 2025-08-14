@@ -4,7 +4,11 @@ const PlanSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    enum: ["basic", "premium", "monthly", "yearly"],
+    // enum: ["basic", "premium"],
+  },
+  description: {
+    type: String,
+    required: true,
   },
   duration: {
     type: String,

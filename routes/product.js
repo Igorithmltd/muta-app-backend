@@ -1,7 +1,7 @@
 const ProductController = require('../controllers/product.controller')
 const auth = require('../middlewares/auth')
 const adminAuth = require('../middlewares/adminAuth')
-const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE } = require('../util/page-route')
+const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, ROUTE_REVIEW_PRODUCT, ROUTE_GET_PRODUCT_REVIEWS } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -609,6 +609,163 @@ router.put(ROUTE_ADD_PRODUCT_TO_FAVORITE, auth, (req, res)=>{
 router.put(ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, auth, (req, res)=>{
     const productController = new ProductController()
     return productController.removeFavoriteProduct(req, res)
+})
+
+/**
+ * @swagger
+ * /products/review-product/{id}:
+ *   post:
+ *     summary: Add a review and rating to a product
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the product to review
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 description: Rating score (1 to 5)
+ *               comment:
+ *                 type: string
+ *                 description: Optional review comment
+ *     responses:
+ *       200:
+ *         description: Review added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Review added successfully
+ *                 product:
+ *                   $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Validation error or bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Rating is required and must be between 1 and 5.
+ *       401:
+ *         description: Unauthorized - User not logged in
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Product not found
+ */
+router.post(ROUTE_REVIEW_PRODUCT+"/:id", auth, (req, res)=>{
+    const productController = new ProductController()
+    return productController.reviewProduct(req, res)
+})
+
+/**
+ * @swagger
+ * /products/get-product-reviews/{id}:
+ *   get:
+ *     summary: Get all reviews for a product
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the product to get reviews for
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination (optional)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of reviews per page (optional)
+ *     responses:
+ *       200:
+ *         description: List of reviews for the product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalReviews:
+ *                   type: integer
+ *                   example: 25
+ *                 currentPage:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 3
+ *                 reviews:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 60f7c4ef3b56c72f8c8a1234
+ *                           name:
+ *                             type: string
+ *                             example: John Doe
+ *                       rating:
+ *                         type: integer
+ *                         example: 4
+ *                       comment:
+ *                         type: string
+ *                         example: Great product, highly recommend!
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2023-04-26T15:24:00Z
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Product not found
+ */
+router.get(ROUTE_GET_PRODUCT_REVIEWS+"/id", auth, (req, res)=>{
+    const productController = new ProductController()
+    return productController.getAllProductReview(req, res)
 })
 
 module.exports = router

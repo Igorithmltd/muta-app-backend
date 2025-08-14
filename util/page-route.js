@@ -26,6 +26,8 @@ exports.ROUTE_LOG_WEIGHT = '/log-weight'
 exports.ROUTE_LOG_HEIGHT = '/log-height'
 exports.ROUTE_CHANGE_PASSWORD = '/change-password'
 exports.ROUTE_GET_COACHES_BY_SPECIALTY = '/get-coaches-by-specialty'
+exports.ROUTE_GET_NOTIFICATIONS = '/get-notifications'
+exports.ROUTE_BROADCAST_NOTIFICATION = '/broadcast-notification'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'
@@ -72,6 +74,8 @@ exports.ROUTE_DELETE_WORKOUTPLAN = '/delete-workoutplan'
 exports.ROUTE_RESET_WORKOUTPLAN_ACTION = '/reset-workoutplan-action'
 exports.ROUTE_RECOMMENDED_WORKOUTPLANS = '/recommended-workoutplans'
 exports.ROUTE_ACTIVE_WORKOUTPLANS = '/active-workoutplans'
+exports.ROUTE_POPULAR_WORKOUTPLANS = '/popular-workoutplans'
+exports.ROUTE_COMPLETED_WORKOUTPLANS = '/completed-workoutplans'
 exports.ROUTE_RATE_WORKOUTPLAN = '/rate-workoutplan'
 
 
@@ -113,6 +117,8 @@ exports.ROUTE_UPDATE_PRODUCT = '/update-product'
 exports.ROUTE_DELETE_PRODUCT = '/delete-product'
 exports.ROUTE_ADD_PRODUCT_TO_FAVORITE = '/add-product-to-favorite'
 exports.ROUTE_REMOVE_PRODUCT_FROM_FAVORITE = '/remove-product-from-favorite'
+exports.ROUTE_REVIEW_PRODUCT = '/review-product'
+exports.ROUTE_GET_PRODUCT_REVIEWS = '/get-product-reviews'
 
 //product categories
 exports.ROUTE_CREATE_PRODUCT_CATEGORY = '/create-product-category'
@@ -153,3 +159,11 @@ exports.ROUTE_RECEIVE_CALL = '/receive-call'
 exports.ROUTE_MISS_CALL = '/miss-call'
 exports.ROUTE_REJECT_CALL = '/reject-call'
 exports.ROUTE_GET_USER_CALL_LOGS = '/get-user-call-logs'
+
+//sleeps
+exports.ROUTE_LOG_SLEEP = '/log-sleep'
+exports.ROUTE_GET_SLEEP_LOGS = '/get-sleep-logs'
+
+//water
+exports.ROUTE_LOG_WATER = '/log-water'
+exports.ROUTE_GET_WATER_LOGS = '/get-water-logs'

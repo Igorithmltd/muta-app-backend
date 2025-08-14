@@ -20,23 +20,24 @@ class DietServicee extends BaseService {
         tags: "array|required",
         duration: "integer|required",
         "tags.*": "string|required",
-        
+
         dailyMealBreakdown: "array|required",
         "dailyMealBreakdown.*.dayLabel": "string|required",
-        "dailyMealBreakdown.*.meals": "array|required", 
+        "dailyMealBreakdown.*.meals": "array|required",
         "dailyMealBreakdown.*.meals.*.mealTitle": "string|required",
-        "dailyMealBreakdown.*.meals.*.mealType": "string|required|in:breakfast,lunch,dinner,snack",
+        "dailyMealBreakdown.*.meals.*.mealType":
+          "string|required|in:breakfast,lunch,dinner,snack",
         "dailyMealBreakdown.*.meals.*.crabs": "integer|required",
         "dailyMealBreakdown.*.meals.*.protein": "integer|required",
         "dailyMealBreakdown.*.meals.*.fats": "integer|required",
         "dailyMealBreakdown.*.meals.*.calories": "integer|required",
         "dailyMealBreakdown.*.meals.*.recommendedTime": "string|required",
         "dailyMealBreakdown.*.meals.*.missedBy": "string|required",
-      
+
         image: "object|required",
         "image.imageUrl": "string|required",
         "image.publicId": "string|required",
-      };      
+      };
 
       const validateMessage = {
         required: ":attribute is required",
@@ -59,9 +60,10 @@ class DietServicee extends BaseService {
       }
       if (post.duration !== post.dailyMealBreakdown.length) {
         return BaseService.sendFailedResponse({
-          error: "Duration must exactly match the number of days in dailyMealBreakdown",
+          error:
+            "Duration must exactly match the number of days in dailyMealBreakdown",
         });
-      }      
+      }
 
       // Add day field dynamically
       // const today = moment();
@@ -92,48 +94,51 @@ class DietServicee extends BaseService {
   async getAllDiets(req) {
     try {
       const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-    // Fetch diets and total count in parallel
-    const [allDiet, totalCount] = await Promise.all([
-      DietModel.find({})
-        .populate("category")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(), // Use lean() to allow direct object manipulation
-      DietModel.countDocuments(),
-    ]);
+      // Fetch diets and total count in parallel
+      const [allDiet, totalCount] = await Promise.all([
+        DietModel.find({})
+          .populate("category")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(), // Use lean() to allow direct object manipulation
+        DietModel.countDocuments(),
+      ]);
 
-    // Enrich each diet with user count and ratings
-    const enrichedDiets = await Promise.all(
-      allDiet.map(async (diet) => {
-        const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
-        const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
-        
-        return {
-          ...diet,
-          usersOnDietCount,
-          numberOfRatings,
-        };
-      })
-    );
+      // Enrich each diet with user count and ratings
+      const enrichedDiets = await Promise.all(
+        allDiet.map(async (diet) => {
+          const usersOnDietCount = await DietActionModel.countDocuments({
+            dietId: diet._id,
+          });
+          const numberOfRatings =
+            diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
 
-    const totalPages = Math.ceil(totalCount / limit);
+          return {
+            ...diet,
+            usersOnDietCount,
+            numberOfRatings,
+          };
+        })
+      );
 
-    return BaseService.sendSuccessResponse({
-      message: "Diets fetched successfully.",
-      data: {
-        diets: enrichedDiets,
-        pagination: {
-          totalCount,
-          totalPages,
-          currentPage: page,
-          pageSize: limit,
+      const totalPages = Math.ceil(totalCount / limit);
+
+      return BaseService.sendSuccessResponse({
+        message: "Diets fetched successfully.",
+        data: {
+          diets: enrichedDiets,
+          pagination: {
+            totalCount,
+            totalPages,
+            currentPage: page,
+            pageSize: limit,
+          },
         },
-      },
-    });
+      });
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: "An error occurred while fetching diets.",
@@ -143,19 +148,20 @@ class DietServicee extends BaseService {
   async getDiet(req) {
     try {
       const dietId = req.params.id;
-  
+
       // Find the diet by ID
       const diet = await DietModel.findById(dietId);
       if (!diet) {
         return BaseService.sendFailedResponse({ error: "Diet not found" });
       }
-  
+
       // Count how many users have joined this diet (dietActions)
       const usersOnDietCount = await DietActionModel.countDocuments({ dietId });
-  
+
       // Number of ratings can come from totalRatings or length of ratings array
-      const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
-  
+      const numberOfRatings =
+        diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+
       return BaseService.sendSuccessResponse({
         message: {
           ...diet.toObject(),
@@ -169,7 +175,7 @@ class DietServicee extends BaseService {
         error: "An error occurred while fetching diet.",
       });
     }
-  }  
+  }
   async updateDiet(req) {
     try {
       const dietId = req.params.id;
@@ -229,53 +235,62 @@ class DietServicee extends BaseService {
     try {
       const userId = req.user.id;
       const post = req.body;
-  
+
       const validateRule = {
         dietId: "string|required",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const diet = await DietModel.findById(post.dietId);
       if (!diet) {
         return BaseService.sendFailedResponse({
           error: "Diet not found",
         });
       }
-  
+
       const alreadyJoined = await DietActionModel.findOne({
         userId,
         dietId: post.dietId,
       });
-  
+
       if (alreadyJoined) {
         return BaseService.sendSuccessResponse({
           message: "You have already joined this diet plan",
         });
       }
-  
+
       // Calculate start and end dates
-      const startDate = moment();
+      const now = moment();
+      const cutoffHour = 12; // 12 PM noon
+
+      const startDate =
+        now.hour() >= cutoffHour
+          ? now.add(1, "day").startOf("day")
+          : now.startOf("day");
       const endDate = startDate.clone().add(diet.duration - 1, "days");
-  
+
       // Add day and dayDate fields to dailyMealBreakdown based on user startDate
       const breakdownWithDays = diet.dailyMealBreakdown.map((item, index) => {
-        const dayDate = startDate.clone().add(index, "days").format("YYYY-MM-DD");
+        const dayDate = startDate
+          .clone()
+          .add(index, "days")
+          .format("YYYY-MM-DD");
         return {
           ...(item.toObject?.() ?? item),
           day: `Day ${index + 1}`,
           dayDate, // <-- here
         };
       });
-  
+
       const newUserDiet = new DietActionModel({
         userId,
         dietId: post.dietId,
@@ -283,10 +298,10 @@ class DietServicee extends BaseService {
         endDate: endDate.toDate(),
         dailyMealBreakdown: breakdownWithDays,
       });
-  
+
       await newUserDiet.save();
       await newUserDiet.populate("dietId");
-  
+
       return BaseService.sendSuccessResponse({
         message: "Diet joined successfully",
         diet: newUserDiet,
@@ -300,110 +315,112 @@ class DietServicee extends BaseService {
     try {
       const userId = req.user.id;
       const post = req.body;
-  
+
       const validateRule = {
         dietTaskId: "string|required",
         dietId: "string|required",
         status: "string|required|in:completed,missed",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         in: "Invalid :attribute. Must be one of: completed, missed",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const diet = await DietModel.findById(post.dietId);
       if (!diet) {
         return BaseService.sendFailedResponse({ error: "Diet not found" });
       }
-  
+
       const dietAction = await DietActionModel.findOne({
         userId,
         dietId: post.dietId,
       }).populate("dietId");
-  
+
       if (!dietAction) {
         return BaseService.sendFailedResponse({
           error: "You have not joined this diet",
         });
       }
-  
+
       // Find the day object containing the meal task
-      const dayObj = dietAction.dailyMealBreakdown.find(day =>
-        day.meals.some(meal => meal._id.toString() === post.dietTaskId.toString())
+      const dayObj = dietAction.dailyMealBreakdown.find((day) =>
+        day.meals.some(
+          (meal) => meal._id.toString() === post.dietTaskId.toString()
+        )
       );
-  
+
       if (!dayObj) {
         return BaseService.sendFailedResponse({ error: "Diet task not found" });
       }
-  
+
       // Find the specific meal task
       const foundTask = dayObj.meals.find(
-        meal => meal._id.toString() === post.dietTaskId.toString()
+        (meal) => meal._id.toString() === post.dietTaskId.toString()
       );
-  
+
       if (!foundTask) {
         return BaseService.sendFailedResponse({ error: "Diet task not found" });
       }
-  
+
       if (dietAction.status === "completed") {
         return BaseService.sendSuccessResponse({
           message: "You have already completed this diet",
         });
       }
-  
+
       if (foundTask.status === "completed" || foundTask.status === "missed") {
         return BaseService.sendSuccessResponse({
           message: `You have already marked this task as ${foundTask.status}`,
         });
       }
-  
+
       const moment = require("moment");
-  
+
       // Assume each day object has a dayDate field in 'YYYY-MM-DD' format
       if (!dayObj.dayDate) {
         return BaseService.sendFailedResponse({
           error: "Day date missing for the diet task",
         });
       }
-  
+
       const taskDayDate = moment(dayObj.dayDate, "YYYY-MM-DD").startOf("day");
       const today = moment().startOf("day");
-  
+
       // Prevent marking tasks for future days
       if (taskDayDate.isAfter(today)) {
         return BaseService.sendFailedResponse({
           error: "You cannot mark a task for a future day.",
         });
       }
-  
+
       let taskStatus = post.status;
-  
+
       // If task is for today, check missedBy time
       if (taskDayDate.isSame(today)) {
         const currentTime = moment();
         const missedByTime = moment(foundTask.missedBy, "HH:mm:ss");
-  
+
         if (currentTime.isAfter(missedByTime)) {
           taskStatus = "missed"; // Automatically mark as missed if time passed
         }
       }
-  
+
       // For past days, you may choose to auto mark missed or allow marking as completed
       // Here, we allow marking as requested (either completed or missed)
-  
+
       foundTask.status = taskStatus;
-  
+
       // Recalculate progress
       let totalTasks = 0;
       let completedTasks = 0;
       let allMarked = true;
-  
+
       for (const day of dietAction.dailyMealBreakdown) {
         for (const meal of day.meals) {
           totalTasks += 1;
@@ -415,20 +432,20 @@ class DietServicee extends BaseService {
           }
         }
       }
-  
+
       const progress =
         totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
       dietAction.progress = progress;
-  
+
       const endDate = moment(dietAction.endDate).startOf("day");
-  
+
       // Mark dietAction as completed if all tasks are marked or endDate passed
       if (allMarked || today.isSameOrAfter(endDate)) {
         dietAction.status = "completed";
       }
-  
+
       await dietAction.save();
-  
+
       return BaseService.sendSuccessResponse({
         message:
           taskStatus === "missed"
@@ -439,7 +456,7 @@ class DietServicee extends BaseService {
       console.error("Error marking task:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }  
+  }
   async getDietAction(req) {
     try {
       const dietId = req.params.id;
@@ -452,7 +469,7 @@ class DietServicee extends BaseService {
       if (!dietAction) {
         return BaseService.sendFailedResponse({
           error: "Diet action not found",
-          statusCode: 404
+          statusCode: 404,
         });
       }
 
@@ -528,18 +545,21 @@ class DietServicee extends BaseService {
         .populate("category")
         .sort({ createdAt: -1 })
         .lean();
-  
+
       if (!recommendedDiets.length) {
         return BaseService.sendFailedResponse({
           error: "No recommended diets found",
         });
       }
-  
+
       const enrichedDiets = await Promise.all(
         recommendedDiets.map(async (diet) => {
-          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
-          const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
-  
+          const usersOnDietCount = await DietActionModel.countDocuments({
+            dietId: diet._id,
+          });
+          const numberOfRatings =
+            diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+
           return {
             ...diet,
             usersOnDietCount,
@@ -547,7 +567,7 @@ class DietServicee extends BaseService {
           };
         })
       );
-  
+
       return BaseService.sendSuccessResponse({
         message: enrichedDiets,
       });
@@ -557,7 +577,7 @@ class DietServicee extends BaseService {
         error: this.server_error_message,
       });
     }
-  }  
+  }
   async activeDiets() {
     try {
       const activeDiets = await DietModel.find({
@@ -566,18 +586,21 @@ class DietServicee extends BaseService {
         .populate("category")
         .sort({ createdAt: -1 })
         .lean();
-  
+
       if (!activeDiets.length) {
         return BaseService.sendFailedResponse({
           error: "No active diets found",
         });
       }
-  
+
       const enrichedDiets = await Promise.all(
         activeDiets.map(async (diet) => {
-          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
-          const numberOfRatings = diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
-  
+          const usersOnDietCount = await DietActionModel.countDocuments({
+            dietId: diet._id,
+          });
+          const numberOfRatings =
+            diet.totalRatings || (diet.ratings ? diet.ratings.length : 0);
+
           return {
             ...diet,
             usersOnDietCount,
@@ -585,7 +608,7 @@ class DietServicee extends BaseService {
           };
         })
       );
-  
+
       return BaseService.sendSuccessResponse({
         message: enrichedDiets,
       });
@@ -595,7 +618,7 @@ class DietServicee extends BaseService {
         error: this.server_error_message,
       });
     }
-  }  
+  }
   async getDietCategories() {
     try {
       const dietCategories = await DietCategoryModel.find({}).sort({
@@ -618,23 +641,26 @@ class DietServicee extends BaseService {
   async searchDietByTitle(req) {
     try {
       const { title } = req.query;
-  
+
       if (!title) {
         return BaseService.sendFailedResponse({
           error: "Title query parameter is required",
         });
       }
-  
+
       const diets = await DietModel.find({
         title: { $regex: title, $options: "i" },
       })
         .populate("category")
         .lean();
-  
+
       const enrichedDiets = await Promise.all(
         diets.map(async (diet) => {
-          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
-          const numberOfRatings = diet.totalRatings || (diet.ratings?.length || 0);
+          const usersOnDietCount = await DietActionModel.countDocuments({
+            dietId: diet._id,
+          });
+          const numberOfRatings =
+            diet.totalRatings || diet.ratings?.length || 0;
           return {
             ...diet,
             usersOnDietCount,
@@ -642,7 +668,7 @@ class DietServicee extends BaseService {
           };
         })
       );
-  
+
       return BaseService.sendSuccessResponse({
         message: enrichedDiets,
       });
@@ -652,20 +678,20 @@ class DietServicee extends BaseService {
         error: this.server_error_message,
       });
     }
-  }  
+  }
   async getDietByCategory(req) {
     try {
       const { id } = req.params;
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
-  
+
       if (!id) {
         return BaseService.sendFailedResponse({
           error: "Category ID is required",
         });
       }
-  
+
       const [diets, totalCount] = await Promise.all([
         DietModel.find({ category: id })
           .populate("category")
@@ -675,11 +701,14 @@ class DietServicee extends BaseService {
           .lean(),
         DietModel.countDocuments({ category: id }),
       ]);
-  
+
       const enrichedDiets = await Promise.all(
         diets.map(async (diet) => {
-          const usersOnDietCount = await DietActionModel.countDocuments({ dietId: diet._id });
-          const numberOfRatings = diet.totalRatings || (diet.ratings?.length || 0);
+          const usersOnDietCount = await DietActionModel.countDocuments({
+            dietId: diet._id,
+          });
+          const numberOfRatings =
+            diet.totalRatings || diet.ratings?.length || 0;
           return {
             ...diet,
             usersOnDietCount,
@@ -687,9 +716,9 @@ class DietServicee extends BaseService {
           };
         })
       );
-  
+
       const totalPages = Math.ceil(totalCount / limit);
-  
+
       return BaseService.sendSuccessResponse({
         message: "Diets fetched successfully.",
         data: {
@@ -708,7 +737,7 @@ class DietServicee extends BaseService {
         error: this.server_error_message,
       });
     }
-  }  
+  }
   async getCompletedPlans(req) {
     try {
       const userId = req.user.id;
@@ -733,30 +762,30 @@ class DietServicee extends BaseService {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-  
+
       const dietAction = await DietActionModel.findOne({
         userId,
         dietId: id,
       });
-  
+
       if (!dietAction) {
         return BaseService.sendFailedResponse({
           error: "Diet action not found for this user",
         });
       }
-  
+
       const todayDate = moment().format("YYYY-MM-DD");
-  
+
       const todayMealDay = dietAction.dailyMealBreakdown.find(
         (day) => moment(day.day).format("YYYY-MM-DD") === todayDate
       );
-  
+
       if (!todayMealDay) {
         return BaseService.sendFailedResponse({
           error: "No meals scheduled for today",
         });
       }
-  
+
       return BaseService.sendSuccessResponse({
         message: todayMealDay.meals,
       });
@@ -764,14 +793,14 @@ class DietServicee extends BaseService {
       console.error("Error fetching today's meals:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }  
+  }
   async rateDietPlan(req) {
     try {
       const userId = req.user.id;
       const { dietId, rating, review } = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(dietId)) {
-        return BaseService.sendFailedResponse({error: "Invalid dietId" });
+        return BaseService.sendFailedResponse({ error: "Invalid dietId" });
       }
 
       if (!rating || rating < 1 || rating > 5) {
@@ -810,7 +839,7 @@ class DietServicee extends BaseService {
       await diet.save();
 
       return BaseService.sendSuccessResponse({
-        message: "Diet rated successfully"
+        message: "Diet rated successfully",
       });
     } catch (error) {
       console.error("Error fetching completed plans:", error);
