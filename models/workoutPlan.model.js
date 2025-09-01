@@ -15,6 +15,7 @@ const WorkoutPlanSchema = new mongoose.Schema(
       imageUrl: { type: String },
       publicId: { type: String },
     },
+    youtubeLink: {type: String},
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DietCategory",

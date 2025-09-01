@@ -664,7 +664,7 @@ async activeWorkoutplans(req, res) {
         },
       ]);
 
-      return BaseService.sendSuccessResponse({ message: result });
+      return BaseService.sendSuccessResponse({ message: result || [] });
     } catch (error) {
       console.error("Error fetching popular workout plans:", error);
       throw error;

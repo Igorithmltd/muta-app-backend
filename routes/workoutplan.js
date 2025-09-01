@@ -346,6 +346,9 @@ router.get(ROUTE_GET_ALL_WORKOUTPLANS, auth, (req, res) => {
  *                           type: string
  *                           enum: [active, inactive]
  *                           example: "active"
+ *                         userCount:
+ *                           type: number
+ *                           example: 20
  *                         image:
  *                           type: object
  *                           properties:
