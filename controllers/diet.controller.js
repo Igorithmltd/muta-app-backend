@@ -83,6 +83,14 @@ class DietController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, recommendedDiets.data)
     }
+    async popularDietPlans(req, res){
+        const dietService = new DietService()
+        const popularDietPlans = await dietService.popularDietPlans(req)
+        if(!popularDietPlans.success){
+            return BaseController.sendFailedResponse(res, popularDietPlans.data)
+        }
+        return BaseController.sendSuccessResponse(res, popularDietPlans.data)
+    }
     async activeDiets(req, res){
         const dietService = new DietService()
         const activeDiets = await dietService.activeDiets(req)

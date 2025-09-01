@@ -638,6 +638,69 @@ class DietServicee extends BaseService {
       });
     }
   }
+  async popularDietPlans() {
+    try {
+      const result = await DietActionModel.aggregate([
+        {
+          $group: {
+            _id: "$dietId",
+            uniqueUsers: { $addToSet: "$userId" }, // distinct users
+          },
+        },
+        {
+          $project: {
+            dietId: "$_id",
+            userCount: { $size: "$uniqueUsers" },
+          },
+        },
+        {
+          $sort: { userCount: -1 },
+        },
+        {
+          $limit: 5,
+        },
+        {
+          $lookup: {
+            from: "diets", // collection name (usually lowercase plural of model name)
+            localField: "dietId",
+            foreignField: "_id",
+            as: "diet",
+          },
+        },
+        {
+          $unwind: "$diet",
+        },
+        {
+          $project: {
+            _id: 0,
+            dietId: 1,
+            userCount: 1,
+            // Include fields from the diet document
+            title: "$diet.title",
+            description: "$diet.description",
+            image: "$diet.image",
+            category: "$diet.category",
+            calories: "$diet.calories",
+            duration: "$diet.duration",
+            level: "$diet.level",
+            recommended: "$diet.recommended",
+            meals: "$diet.meals",
+            averageRating: "$diet.averageRating",
+            totalRatings: "$diet.totalRatings",
+            createdAt: "$diet.createdAt",
+            updatedAt: "$diet.updatedAt",
+          },
+        },
+      ]);
+  
+      return BaseService.sendSuccessResponse({ message: result });
+    } catch (error) {
+      console.error("Error fetching popular diet plans:", error);
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch popular diet plans",
+      });
+    }
+  }  
   async searchDietByTitle(req) {
     try {
       const { title } = req.query;

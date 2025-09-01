@@ -20,6 +20,7 @@ const {
   ROUTE_GET_COMPLETED_DIET_PLANS,
   ROUTE_GET_DIET_PLAN_MEALS,
   ROUTE_RATE_DIET_PLAN,
+  ROUTE_POPULAR_DIET_PLANS,
 } = require("../util/page-route");
 
 /**
@@ -1166,6 +1167,116 @@ router.get(ROUTE_RECOMMENDED_DIETS, [auth], (req, res) => {
 router.get(ROUTE_ACTIVE_DIETS, [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.activeDiets(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/popular-diet-plans:
+ *   get:
+ *     summary: Get top 5 most popular diet plans
+ *     tags:
+ *       - Diets
+ *     responses:
+ *       200:
+ *         description: List of top 5 popular diet plans
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           dietId:
+ *                             type: string
+ *                             example: "64faed382923a6e8124b778a"
+ *                           userCount:
+ *                             type: number
+ *                             example: 152
+ *                           title:
+ *                             type: string
+ *                             example: "High Protein Weight Loss Plan"
+ *                           description:
+ *                             type: string
+ *                             example: "A 30-day meal plan designed for fat loss with high protein meals."
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://example.com/diet.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "dietImage123"
+ *                           category:
+ *                             type: string
+ *                             example: "64bfd5123acde23489abcdef"
+ *                           calories:
+ *                             type: number
+ *                             example: 1800
+ *                           duration:
+ *                             type: number
+ *                             example: 30
+ *                           level:
+ *                             type: string
+ *                             enum: [beginner, intermediate, advanced]
+ *                             example: beginner
+ *                           recommended:
+ *                             type: string
+ *                             enum: [YES, NO]
+ *                             example: YES
+ *                           meals:
+ *                             type: array
+ *                             description: Sample meals in the plan
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 mealTitle:
+ *                                   type: string
+ *                                   example: "Grilled Chicken Salad"
+ *                                 crabs:
+ *                                   type: number
+ *                                   example: 20
+ *                                 protein:
+ *                                   type: number
+ *                                   example: 35
+ *                                 fats:
+ *                                   type: number
+ *                                   example: 10
+ *                                 calories:
+ *                                   type: number
+ *                                   example: 350
+ *                                 recommendedTime:
+ *                                   type: string
+ *                                   example: "12:00 PM"
+ *                           averageRating:
+ *                             type: number
+ *                             example: 4.5
+ *                           totalRatings:
+ *                             type: number
+ *                             example: 80
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-08-10T14:20:00.000Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-08-20T11:45:00.000Z"
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_POPULAR_DIET_PLANS, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.popularDietPlans(req, res);
 });
 
 /**
