@@ -6,7 +6,7 @@ const WorkoutPlanActionSchema = new mongoose.Schema(
     workoutPlanId: {type: mongoose.Schema.Types.ObjectId, ref: "WorkoutPlan", required: true},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
     // streak: { type: Number, default: 0 },
-    status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
+    status: { type: String, required: true, enum: ["completed", "in-progress", "not-started"], default: "in-progress" },
     planRounds: [
       {
         dayLabel: { type: String, required: true },
@@ -27,7 +27,7 @@ const WorkoutPlanActionSchema = new mongoose.Schema(
             status: {
               type: String,
               required: true,
-              enum: ["completed", "in-progress"],
+              enum: ["completed", "in-progress", "not-started"],
               default: "in-progress",
             },
           },

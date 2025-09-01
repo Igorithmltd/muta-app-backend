@@ -437,18 +437,6 @@ class ChallengeService extends BaseService {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const dailyChallenge = await ChallengeModel.findOne({
-        type: "daily",
-        startDate: { $lte: today },
-        endDate: { $gte: today },
-      }).sort({ _id: -1 });
-
-      if (!dailyChallenge) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge not found",
-        });
-      }
-
       const user = await UserModel.findById(userId);
 
       if (!user) {
@@ -457,9 +445,21 @@ class ChallengeService extends BaseService {
         });
       }
 
+      const dailyChallenge = await ChallengeModel.findOne({
+        type: "daily",
+        startDate: { $lte: today },
+        endDate: { $gte: today },
+      }).sort({ _id: -1 });
+
+      // if (!dailyChallenge) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Challenge not found",
+      //   });
+      // }
+
       return BaseService.sendSuccessResponse({
         message: {
-          dailyChallenge,
+          dailyChallenge: dailyChallenge || {},
           dailyStreak: user.dailyStreak || 0,
           weeklyStreak: user.weeklyStreak || 0,
         },
@@ -482,17 +482,6 @@ class ChallengeService extends BaseService {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const weeklyChallenge = await ChallengeModel.findOne({
-        type: "weekly",
-        startDate: { $lte: endOfWeek },
-        endDate: { $gte: startOfWeek },
-      }).sort({ _id: -1 });
-
-      if (!weeklyChallenge) {
-        return BaseService.sendFailedResponse({
-          error: "Challenge not found",
-        });
-      }
 
       const user = await UserModel.findById(userId);
 
@@ -502,9 +491,22 @@ class ChallengeService extends BaseService {
         });
       }
 
+      const weeklyChallenge = await ChallengeModel.findOne({
+        type: "weekly",
+        startDate: { $lte: endOfWeek },
+        endDate: { $gte: startOfWeek },
+      }).sort({ _id: -1 });
+
+      // if (!weeklyChallenge) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Challenge not found",
+      //   });
+      // }
+
+
       return BaseService.sendSuccessResponse({
         message: {
-          weeklyChallenge,
+          weeklyChallenge: weeklyChallenge || {},
           dailyStreak: user.dailyStreak || 0,
           weeklyStreak: user.weeklyStreak || 0,
         },

@@ -1,10 +1,10 @@
 const ChallengeModel = require("../models/challenge.model");
-const ChallengeActionModel = require("../models/challengeAction.model");
 const NotificationModel = require("../models/notification.model");
 const WorkoutPlanModel = require("../models/workoutPlan.model");
 const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
+const moment = require('moment');
 
 class WorkoutplanService extends BaseService {
   async createWorkoutplan(req) {
@@ -27,8 +27,7 @@ class WorkoutplanService extends BaseService {
         "planRounds.*.rounds.*.title": "string|required",
         "planRounds.*.rounds.*.duration": "integer|required",
         "planRounds.*.rounds.*.set": "integer",
-        "planRounds.*.rounds.*.workoutExerciseType":
-          "string|required|in:time,set-reps",
+        "planRounds.*.rounds.*.workoutExerciseType": "string|required|in:time,set-reps",
         "planRounds.*.rounds.*.reps": "integer",
         "planRounds.*.rounds.*.restBetweenSet": "integer|required",
         "planRounds.*.rounds.*.instruction": "string|required",
@@ -136,7 +135,7 @@ class WorkoutplanService extends BaseService {
 
       const workoutplans = await WorkoutPlanModel.find(filter).sort({
         createdAt: -1,
-      });
+      }).populate('category');
       return BaseService.sendSuccessResponse({ message: workoutplans });
     } catch (error) {
       console.log(error, "the error");
@@ -147,7 +146,7 @@ class WorkoutplanService extends BaseService {
     try {
       const workoutplanId = req.params.id;
 
-      const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
+      const workoutplan = await WorkoutPlanModel.findById(workoutplanId).populate('category');
       if (!workoutplan) {
         return BaseService.sendFailedResponse({
           error: "Workout plan not found",
@@ -510,11 +509,11 @@ class WorkoutplanService extends BaseService {
 
       // Reset progress, status, and all daily task statuses
       // workoutplanAction.streak = 0;
-      workoutplanAction.status = "in-progress";
+      workoutplanAction.status = "not-started";
 
       workoutplanAction.rounds = workoutplanAction.rounds.map((task) => ({
         ...task.toObject(),
-        status: "in-progress",
+        status: "not-started",
       }));
 
       await workoutplanAction.save();
@@ -536,13 +535,13 @@ class WorkoutplanService extends BaseService {
       })
         .populate("category")
         .sort({ createdAt: -1 });
-      if (empty(recommendedWorkoutplans)) {
-        return BaseService.sendFailedResponse({
-          error: "No recommended workout plan found",
-        });
-      }
+      // if (empty(recommendedWorkoutplans)) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "No recommended workout plan found",
+      //   });
+      // }
       return BaseService.sendSuccessResponse({
-        message: recommendedWorkoutplans,
+        message: recommendedWorkoutplans || [],
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
@@ -569,28 +568,42 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async activeWorkoutplans() {
-    try {
-      const activeWorkoutplans = await WorkoutPlanModel.find({
-        // recommended: "YES",
-        status: "active",
-      })
-        .populate("category")
-        .sort({ createdAt: -1 });
-      if (empty(activeWorkoutplans)) {
-        return BaseService.sendFailedResponse({
-          error: "No active plan found",
-        });
-      }
-      return BaseService.sendSuccessResponse({
-        message: activeWorkoutplans,
-      });
-    } catch (error) {
-      return BaseService.sendFailedResponse({
-        error: this.server_error_message,
-      });
-    }
+async activeWorkoutplans(req, res) {
+  try {
+    const activeWorkoutplans = await WorkoutPlanActionModel.find({
+      userId: req.user.id,
+      status: "in-progress",
+    })
+      .populate("category")
+      .sort({ createdAt: -1 });
+
+    // Add daysPassed to each workout plan
+    const plansWithDaysPassed = activeWorkoutplans.map(plan => {
+      // Find the earliest dayDate in planRounds
+      const allDates = plan.planRounds.map(round => new Date(round.dayDate));
+      const startDate = new Date(Math.min(...allDates));
+      const today = new Date();
+
+      // Calculate difference in days
+      const diffTime = today - startDate;
+      const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      // Convert plan to plain object and attach daysPassed
+      const planObj = plan.toObject();
+      planObj.daysPassed = daysPassed >= 0 ? daysPassed : 0;
+
+      return planObj;
+    });
+
+    return BaseService.sendSuccessResponse({
+      message: plansWithDaysPassed,
+    });
+  } catch (error) {
+    return BaseService.sendFailedResponse({
+      error: this.server_error_message,
+    });
   }
+}
   async popularWorkoutPlans() {
     try {
       const result = await WorkoutPlanActionModel.aggregate([
@@ -722,6 +735,116 @@ class WorkoutplanService extends BaseService {
       console.error(error);
       return BaseService.sendFailedResponse({
         error: "Server error while rating workout plan",
+      });
+    }
+  }
+  async searchWorkoutplanByTitle(req) {
+    try {
+      const { title } = req.query;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if (!title) {
+        return BaseService.sendFailedResponse({
+          error: "Title query parameter is required",
+        });
+      }
+
+      const totalCount = await WorkoutPlanModel.countDocuments({
+        title: { $regex: title, $options: "i" },
+      });
+      
+      const workoutplans = await WorkoutPlanModel.find({
+        title: { $regex: title, $options: "i" },
+      })
+        .populate("category")
+        .sort({ createdAt: -1 }) 
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      const enrichedWorkoutplans = await Promise.all(
+        workoutplans.map(async (workoutplan) => {
+          const usersOnWorkoutplanCount = await WorkoutPlanActionModel.countDocuments({
+            workoutPlanId: workoutplan._id,
+          });
+          const numberOfRatings =
+            workoutplan.totalRatings || workoutplan.ratings?.length || 0;
+          return {
+            ...workoutplan,
+            usersOnWorkoutplanCount,
+            numberOfRatings,
+          };
+        })
+      );
+
+      return BaseService.sendSuccessResponse({
+        message: enrichedWorkoutplans,
+      });
+    } catch (error) {
+      console.error("Error in searchDietByTitle:", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getWorkoutplanByCategory(req) {
+    try {
+      const { id } = req.params;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if (!id) {
+        return BaseService.sendFailedResponse({
+          error: "Category ID is required",
+        });
+      }
+
+      const [workoutplans, totalCount] = await Promise.all([
+        WorkoutPlanModel.find({ category: id })
+          .populate("category")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        WorkoutPlanModel.countDocuments({ category: id }),
+      ]);
+
+      const enrichedWorkoutplans = await Promise.all(
+        workoutplans.map(async (workoutplan) => {
+          const usersOnWorkoutplanCount = await WorkoutPlanActionModel.countDocuments({
+            workoutPlanId: workoutplan._id,
+          });
+          const numberOfRatings =
+            workoutplan.totalRatings || workoutplan.ratings?.length || 0;
+          return {
+            ...workoutplan,
+            usersOnWorkoutplanCount,
+            numberOfRatings,
+          };
+        })
+      );
+
+      const totalPages = Math.ceil(totalCount / limit);
+
+      return BaseService.sendSuccessResponse({
+        message: "Workoutplans fetched successfully.",
+        data: {
+          workoutplan: enrichedWorkoutplans,
+          pagination: {
+            totalCount,
+            totalPages,
+            currentPage: page,
+            pageSize: limit,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error in getDietByCategory:", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
       });
     }
   }

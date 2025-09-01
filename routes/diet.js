@@ -1359,7 +1359,7 @@ router.get(ROUTE_SEARCH_DIET_TITLE, [auth], (req, res) => {
 
 /**
  * @swagger
- * /diet/search-diet-by-category:
+ * /diet/search-diet-by-category/{id}:
  *   get:
  *     summary: Search diets by category
  *     description: Retrieve a list of diets that match the given category (case-insensitive).

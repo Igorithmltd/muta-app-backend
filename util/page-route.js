@@ -77,6 +77,8 @@ exports.ROUTE_ACTIVE_WORKOUTPLANS = '/active-workoutplans'
 exports.ROUTE_POPULAR_WORKOUTPLANS = '/popular-workoutplans'
 exports.ROUTE_COMPLETED_WORKOUTPLANS = '/completed-workoutplans'
 exports.ROUTE_RATE_WORKOUTPLAN = '/rate-workoutplan'
+exports.ROUTE_SEARCH_WORKOUTPLAN_TITLE = '/search-workoutplan-title'
+exports.ROUTE_GET_WORKOUTPLAN_BY_CATEGORY = '/get-workoutplan-by-category'
 
 
 
