@@ -22,7 +22,7 @@ class WorkoutplanService extends BaseService {
         roundsCount: "integer|required",
         planRounds: "array|required",
         // "planRounds.*.dayLabel": "string|required",
-        "planRounds.*.dayDate": "string|required",
+        // "planRounds.*.dayDate": "string|required",
         "planRounds.*.rounds": "array|required",
         "planRounds.*.rounds.*.title": "string|required",
         "planRounds.*.rounds.*.duration": "integer|required",
