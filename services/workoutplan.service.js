@@ -53,20 +53,17 @@ class WorkoutplanService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      post.planRounds.forEach((day) => {
-        day.rounds.forEach((round) => {
+      for (const day of post.planRounds) {
+        for (const round of day.rounds) {
           if (round.workoutExerciseType === "set-reps") {
-            // Require reps and set, remove duration
             if (round.set == null || round.reps == null) {
               return BaseService.sendFailedResponse({
-                error:
-                  "Rounds with 'set-reps' type must include 'set' and 'reps'.",
+                error: "Rounds with 'set-reps' type must include 'set' and 'reps'.",
               });
             }
             delete round.duration;
           } else if (round.workoutExerciseType === "time") {
-            // Require duration, remove set and reps
-            if (round.duration == null) {
+            if (!round.duration) {
               return BaseService.sendFailedResponse({
                 error: "Rounds with 'time' type must include 'duration'.",
               });
@@ -78,8 +75,9 @@ class WorkoutplanService extends BaseService {
               error: "Invalid workoutExerciseType value in one of the rounds.",
             });
           }
-        });
-      });
+        }
+      }
+      
 
       // Check if the workoutplan already exists
       const existingWorkoutplan = await WorkoutPlanModel.findOne({
