@@ -25,10 +25,10 @@ class WorkoutplanService extends BaseService {
         // "planRounds.*.dayDate": "string|required",
         "planRounds.*.rounds": "array|required",
         "planRounds.*.rounds.*.title": "string|required",
-        "planRounds.*.rounds.*.duration": "integer|required",
+        // "planRounds.*.rounds.*.duration": "integer|required",//observe
         "planRounds.*.rounds.*.set": "integer",
         "planRounds.*.rounds.*.workoutExerciseType": "string|required|in:time,set-reps",
-        "planRounds.*.rounds.*.reps": "integer",
+        // "planRounds.*.rounds.*.reps": "integer", //observe
         "planRounds.*.rounds.*.restBetweenSet": "integer|required",
         "planRounds.*.rounds.*.instruction": "string|required",
         "planRounds.*.rounds.*.animation": "string|required",

@@ -38,11 +38,11 @@ const WorkoutPlanSchema = new mongoose.Schema(
         rounds: [
           {
             title: { type: String, required: true },
-            duration: { type: Number, required: true },
-            set: { type: Number, required: true },
+            duration: { type: Number },
+            set: { type: Number },
             // time: { type: Number, required: true },
             animation: { type: String, required: true },
-            reps: { type: Number, required: true },
+            reps: { type: Number },
             restBetweenSet: { type: Number, required: true },
             instruction: { type: String, required: true },
             commonMistakesToAvoid: [String],
