@@ -21,6 +21,7 @@ const {
   ROUTE_GET_DIET_PLAN_MEALS,
   ROUTE_RATE_DIET_PLAN,
   ROUTE_POPULAR_DIET_PLANS,
+  ROUTE_TOTAL_COMPLETED_DIET_PLANS,
 } = require("../util/page-route");
 
 /**
@@ -1770,6 +1771,160 @@ router.get(ROUTE_SEARCH_DIET_BY_CATEGORY+"/:id", [auth], (req, res) => {
 router.get(ROUTE_GET_COMPLETED_DIET_PLANS, [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.getCompletedPlans(req, res);
+});
+/**
+ * @swagger
+ * /diet/total-completed-diet-plans:
+ *   get:
+ *     summary: Get all completed diets
+ *     tags:
+ *       - Diets
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number (default is 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of items per page (default is 10)
+ *     responses:
+ *       200:
+ *         description: List of diets returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     diets:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863feb5182f03a90c60ad47"
+ *                           title:
+ *                             type: string
+ *                             example: "third diet"
+ *                           description:
+ *                             type: string
+ *                             example: "third diet description"
+ *                           calories:
+ *                             type: integer
+ *                             example: 54
+ *                           status:
+ *                             type: string
+ *                             example: "completed"
+ *                           duration:
+ *                             type: integer
+ *                             example: 5
+ *                           tags:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["here", "there"]
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://example.com/image.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "public_id"
+ *                           category:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6863d1d9f94e880960616e38"
+ *                               title:
+ *                                 type: string
+ *                                 example: "breathing"
+ *                               createdAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               updatedAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: "2025-07-01T12:17:29.709Z"
+ *                               __v:
+ *                                 type: integer
+ *                                 example: 0
+ *                           dailyMealBreakdown:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 breakfastTitle:
+ *                                   type: string
+ *                                   example: "Oats and eggs"
+ *                                 mealType:
+ *                                   type: string
+ *                                   example: "breakfast"
+ *                                 crabs:
+ *                                   type: integer
+ *                                   example: 44
+ *                                 protein:
+ *                                   type: integer
+ *                                   example: 55
+ *                                 fats:
+ *                                   type: integer
+ *                                   example: 12
+ *                                 calories:
+ *                                   type: integer
+ *                                   example: 433
+ *                                 recommendedTime:
+ *                                   type: string
+ *                                   example: "09:00:00"
+ *                                 missedBy:
+ *                                   type: string
+ *                                   example: "16:00:00"
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6863feb5182f03a90c60ad48"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T15:28:53.228Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         totalCount:
+ *                           type: integer
+ *                           example: 24
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 3
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 1
+ *                         pageSize:
+ *                           type: integer
+ *                           example: 10
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_TOTAL_COMPLETED_DIET_PLANS, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.getTotalCompletedPlans(req, res);
 });
 
 /**

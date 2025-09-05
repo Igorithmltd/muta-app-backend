@@ -625,7 +625,6 @@ class DietServicee extends BaseService {
       });
     }
   }
-  
   async getDietCategories() {
     try {
       const dietCategories = await DietCategoryModel.find({}).sort({
@@ -825,6 +824,25 @@ class DietServicee extends BaseService {
       return BaseService.sendSuccessResponse({
         message: "Completed diet plans fetched successfully",
         plans: completedPlans,
+      });
+    } catch (error) {
+      console.error("Error fetching completed plans:", error);
+      return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async getTotalCompletedPlans(req) {
+    try {
+      const userId = req.user.id;
+      const today = moment().startOf("day").toDate();
+
+      // Get plans that are either marked as completed OR have expired
+      const completedPlans = await DietActionModel.find({
+         status: "completed"})
+         .populate("dietId");
+
+      return BaseService.sendSuccessResponse({
+        message: "Completed diet plans fetched successfully",
+        completedPlans: completedPlans,
       });
     } catch (error) {
       console.error("Error fetching completed plans:", error);

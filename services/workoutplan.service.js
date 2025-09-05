@@ -580,6 +580,23 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async getTotalCompletedWorkoutPlans(req) {
+    try {
+
+      // Get plans that are either marked as completed OR have expired
+      const completedPlans = await WorkoutPlanActionModel.find({
+        status: "completed",
+      }).populate("workoutPlanId");
+
+      return BaseService.sendSuccessResponse({
+        message: "Completed workoutplans plans fetched successfully",
+        completedPlans: completedPlans,
+      });
+    } catch (error) {
+      console.error("Error fetching completed plans:", error);
+      return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
   async activeWorkoutplans(req, res) {
     try {
       const activeWorkoutplans = await WorkoutPlanActionModel.find({
