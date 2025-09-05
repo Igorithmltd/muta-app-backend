@@ -478,11 +478,11 @@ class WorkoutplanService extends BaseService {
   async resetWorkoutplanAction(req) {
     try {
       const userId = req.user.id;
-      const { workoutplanId } = req.body;
+      const { workoutPlanId } = req.body;
 
       // Validate input
       const validateRule = {
-        workoutplanId: "string|required",
+        workoutPlanId: "string|required",
       };
 
       const validateMessage = {
@@ -490,7 +490,7 @@ class WorkoutplanService extends BaseService {
       };
 
       const validateResult = validateData(
-        { workoutplanId },
+        { workoutPlanId },
         validateRule,
         validateMessage
       );
@@ -502,7 +502,7 @@ class WorkoutplanService extends BaseService {
       // Fetch the diet action
       const workoutplanAction = await WorkoutPlanActionModel.findOne({
         userId,
-        workoutplanId,
+        workoutPlanId,
       });
 
       if (!workoutplanAction) {
@@ -515,10 +515,17 @@ class WorkoutplanService extends BaseService {
       // workoutplanAction.streak = 0;
       workoutplanAction.status = "not-started";
 
-      workoutplanAction.rounds = workoutplanAction.rounds.map((task) => ({
-        ...task.toObject(),
-        status: "not-started",
-      }));
+      workoutplanAction.planRounds = workoutplanAction.planRounds.map((day) => {
+        const updatedRounds = day.rounds.map((round) => ({
+          ...round.toObject(),
+          status: "not-started",
+        }));
+      
+        return {
+          ...day.toObject(),
+          rounds: updatedRounds,
+        };
+      });
 
       await workoutplanAction.save();
 
@@ -526,6 +533,7 @@ class WorkoutplanService extends BaseService {
         message: "Workout plan progress reset successfully",
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });

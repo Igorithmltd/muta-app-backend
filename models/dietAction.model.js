@@ -6,7 +6,7 @@ const DietActionSchema = new mongoose.Schema(
     dietId: {type: mongoose.Schema.Types.ObjectId, ref: "Diet", required: true},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
     progress: {type: Number, required: true, default: 0},
-    status: { type: String, required: true, enum: ["completed", "in-progress"], default: "in-progress" },
+    status: { type: String, required: true, enum: ["completed", "in-progress", "not-started"], default: "in-progress" },
     dailyMealBreakdown: [
       {
         dayLabel: { type: String, required: true }, // e.g. "Day 1", "Day 2", or "Monday"
@@ -28,7 +28,7 @@ const DietActionSchema = new mongoose.Schema(
             status: {
               type: String,
               required: true,
-              enum: ["completed", "in-progress", "missed"],
+              enum: ["completed", "in-progress", "missed", "not-started"],
               default: "in-progress",
             },
           }

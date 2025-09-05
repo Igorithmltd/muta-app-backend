@@ -1783,14 +1783,14 @@ class UserService extends BaseService {
         today.getDate()
       );
 
-      const entry = await WaterEntry.findOne({ userId, date: todayMidnight });
+      const entry = await WaterEntryModel.findOne({ userId, date: todayMidnight });
 
       return BaseService.sendSuccessResponse({
         message: entry,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
-        error: "Failed to fetch sleep hours",
+        error: "Failed to fetch water logs",
       });
     }
   }
