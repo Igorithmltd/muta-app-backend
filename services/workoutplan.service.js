@@ -1,10 +1,11 @@
+const { default: mongoose } = require("mongoose");
 const ChallengeModel = require("../models/challenge.model");
 const NotificationModel = require("../models/notification.model");
 const WorkoutPlanModel = require("../models/workoutPlan.model");
 const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
-const moment = require('moment');
+const moment = require("moment");
 
 class WorkoutplanService extends BaseService {
   async createWorkoutplan(req) {
@@ -27,7 +28,8 @@ class WorkoutplanService extends BaseService {
         "planRounds.*.rounds.*.title": "string|required",
         // "planRounds.*.rounds.*.duration": "integer|required",//observe
         "planRounds.*.rounds.*.set": "integer",
-        "planRounds.*.rounds.*.workoutExerciseType": "string|required|in:time,set-reps",
+        "planRounds.*.rounds.*.workoutExerciseType":
+          "string|required|in:time,set-reps",
         // "planRounds.*.rounds.*.reps": "integer", //observe
         "planRounds.*.rounds.*.restBetweenSet": "integer|required",
         "planRounds.*.rounds.*.instruction": "string|required",
@@ -58,7 +60,8 @@ class WorkoutplanService extends BaseService {
           if (round.workoutExerciseType === "set-reps") {
             if (round.set == null || round.reps == null) {
               return BaseService.sendFailedResponse({
-                error: "Rounds with 'set-reps' type must include 'set' and 'reps'.",
+                error:
+                  "Rounds with 'set-reps' type must include 'set' and 'reps'.",
               });
             }
             delete round.duration;
@@ -77,7 +80,6 @@ class WorkoutplanService extends BaseService {
           }
         }
       }
-      
 
       // Check if the workoutplan already exists
       const existingWorkoutplan = await WorkoutPlanModel.findOne({
@@ -131,9 +133,11 @@ class WorkoutplanService extends BaseService {
       const type = req.query.type || "";
       const filter = type ? { type } : {};
 
-      const workoutplans = await WorkoutPlanModel.find(filter).sort({
-        createdAt: -1,
-      }).populate('category');
+      const workoutplans = await WorkoutPlanModel.find(filter)
+        .sort({
+          createdAt: -1,
+        })
+        .populate("category");
       return BaseService.sendSuccessResponse({ message: workoutplans });
     } catch (error) {
       console.log(error, "the error");
@@ -144,7 +148,9 @@ class WorkoutplanService extends BaseService {
     try {
       const workoutplanId = req.params.id;
 
-      const workoutplan = await WorkoutPlanModel.findById(workoutplanId).populate('category');
+      const workoutplan = await WorkoutPlanModel.findById(
+        workoutplanId
+      ).populate("category");
       if (!workoutplan) {
         return BaseService.sendFailedResponse({
           error: "Workout plan not found",
@@ -286,8 +292,7 @@ class WorkoutplanService extends BaseService {
     const planRounds = [];
 
     // Use workoutplan.roundsCount or workoutplan.planRounds.length (if exists)
-    const daysCount =
-      workoutplan.roundsCount || workoutplan.planRounds?.length || 3;
+    const daysCount = workoutplan.planRounds?.length || 0;
 
     const today = new Date();
     const cutoffHour = 20; // 8 PM cutoff
@@ -312,10 +317,11 @@ class WorkoutplanService extends BaseService {
       // Map rounds adding default status
       const rounds = roundsForDay.map((round) => ({
         title: round.title,
-        duration: round.duration,
-        set: round.set,
+        duration: round.duration ? round.duration : null,
+        set: round.set ? round.set : null,
         animation: round.animation,
-        reps: round.reps,
+        reps: round.reps ? round.reps : null,
+        workoutExerciseType: round.workoutExerciseType,
         restBetweenSet: round.restBetweenSet,
         instruction: round.instruction,
         commonMistakesToAvoid: round.commonMistakesToAvoid || [],
@@ -456,7 +462,7 @@ class WorkoutplanService extends BaseService {
 
       const workoutplanAction = await WorkoutPlanActionModel.findById(
         workoutplanActionId
-      ).populate("workoutPlanId");
+      ).populate({ path: "workoutPlanId", populate: { path: "category" } });
       if (!workoutplanAction) {
         return BaseService.sendFailedResponse({
           error: "Workout plan action not found",
@@ -566,42 +572,44 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-async activeWorkoutplans(req, res) {
-  try {
-    const activeWorkoutplans = await WorkoutPlanActionModel.find({
-      userId: req.user.id,
-      status: "in-progress",
-    })
-      .populate("category")
-      .sort({ createdAt: -1 });
+  async activeWorkoutplans(req, res) {
+    try {
+      const activeWorkoutplans = await WorkoutPlanActionModel.find({
+        userId: req.user.id,
+        status: "in-progress",
+      })
+        .populate({path: "workoutPlanId", populate: {path: "category"}})
+        .sort({ createdAt: -1 });
 
-    // Add daysPassed to each workout plan
-    const plansWithDaysPassed = activeWorkoutplans.map(plan => {
-      // Find the earliest dayDate in planRounds
-      const allDates = plan.planRounds.map(round => new Date(round.dayDate));
-      const startDate = new Date(Math.min(...allDates));
-      const today = new Date();
+      // Add daysPassed to each workout plan
+      const plansWithDaysPassed = activeWorkoutplans.map((plan) => {
+        // Find the earliest dayDate in planRounds
+        const allDates = plan.planRounds.map(
+          (round) => new Date(round.dayDate)
+        );
+        const startDate = new Date(Math.min(...allDates));
+        const today = new Date();
 
-      // Calculate difference in days
-      const diffTime = today - startDate;
-      const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        // Calculate difference in days
+        const diffTime = today - startDate;
+        const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-      // Convert plan to plain object and attach daysPassed
-      const planObj = plan.toObject();
-      planObj.daysPassed = daysPassed >= 0 ? daysPassed : 0;
+        // Convert plan to plain object and attach daysPassed
+        const planObj = plan.toObject();
+        planObj.daysPassed = daysPassed >= 0 ? daysPassed : 0;
 
-      return planObj;
-    });
+        return planObj;
+      });
 
-    return BaseService.sendSuccessResponse({
-      message: plansWithDaysPassed,
-    });
-  } catch (error) {
-    return BaseService.sendFailedResponse({
-      error: this.server_error_message,
-    });
+      return BaseService.sendSuccessResponse({
+        message: plansWithDaysPassed,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
   }
-}
   async popularWorkoutPlans() {
     try {
       const result = await WorkoutPlanActionModel.aggregate([
@@ -752,21 +760,22 @@ async activeWorkoutplans(req, res) {
       const totalCount = await WorkoutPlanModel.countDocuments({
         title: { $regex: title, $options: "i" },
       });
-      
+
       const workoutplans = await WorkoutPlanModel.find({
         title: { $regex: title, $options: "i" },
       })
         .populate("category")
-        .sort({ createdAt: -1 }) 
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
 
       const enrichedWorkoutplans = await Promise.all(
         workoutplans.map(async (workoutplan) => {
-          const usersOnWorkoutplanCount = await WorkoutPlanActionModel.countDocuments({
-            workoutPlanId: workoutplan._id,
-          });
+          const usersOnWorkoutplanCount =
+            await WorkoutPlanActionModel.countDocuments({
+              workoutPlanId: workoutplan._id,
+            });
           const numberOfRatings =
             workoutplan.totalRatings || workoutplan.ratings?.length || 0;
           return {
@@ -789,12 +798,12 @@ async activeWorkoutplans(req, res) {
   }
   async getWorkoutplanByCategory(req) {
     try {
-      const { id } = req.params;
+      const { id } = req.query;
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
-      if (!id) {
+      if (!mongoose.isValidObjectId(id)) {
         return BaseService.sendFailedResponse({
           error: "Category ID is required",
         });
@@ -812,9 +821,10 @@ async activeWorkoutplans(req, res) {
 
       const enrichedWorkoutplans = await Promise.all(
         workoutplans.map(async (workoutplan) => {
-          const usersOnWorkoutplanCount = await WorkoutPlanActionModel.countDocuments({
-            workoutPlanId: workoutplan._id,
-          });
+          const usersOnWorkoutplanCount =
+            await WorkoutPlanActionModel.countDocuments({
+              workoutPlanId: workoutplan._id,
+            });
           const numberOfRatings =
             workoutplan.totalRatings || workoutplan.ratings?.length || 0;
           return {

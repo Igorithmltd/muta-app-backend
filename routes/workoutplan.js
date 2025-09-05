@@ -861,7 +861,7 @@ router.put(ROUTE_WORKOUTPLAN_TASK, auth, (req, res) => {
 
 /**
  * @swagger
- * /diet/reset-workoutplan-action:
+ * /workoutplan/reset-workoutplan-action:
  *   put:
  *     summary: Reset a user's workoutplan progress
  *     tags:
