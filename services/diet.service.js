@@ -20,7 +20,6 @@ class DietServicee extends BaseService {
         tags: "array|required",
         duration: "integer|required",
         "tags.*": "string|required",
-
         dailyMealBreakdown: "array|required",
         "dailyMealBreakdown.*.dayLabel": "string|required",
         "dailyMealBreakdown.*.meals": "array|required",
@@ -33,7 +32,6 @@ class DietServicee extends BaseService {
         "dailyMealBreakdown.*.meals.*.calories": "integer|required",
         "dailyMealBreakdown.*.meals.*.recommendedTime": "string|required",
         "dailyMealBreakdown.*.meals.*.missedBy": "string|required",
-
         image: "object|required",
         "image.imageUrl": "string|required",
         "image.publicId": "string|required",
@@ -80,6 +78,7 @@ class DietServicee extends BaseService {
         ...post,
         // dailyMealBreakdown: breakdownWithDays,
       });
+      console.log({diet})
 
       const savedDiet = await diet.save();
 
