@@ -71,10 +71,15 @@ const UserSchema = new mongoose.Schema(
       enum: ["active", "inactive", "suspended"],
     },
     subscriptionPlan: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId, ref: 'Plan'
     },
     subscriptionStart: { type: Date },
     subscriptionExpiry: { type: Date },
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "cancelled", "pending", "paused", "expired", "incomplete"],
+      default: "pending",
+    },
     coachAssigned: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -135,6 +140,11 @@ UserSchema.methods.comparePassword = async function (password) {
   const user = this;
   return await bcrypt.compare(password, user.password);
 };
+
+UserSchema.methods.isSubscriptionActive = function() {
+  return this.subscriptionStatus === 'active' && new Date() < this.subscriptionExpiry;
+}
+
 UserSchema.methods.generateAccessToken = async function (secretToken) {
   const token = jwt.sign(
     {

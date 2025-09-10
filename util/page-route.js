@@ -37,6 +37,7 @@ exports.ROUTE_UPDATE_PLAN = '/update-plan'
 exports.ROUTE_DELETE_PLAN = '/delete-plan'
 exports.ROUTE_SUBSCRIBE_PLAN = '/subscribe-plan'
 exports.ROUTE_REDEEM_PLAN = '/redeem-plan'
+exports.ROUTE_GET_SUBSCRIPTION_STATUS = '/get-subscription-status'
 
 
 //admin

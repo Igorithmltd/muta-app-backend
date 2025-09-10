@@ -20,6 +20,7 @@ const CouponModel = require("../models/coupon.model");
 const SleepEntryModel = require("../models/sleep-entry.model");
 const WaterEntryModel = require("../models/water-entry.model");
 const NotificationModel = require("../models/notification.model");
+const SubscriptionModel = require("../models/subscription.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -1373,22 +1374,22 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error });
     }
   }
-
   async subscribePlan(req, res) {
     try {
       const { coachId, planId, isGift, recipientEmail } = req.body;
       const userId = req.user.id;
-
-      // Validate coachId
+  
+      // ✅ Validate coachId
       if (!mongoose.isValidObjectId(coachId)) {
         return BaseService.sendFailedResponse({ error: "Invalid coach ID" });
       }
-      // Validate planId
+  
+      // ✅ Validate planId
       if (!mongoose.isValidObjectId(planId)) {
         return BaseService.sendFailedResponse({ error: "Invalid plan ID" });
       }
-
-      // Find coach
+  
+      // ✅ Find coach
       const coach = await UserModel.findOne({
         _id: coachId,
         userType: "coach",
@@ -1396,25 +1397,25 @@ class UserService extends BaseService {
       if (!coach) {
         return BaseService.sendFailedResponse({ error: "Coach not found" });
       }
-
-      // Find plan
+  
+      // ✅ Find plan
       const plan = await PlanModel.findById(planId);
       if (!plan) {
         return BaseService.sendFailedResponse({ error: "Plan not found" });
       }
-
+  
+      // 🎁 If it’s a gift
       if (isGift) {
         if (!recipientEmail) {
           return BaseService.sendFailedResponse({
             error: "Recipient email required for gift",
           });
         }
-
+  
         // Generate coupon code
         const couponCode =
           "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
-
-        // Save coupon in DB
+  
         await CouponModel.create({
           code: couponCode,
           coachId,
@@ -1422,65 +1423,118 @@ class UserService extends BaseService {
           giftedByUserId: userId,
           recipientEmail,
           used: false,
-          expiresAt: post.expiresAt
-            ? new Date(post.expiresAt)
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // fallback to 30 days if not provided
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
         });
-
+  
         const emailHtml = `
-            <p>Hi, ${recipientEmail}</p>
-            <p>You have received a ${plan.duration} premium subscription gift for coach ${coach.firstName}.</p>
-            <p>Your coupon code is: <b>${couponCode}</b></p>
-            <p>Use this coupon on your account to activate your subscription.</p>
-            <p>Enjoy your training!</p>
-          `;
-
+          <p>Hi, ${recipientEmail}</p>
+          <p>You have received a ${plan.duration} premium subscription gift for coach ${coach.firstName}.</p>
+          <p>Your coupon code is: <b>${couponCode}</b></p>
+          <p>Use this coupon on your account to activate your subscription.</p>
+        `;
+  
         await sendEmail({
           from: "Muta App <no-reply@fitnessapp.com>",
           subject: `You've received a gift subscription!`,
-          to: user.email,
+          to: recipientEmail,
           html: emailHtml,
         });
-
-        // Optionally send email notification here
-
-        return BaseService.sendSuccessResponse({ message: couponCode });
-      } else {
-        // Subscribe user directly
-        const user = await UserModel.findById(userId);
-
-        // Calculate expiry date based on plan.duration
-        let expiryDate = new Date();
-        if (plan.duration === "monthly") {
-          expiryDate.setMonth(expiryDate.getMonth() + 1);
-        } else if (plan.duration === "yearly") {
-          expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-        }
-
-        user.subscriptionPlan = plan.name; // e.g., 'premium'
-        user.subscriptionExpiry = expiryDate;
-        user.subscriptionStart = new Date();
-        user.coachAssigned = coachId;
-
-        await user.save();
-
-        const emailHtml = `
-            <p>Hi, ${user.firstName}</p>
-            <p>You have subscribed a ${plan.duration} premium subscription gift for coach ${coach.firstName}.</p>
-            <p>Enjoy your training!</p>
-          `;
-
-        await sendEmail({
-          from: "Muta App <no-reply@fitnessapp.com>",
-          subject: `You've subscribe successfully!`,
-          to: user.email,
-          html: emailHtml,
-        });
-
+  
         return BaseService.sendSuccessResponse({
-          message: "Subscription successful",
+          message: "Gift coupon created",
+          couponCode,
         });
       }
+  
+      // 💳 If direct subscription
+      const user = await UserModel.findById(userId);
+  
+      // Calculate expiry date
+      let expiryDate = new Date();
+      if (plan.duration === "monthly") {
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
+      } else if (plan.duration === "yearly" || plan.duration === "annually") {
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      }
+  
+      // ✅ Create Subscription entry
+      const subscription = await SubscriptionModel.create({
+        plan: plan.duration, // "monthly" or "yearly"
+        reference: "TEMP-" + Date.now(), // ⚠️ replace later with Paystack ref
+        status: "active",
+        startDate: new Date(),
+        expiryDate,
+        user: userId
+      });
+  
+  
+      // await user.save();
+  
+      // Notify user
+      const emailHtml = `
+        <p>Hi, ${user.firstName}</p>
+        <p>You have successfully subscribed to a ${plan.duration} premium subscription with coach ${coach.firstName}.</p>
+      `;
+  
+      await sendEmail({
+        from: "Muta App <no-reply@fitnessapp.com>",
+        subject: `Subscription successful!`,
+        to: user.email,
+        html: emailHtml,
+      });
+  
+      return BaseService.sendSuccessResponse({
+        message: "Subscription successful",
+        subscriptionId: subscription._id,
+      });
+    } catch (error) {
+      console.error("Subscription error:", error);
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
+  async getSubscriptionStatus(req, res) {
+    try {
+      const userId = req.user.id;
+  
+      // Populate user with subscription and plan
+      const user = await UserModel.findById(userId)
+        .populate("subscription")     // SubscriptionModel
+        .populate("subscriptionPlan"); // PlanModel
+  
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+  
+      if (!user.subscription) {
+        return BaseService.sendSuccessResponse({
+          message: "No active subscription",
+          subscription: null,
+        });
+      }
+  
+      const subscription = user.subscription;
+      const plan = user.subscriptionPlan;
+  
+      // Auto-expire if past expiry date
+      if (
+        subscription.status === "active" &&
+        subscription.expiryDate < new Date()
+      ) {
+        subscription.status = "expired";
+        await subscription.save();
+      }
+  
+      return BaseService.sendSuccessResponse({
+        message: "Subscription state retrieved successfully",
+        subscription: {
+          plan: plan ? plan.name : subscription.plan,
+          duration: plan ? plan.duration : null,
+          status: subscription.status,
+          startDate: subscription.startDate,
+          expiryDate: subscription.expiryDate,
+          features: plan ? plan.features : [],
+        },
+      });
     } catch (error) {
       console.error("Subscription error:", error);
       return BaseService.sendFailedResponse({ error: error.message });
@@ -1490,70 +1544,88 @@ class UserService extends BaseService {
     try {
       const { couponCode } = req.body;
       const userId = req.user._id;
+  
+      // Fetch user
       const user = await UserModel.findById(userId);
-      const userEmail = user.email;
-
-      // Find coupon by code
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+  
+      // Find coupon
       const coupon = await CouponModel.findOne({ code: couponCode });
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-
-      // Check expiration
+  
+      // Validate coupon expiration
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
-
-      // Check if already used
+  
+      // Validate coupon usage
       if (coupon.used) {
-        return BaseService.sendFailedResponse({
-          error: "Coupon has already been used",
-        });
+        return BaseService.sendFailedResponse({ error: "Coupon has already been used" });
       }
-
-      // Verify recipient email matches logged in user
-      if (coupon.recipientEmail.toLowerCase() !== userEmail.toLowerCase()) {
-        return BaseService.sendFailedResponse({
-          error: "Coupon not valid for this user",
-        });
+  
+      // Validate recipient
+      if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
+        return BaseService.sendFailedResponse({ error: "Coupon not valid for this user" });
       }
-
-      // Check if user already has a subscription
-      if (
-        user.subscriptionPlan === "premium" &&
-        user.subscriptionExpiry > new Date()
-      ) {
+  
+      // Check if user already has an active subscription
+      const existingSub = await SubscriptionModel.findOne({
+        user: userId,
+        status: "active",
+        expiryDate: { $gt: new Date() },
+      });
+      if (existingSub) {
         return BaseService.sendFailedResponse({
           error: "User already has an active subscription",
         });
       }
-
-      const plan = await PlanModel.findOne({ _id: coupon.planId });
-      // Set subscription expiry based on planDuration
+  
+      // Load plan from coupon
+      const plan = await PlanModel.findById(coupon.planId);
+      if (!plan) {
+        return BaseService.sendFailedResponse({ error: "Associated plan not found" });
+      }
+  
+      // Calculate expiry date
       let expiryDate = new Date();
       if (plan.duration === "monthly") {
         expiryDate.setMonth(expiryDate.getMonth() + 1);
-      } else {
+      } else if (plan.duration === "yearly") {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-
-      // Update user subscription & coach
-      user.subscriptionPlan = "premium";
-      user.subscriptionExpiry = expiryDate;
-      user.subscriptionStart = new Date();
-      user.coachAssigned = coupon.coachId; // Assign coach from coupon
-      await user.save();
-
+  
+      // Create subscription
+      const subscription = await SubscriptionModel.create({
+        user: userId,
+        plan: plan._id,
+        status: "active",
+        startDate: new Date(),
+        expiryDate,
+      });
+  
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
+      coupon.usedAt = new Date();
       await coupon.save();
-
+  
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
+        subscription: {
+          id: subscription._id,
+          plan: plan.name,
+          duration: plan.duration,
+          startDate: subscription.startDate,
+          expiryDate: subscription.expiryDate,
+          status: subscription.status,
+        },
       });
     } catch (error) {
-      console.error("Subscription error:", error);
+      console.error("Redeem coupon error:", error);
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }

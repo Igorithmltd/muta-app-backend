@@ -250,6 +250,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getPlans.data)
     }
+    async getSubscriptionStatus(req, res){
+        const userService = new UserService()
+        const getSubscriptionStatus = await userService.getSubscriptionStatus(req)
+        if(!getSubscriptionStatus.success){
+            return BaseController.sendFailedResponse(res, getSubscriptionStatus.data)
+        }
+        return BaseController.sendSuccessResponse(res, getSubscriptionStatus.data)
+    }
     async getPlan(req, res){
         const userService = new UserService()
         const getPlan = await userService.getPlan(req)

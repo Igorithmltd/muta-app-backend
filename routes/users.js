@@ -34,6 +34,7 @@ const {
   ROUTE_GET_WATER_LOGS,
   ROUTE_GET_NOTIFICATIONS,
   ROUTE_BROADCAST_NOTIFICATION,
+  ROUTE_GET_SUBSCRIPTION_STATUS,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1302,7 +1303,45 @@ router.post(ROUTE_REDEEM_PLAN, auth, (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Plan'
+ *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - duration
+ *               - price
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the plan
+ *                 example: premium
+ *               description:
+ *                 type: string
+ *                 description: Description of the plan
+ *                 example: Access to all premium features with priority support
+ *               duration:
+ *                 type: string
+ *                 description: Billing cycle duration
+ *                 enum: [monthly, yearly]
+ *                 example: monthly
+ *               price:
+ *                 type: number
+ *                 description: Price of the plan in USD
+ *                 minimum: 0
+ *                 example: 29.99
+ *               features:
+ *                 type: array
+ *                 description: List of features included in the plan
+ *                 items:
+ *                   type: string
+ *                 example:
+ *                   - Unlimited projects
+ *                   - Priority email support
+ *                   - Advanced analytics
+ *               isActive:
+ *                 type: boolean
+ *                 description: Whether the plan is active or not
+ *                 default: true
+ *                 example: true
  *     responses:
  *       201:
  *         description: Plan created successfully
@@ -1322,17 +1361,57 @@ router.post(ROUTE_CREATE_PLAN, adminAuth, (req, res) => {
  * @swagger
  * /users/get-all-plans:
  *   get:
- *     summary: Get all subscription plans
- *     tags: [Plans]
+ *     summary: Get list of all plans
+ *     tags:
+ *       - Plans
  *     responses:
  *       200:
- *         description: List of all plans
+ *         description: List of plans
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Plan'
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 6123abc456def78901234567
+ *                   name:
+ *                     type: string
+ *                     example: premium
+ *                   description:
+ *                     type: string
+ *                     example: Access to all premium features with priority support
+ *                   duration:
+ *                     type: string
+ *                     example: monthly
+ *                   price:
+ *                     type: number
+ *                     example: 29.99
+ *                   features:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example:
+ *                       - Unlimited projects
+ *                       - Priority email support
+ *                       - Advanced analytics
+ *                   isActive:
+ *                     type: boolean
+ *                     example: true
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2023-04-25T12:34:56.789Z
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2023-04-26T08:12:34.567Z
+ *       400:
+ *         description: Invalid query parameters
+ *       500:
+ *         description: Internal server error
  */
 router.get(ROUTE_GET_ALL_PLANS, auth, (req, res) => {
   const userController = new UserController();
@@ -1365,6 +1444,73 @@ router.get(ROUTE_GET_ALL_PLANS, auth, (req, res) => {
 router.get(ROUTE_GET_PLAN+"/:id", auth, (req, res) => {
   const userController = new UserController();
   return userController.getPlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-subscription-status:
+ *   get:
+ *     summary: Get the current subscription state of the logged-in user
+ *     description: Returns the user's active subscription details including plan, duration, status, start date, expiry date, and features. Requires authentication.
+ *     tags:
+ *       - Plans
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Subscription state retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Subscription state retrieved successfully
+ *                 subscription:
+ *                   type: object
+ *                   nullable: true
+ *                   properties:
+ *                     plan:
+ *                       type: string
+ *                       example: Premium Monthly
+ *                     duration:
+ *                       type: string
+ *                       enum: [monthly, yearly]
+ *                       example: monthly
+ *                     status:
+ *                       type: string
+ *                       enum: [active, expired, pending]
+ *                       example: active
+ *                     startDate:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-09-01T10:20:00.000Z
+ *                     expiryDate:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-10-01T10:20:00.000Z
+ *                     features:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example:
+ *                         - Unlimited workouts
+ *                         - Coach chat
+ *                         - Nutrition guide
+ *       401:
+ *         description: Unauthorized - User not logged in or invalid token
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_GET_SUBSCRIPTION_STATUS, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getSubscriptionStatus(req, res);
 });
 
 /**
