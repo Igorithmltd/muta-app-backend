@@ -15,7 +15,6 @@ const WorkoutPlanSchema = new mongoose.Schema(
       imageUrl: { type: String },
       publicId: { type: String },
     },
-    youtubeLink: {type: String},
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DietCategory",
@@ -46,9 +45,10 @@ const WorkoutPlanSchema = new mongoose.Schema(
             restBetweenSet: { type: Number, required: true },
             instruction: { type: String, required: true },
             commonMistakesToAvoid: [String],
+            youtubeLink: {type: String},
             workoutExerciseType: {type: String, required: true, enum: ["time", "set-reps"]},
             breathingTips: [String],
-            focusArea: [String],
+            focusArea: [{value: String, degree: String}],
             status: {
               type: String,
               required: true,

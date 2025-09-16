@@ -21,6 +21,7 @@ const SleepEntryModel = require("../models/sleep-entry.model");
 const WaterEntryModel = require("../models/water-entry.model");
 const NotificationModel = require("../models/notification.model");
 const SubscriptionModel = require("../models/subscription.model");
+const { sendPushNotification } = require("./firebase.service");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -682,46 +683,41 @@ class UserService extends BaseService {
   }
   async refreshToken(req, res) {
     try {
-      const refreshToken = req.headers.authorization;
-
+      const refreshToken = req.headers["x-refresh-token"]; // better than Authorization
+  
       if (!refreshToken) {
-        return BaseService.sendFailedResponse({ error: "No refresh token" });
-      }
-
-      if (
-        refreshToken.split(" ").filter((item) => item !== "null").length < 2
-      ) {
         return BaseService.sendFailedResponse({
-          error: "Please provide a valid token to proceed",
+          error: "No refresh token provided",
         });
       }
-
-      const token = refreshToken.split(" ")[1];
-      // check if token is provided
-      if (!token) {
+  
+      let decoded;
+      try {
+        decoded = verifyRefreshToken(refreshToken);
+      } catch (err) {
         return BaseService.sendFailedResponse({
-          error: "Unauthorized. Please log in",
+          error: "Invalid or expired refresh token",
         });
       }
-
-      const decoded = verifyRefreshToken(token);
+  
       const newAccessToken = signAccessToken({
         id: decoded.id,
         userType: decoded.userType,
       });
-
+  
+      // Optionally: set as Authorization header or return in body
       res.header("Authorization", `Bearer ${newAccessToken}`);
-
+  
       return BaseService.sendSuccessResponse({
-        message: "New access token sent",
+        message: newAccessToken,
       });
     } catch (err) {
-      console.log(err, "the err");
+      console.error("Refresh Token Error:", err);
       return BaseService.sendFailedResponse({
         error: "Something went wrong. Please try again later.",
       });
     }
-  }
+  }  
   async completeOnboarding(req) {
     try {
       const post = req.body;
@@ -1175,9 +1171,13 @@ class UserService extends BaseService {
       await NotificationModel.create({
         userId,
         title: notificationTitle,
-        description: notificationDescription,
+        body: notificationDescription,
         time: new Date(),
+        type: "weight",
       });
+      if(user.deviceToken){
+        sendPushNotification({deviceToken: user.deviceToken, title: notificationTitle, body: notificationDescription});
+      }
   
       return BaseService.sendSuccessResponse({
         message: "Weight updated successfully"
@@ -1877,7 +1877,7 @@ class UserService extends BaseService {
       const formattedNotifications = notifications.map((notif) => ({
         id: notif._id,
         title: notif.title,
-        description: notif.description,
+        body: notif.body,
         time: formatNotificationTime(notif.timestamp),
       }));
 
@@ -1892,10 +1892,10 @@ class UserService extends BaseService {
   }
   async broadcastNotification(req) {
     try {
-      const { title, description } = req.body;
+      const { title, body, notificationType } = req.body;
 
-      if (!title || !description) {
-        return BaseService.sendFailedResponse({ error: "Title and description are required" });
+      if (!title || !body) {
+        return BaseService.sendFailedResponse({ error: "Title and body are required" });
       }
 
       // Find all regular users (not coach or admin)
@@ -1911,11 +1911,14 @@ class UserService extends BaseService {
       const notifications = users.map((user) => ({
         userId: user._id,
         title,
-        description,
+        body,
         createdAt: new Date(),
+        type: notificationType || "system",
       }));
 
       await NotificationModel.insertMany(notifications);
+      await sendPushNotification({title, body, topic: 'all-users'});
+
 
       return BaseService.sendSuccessResponse({
         message: 'Notification broadcasted successfully',
@@ -1923,6 +1926,29 @@ class UserService extends BaseService {
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async updateDeviceToken(req) {
+    try {
+      const userId = req.user.id;
+
+      const { deviceToken } = req.body;
+      if (!deviceToken) {
+        return BaseService.sendFailedResponse({ error: "Device token is required" });
+      }
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+      user.deviceToken = deviceToken;
+      await user.save();
+      return BaseService.sendSuccessResponse({
+        message: "Device token updated successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch water logs",
       });
     }
   }

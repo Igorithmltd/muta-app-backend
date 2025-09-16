@@ -20,6 +20,14 @@ class UtilController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, singleFileUpload.data)
     }
+    async uploadSingleVideo(req, res){
+        const utilService = new UtilService()
+        const singleFileUpload = await utilService.uploadSingleVideo(req)
+        if(!singleFileUpload.success){
+            return BaseController.sendFailedResponse(res, singleFileUpload.data)
+        }
+        return BaseController.sendSuccessResponse(res, singleFileUpload.data)
+    }
 
     async sendMailToEmail(req, res){
         const {email, subject, message} = req.body

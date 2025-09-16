@@ -5,6 +5,7 @@ const { empty } = require("../util");
 const { getCurrentWeekNumber } = require("../util/helper");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
+const { sendPushNotification } = require("./firebase.service");
 
 class ChallengeService extends BaseService {
   async createChallenge(req) {
@@ -89,12 +90,14 @@ class ChallengeService extends BaseService {
       const notifications = users.map((u) => ({
         userId: u._id,
         title: `New challenge: ${savedChallenge.title}`,
-        description: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`,
+        body: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`,
         time: new Date(),
+        type: "challenge",
       }));
   
       // Bulk insert notifications
       await NotificationModel.insertMany(notifications);
+      await sendPushNotification({topic: 'all-users', title: `New challenge: ${savedChallenge.title}`, body: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`});
   
       return BaseService.sendSuccessResponse({
         message: "Challenge created successfully",

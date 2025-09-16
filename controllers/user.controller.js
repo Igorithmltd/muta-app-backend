@@ -330,6 +330,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, broadcastNotification.data)
     }
+    async updateDeviceToken(req, res){
+        const userService = new UserService()
+        const updateDeviceToken = await userService.updateDeviceToken(req)
+        if(!updateDeviceToken.success){
+            return BaseController.sendFailedResponse(res, updateDeviceToken.data)
+        }
+        return BaseController.sendSuccessResponse(res, updateDeviceToken.data)
+    }
 }
 
 module.exports = UserController

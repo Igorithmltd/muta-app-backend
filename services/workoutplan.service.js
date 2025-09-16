@@ -6,6 +6,8 @@ const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 const moment = require("moment");
+const { sendPushNotification } = require("./firebase.service");
+const UserModel = require("../models/user.model");
 
 class WorkoutplanService extends BaseService {
   async createWorkoutplan(req) {
@@ -265,6 +267,8 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
 
+    const user = await UserModel.findById(userId);
+
     const workoutplan = await WorkoutPlanModel.findById(post.workoutplanId);
     if (!workoutplan) {
       return BaseService.sendFailedResponse({
@@ -351,7 +355,12 @@ class WorkoutplanService extends BaseService {
       title: "You just joined a new workout plan",
       description: `You have to rememeber that consistency is the key. Well done!`,
       createdAt: new Date(),
+      type: "streak",
     });
+    if(user.deviceToken){
+      await sendPushNotification({title: "You just joined a new workout plan", body: `You have to rememeber that consistency is the key. Well done!`, deviceToken: user.deviceToken});
+    }
+
 
     await newWorkoutplanAction.populate("workoutPlanId");
 
@@ -378,6 +387,7 @@ class WorkoutplanService extends BaseService {
     if (!validateResult.success) {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
+    const user = await UserModel.findById(userId);
 
     // Verify workout plan exists
     const workoutplan = await WorkoutPlanModel.findById(post.workoutplanId);
@@ -448,9 +458,12 @@ class WorkoutplanService extends BaseService {
     await NotificationModel.create({
       userId,
       title: "Your workout streak is alive",
-      description: `You have logged workouts for day ${dayNumber}. Keep it going - Consistency is your secret weapon.`,
+      body: `You have logged workouts for day ${dayNumber}. Keep it going - Consistency is your secret weapon.`,
       createdAt: new Date(),
     });
+    if(user.deviceToken){
+      await sendPushNotification({title: "Your workout streak is alive", body: `You have logged workouts for day ${dayNumber}. Keep it going - Consistency is your secret weapon.`, deviceToken: user.deviceToken});
+    }
 
     return BaseService.sendSuccessResponse({
       message: "Workout round marked as completed",
@@ -670,27 +683,46 @@ class WorkoutplanService extends BaseService {
           $unwind: "$workoutPlan",
         },
         {
+          $lookup: {
+            from: "dietcategories", // your actual collection name
+            localField: "workoutPlan.category",
+            foreignField: "_id",
+            as: "category",
+          },
+        },
+        {
+          $unwind: {
+            path: "$category",
+            preserveNullAndEmptyArrays: true // in case some plans don't have a category
+          },
+        },
+        {
           $project: {
             _id: 0,
             workoutPlanId: 1,
             userCount: 1,
             // Include all fields from workoutPlan
-            workoutPlanTitle: "$workoutPlan.title",
-            workoutPlanDescription: "$workoutPlan.description",
-            workoutPlanStatus: "$workoutPlan.status",
-            workoutPlanImage: "$workoutPlan.image",
-            workoutPlanCategory: "$workoutPlan.category",
-            workoutPlanCalories: "$workoutPlan.calories",
-            workoutPlanRoundsCount: "$workoutPlan.roundsCount",
-            workoutPlanDuration: "$workoutPlan.duration",
-            workoutPlanLevel: "$workoutPlan.level",
-            workoutPlanRecommended: "$workoutPlan.recommended",
-            workoutPlanPlanRounds: "$workoutPlan.planRounds",
-            workoutPlanRatings: "$workoutPlan.ratings",
-            workoutPlanAverageRating: "$workoutPlan.averageRating",
-            workoutPlanTotalRatings: "$workoutPlan.totalRatings",
-            workoutPlanCreatedAt: "$workoutPlan.createdAt",
-            workoutPlanUpdatedAt: "$workoutPlan.updatedAt",
+            title: "$workoutPlan.title",
+            description: "$workoutPlan.description",
+            status: "$workoutPlan.status",
+            image: "$workoutPlan.image",
+            category: {
+              _id: "$category._id",
+              name: "$category.title",
+              createdAt: "$category.createdAt",
+              updatedAt: "$category.updatedAt",
+            },
+            calories: "$workoutPlan.calories",
+            roundsCount: "$workoutPlan.roundsCount",
+            duration: "$workoutPlan.duration",
+            level: "$workoutPlan.level",
+            recommended: "$workoutPlan.recommended",
+            planRounds: "$workoutPlan.planRounds",
+            ratings: "$workoutPlan.ratings",
+            averageRating: "$workoutPlan.averageRating",
+            totalRatings: "$workoutPlan.totalRatings",
+            createdAt: "$workoutPlan.createdAt",
+            updatedAt: "$workoutPlan.updatedAt",
           },
         },
       ]);
@@ -700,7 +732,7 @@ class WorkoutplanService extends BaseService {
       console.error("Error fetching popular workout plans:", error);
       throw error;
     }
-  }
+  } 
   async rateWorkoutplan(req) {
     try {
       const userId = req.user.id;

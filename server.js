@@ -16,6 +16,7 @@ const AppError = require("./util/appError.js");
 const MessageModel = require("./models/message.model.js");
 const setupSwagger = require("./swagger");
 const CallLogModel = require("./models/call-log.model.js");
+const webhookFunction = require("./util/webhook.js");
 
 const port = process.env.PORT || 5000;
 const mongoURL = process.env.MONGODB_URL;
@@ -41,6 +42,9 @@ const corsOptions = {
 
 // Use CORS with the specified options
 app.use(cors(corsOptions));
+
+app.post("/webhook", express.raw({ type: "application/json" }), webhookFunction);
+
 
 app.use(express.json());
 app.use(cookieParser());

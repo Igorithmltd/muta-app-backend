@@ -39,49 +39,43 @@ const router = require("express").Router();
  *             required:
  *               - title
  *               - description
- *               - status
  *               - category
  *               - calories
  *               - roundsCount
  *               - duration
  *               - level
- *               - recommended
- *               - image
  *               - planRounds
  *             properties:
+ *               image:
+ *                 type: object
+ *                 properties:
+ *                   imageUrl:
+ *                     type: string
+ *                     example: "https://res.cloudinary.com/your-cloud/image/upload/v123456789/sample.jpg"
+ *                   publicId:
+ *                     type: string
+ *                     example: "sample_public_id"
  *               title:
  *                 type: string
- *                 example: "Full Body Beginner Plan"
+ *                 example: "Full Body Beginner Workout"
  *               description:
  *                 type: string
- *                 example: "A 30-day beginner workout plan"
+ *                 example: "This is a full-body beginner plan."
+ *               category:
+ *                 type: string
+ *                 example: "6863d1d9f94e880960616e38"
  *               status:
  *                 type: string
  *                 enum: [active, inactive]
  *                 example: "active"
- *               image:
- *                 type: object
- *                 required:
- *                   - imageUrl
- *                   - publicId
- *                 properties:
- *                   imageUrl:
- *                     type: string
- *                     example: "https://example.com/image.jpg"
- *                   publicId:
- *                     type: string
- *                     example: "public_id_string"
- *               category:
- *                 type: string
- *                 example: "64bfc13b4e7ba2349d3c9999"
  *               calories:
- *                 type: number
- *                 example: 200
+ *                 type: integer
+ *                 example: 250
  *               roundsCount:
- *                 type: number
+ *                 type: integer
  *                 example: 5
  *               duration:
- *                 type: number
+ *                 type: integer
  *                 example: 30
  *               level:
  *                 type: string
@@ -93,11 +87,8 @@ const router = require("express").Router();
  *                 example: "NO"
  *               planRounds:
  *                 type: array
- *                 description: Array of workout days with rounds
  *                 items:
  *                   type: object
- *                   required:
- *                     - rounds
  *                   properties:
  *                     rounds:
  *                       type: array
@@ -105,40 +96,61 @@ const router = require("express").Router();
  *                         type: object
  *                         required:
  *                           - title
- *                           - duration
- *                           - set
- *                           - reps
  *                           - restBetweenSet
- *                           - animation
  *                           - instruction
+ *                           - animation
  *                           - workoutExerciseType
  *                           - status
  *                         properties:
  *                           title:
  *                             type: string
- *                             example: "Jumping Jacks"
+ *                             example: "Push-ups"
  *                           duration:
- *                             type: number
- *                             example: 45
+ *                             type: integer
+ *                             example: 30
  *                           set:
- *                             type: number
+ *                             type: integer
  *                             example: 3
  *                           reps:
- *                             type: number
+ *                             type: integer
  *                             example: 15
  *                           restBetweenSet:
- *                             type: number
- *                             example: 20
- *                           animation:
- *                             type: string
- *                             example: "https://example.com/animation.gif"
+ *                             type: integer
+ *                             example: 60
  *                           instruction:
  *                             type: string
- *                             example: "Keep your arms extended while jumping."
+ *                             example: "Keep your back straight and go down slowly."
+ *                           animation:
+ *                             type: string
+ *                             example: "https://cdn.example.com/pushups.mp4"
+ *                           commonMistakesToAvoid:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["Do not arch your back", "Do not flare elbows"]
+ *                           youtubeLink:
+ *                             type: string
+ *                             example: "https://youtube.com/example"
  *                           workoutExerciseType:
  *                             type: string
  *                             enum: [time, set-reps]
  *                             example: "set-reps"
+ *                           breathingTips:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["Inhale while going down", "Exhale while pushing up"]
+ *                           focusArea:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 value:
+ *                                   type: string
+ *                                   example: "chest"
+ *                                 degree:
+ *                                   type: string
+ *                                   example: "high"
  *                           status:
  *                             type: string
  *                             enum: [completed, in-progress]
@@ -151,12 +163,12 @@ const router = require("express").Router();
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: Workout plan created successfully
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 data:
  *                   type: object
- *                   description: Created workout plan
+ *                   description: Created workout plan object
  *       400:
  *         description: Invalid input data
  *       500:
@@ -271,6 +283,30 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                                         type: string
  *                                         enum: [time, set-reps]
  *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
  *                                       status:
  *                                         type: string
  *                                         enum: [completed, in-progress]
@@ -418,6 +454,30 @@ router.get(ROUTE_GET_ALL_WORKOUTPLANS, auth, (req, res) => {
  *                                       type: string
  *                                       enum: [completed, in-progress]
  *                                       example: "in-progress"
+ *                                     commonMistakesToAvoid:
+ *                                       type: array
+ *                                       items:
+ *                                         type: string
+ *                                       example: ["Don't flare elbows", "Keep core tight"]
+ *                                     youtubeLink:
+ *                                       type: string
+ *                                       example: "https://youtube.com/watch?v=video123"
+ *                                     breathingTips:
+ *                                       type: array
+ *                                       items:
+ *                                         type: string
+ *                                       example: ["Inhale on the way down", "Exhale on the way up"]
+ *                                     focusArea:
+ *                                       type: array
+ *                                       items:
+ *                                         type: object
+ *                                         properties:
+ *                                           value:
+ *                                             type: string
+ *                                             example: "chest"
+ *                                           degree:
+ *                                             type: string
+ *                                             example: "high"
  *                         averageRating:
  *                           type: number
  *                           example: 4.3
@@ -1033,6 +1093,30 @@ router.put(ROUTE_RESET_WORKOUTPLAN_ACTION, auth, (req, res) => {
  *                                         type: string
  *                                         enum: [time, set-reps]
  *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
  *                                       status:
  *                                         type: string
  *                                         enum: [completed, in-progress]
@@ -1168,6 +1252,30 @@ router.get(ROUTE_RECOMMENDED_WORKOUTPLANS, auth, (req, res) => {
  *                                         type: string
  *                                         enum: [time, set-reps]
  *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
  *                                       status:
  *                                         type: string
  *                                         enum: [completed, in-progress]
@@ -1303,6 +1411,30 @@ router.get(ROUTE_COMPLETED_WORKOUTPLANS, auth, (req, res) => {
  *                                         type: string
  *                                         enum: [time, set-reps]
  *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
  *                                       status:
  *                                         type: string
  *                                         enum: [completed, in-progress]
@@ -1464,10 +1596,10 @@ router.get(ROUTE_TOTAL_COMPLETED_WORKOUTPLANS, auth, (req, res) => {
 //  *       500:
 //  *         description: Server error
 //  */
-// router.get(ROUTE_ACTIVE_WORKOUTPLANS, auth, (req, res) => {
-//   const workoutplanController = new WorkoutplanController();
-//   return workoutplanController.activeWorkoutplans(req, res);
-// });
+router.get(ROUTE_ACTIVE_WORKOUTPLANS, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.activeWorkoutplans(req, res);
+});
 /**
  * @swagger
  * /workoutplan/popular-workoutplans:
@@ -1572,6 +1704,30 @@ router.get(ROUTE_TOTAL_COMPLETED_WORKOUTPLANS, auth, (req, res) => {
  *                                         type: string
  *                                         enum: [time, set-reps]
  *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
  *                                       status:
  *                                         type: string
  *                                         enum: [completed, in-progress]
@@ -1703,151 +1859,7 @@ router.post(ROUTE_RATE_WORKOUTPLAN, auth, (req, res) => {
  *         example: Beginner Strength Plan
  *     responses:
  *       200:
- *         description: Workout plan(s) returned successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     message:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
- *                           title:
- *                             type: string
- *                             example: "Beginner Strength Plan"
- *                           description:
- *                             type: string
- *                             example: "A complete 4-week beginner strength workout."
- *                           status:
- *                             type: string
- *                             enum: [active, inactive]
- *                             example: "active"
- *                           image:
- *                             type: object
- *                             properties:
- *                               imageUrl:
- *                                 type: string
- *                                 example: "https://example.com/image.jpg"
- *                               publicId:
- *                                 type: string
- *                                 example: "abc123imageId"
- *                           category:
- *                             type: string
- *                             example: "64bfc13b4e7ba2349d3c9999"
- *                           calories:
- *                             type: number
- *                             example: 350
- *                           roundsCount:
- *                             type: number
- *                             example: 5
- *                           duration:
- *                             type: number
- *                             example: 30
- *                           level:
- *                             type: string
- *                             enum: [beginner, intermediate, advanced]
- *                             example: "beginner"
- *                           recommended:
- *                             type: string
- *                             enum: [YES, NO]
- *                             example: "YES"
- *                           planRounds:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 rounds:
- *                                   type: array
- *                                   items:
- *                                     type: object
- *                                     properties:
- *                                       title:
- *                                         type: string
- *                                         example: "Push Ups"
- *                                       duration:
- *                                         type: number
- *                                         example: 45
- *                                       set:
- *                                         type: number
- *                                         example: 3
- *                                       animation:
- *                                         type: string
- *                                         example: "https://example.com/pushup.gif"
- *                                       reps:
- *                                         type: number
- *                                         example: 12
- *                                       restBetweenSet:
- *                                         type: number
- *                                         example: 30
- *                                       instruction:
- *                                         type: string
- *                                         example: "Keep your back straight during the movement."
- *                                       workoutExerciseType:
- *                                         type: string
- *                                         enum: [time, set-reps]
- *                                         example: "set-reps"
- *                                       status:
- *                                         type: string
- *                                         enum: [completed, in-progress]
- *                                         example: "in-progress"
- *                           averageRating:
- *                             type: number
- *                             example: 4.3
- *                           totalRatings:
- *                             type: number
- *                             example: 18
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
- *       400:
- *         description: Invalid query parameter
- *       404:
- *         description: No workout plan found with the given title
- *       500:
- *         description: Server error
- */
-router.get(ROUTE_SEARCH_WORKOUTPLAN_TITLE, auth, (req, res) => {
-  const workoutplanController = new WorkoutplanController();
-  return workoutplanController.searchWorkoutplanByTitle(req, res);
-});
-
-/**
- * @swagger
- * /workoutplan/get-workoutplan-by-category:
- *   get:
- *     summary: Get workout plans by category ID
- *     tags:
- *       - Workoutplan
- *     parameters:
- *       - in: query
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The category ID to filter workout plans by
- *         example: 64bfc13b4e7ba2349d3c9999
- *     responses:
- *       200:
- *         description: Workout plans returned successfully
+ *         description: List of workout plans returned successfully
  *         content:
  *           application/json:
  *             schema:
@@ -1942,6 +1954,199 @@ router.get(ROUTE_SEARCH_WORKOUTPLAN_TITLE, auth, (req, res) => {
  *                                         type: string
  *                                         enum: [time, set-reps]
  *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
+ *                                       status:
+ *                                         type: string
+ *                                         enum: [completed, in-progress]
+ *                                         example: "in-progress"
+ *                           averageRating:
+ *                             type: number
+ *                             example: 4.3
+ *                           totalRatings:
+ *                             type: number
+ *                             example: 18
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-07-01T14:12:55.020Z"
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *       400:
+ *         description: Invalid query parameter
+ *       404:
+ *         description: No workout plan found with the given title
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_SEARCH_WORKOUTPLAN_TITLE, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.searchWorkoutplanByTitle(req, res);
+});
+
+/**
+ * @swagger
+ * /workoutplan/get-workoutplan-by-category:
+ *   get:
+ *     summary: Get workout plans by category ID
+ *     tags:
+ *       - Workoutplan
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The category ID to filter workout plans by
+ *         example: 64bfc13b4e7ba2349d3c9999
+ *     responses:
+ *       200:
+ *         description: List of workout plans returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                           title:
+ *                             type: string
+ *                             example: "Beginner Strength Plan"
+ *                           description:
+ *                             type: string
+ *                             example: "A complete 4-week beginner strength workout."
+ *                           status:
+ *                             type: string
+ *                             enum: [active, inactive]
+ *                             example: "active"
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://example.com/image.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "abc123imageId"
+ *                           category:
+ *                             type: string
+ *                             example: "64bfc13b4e7ba2349d3c9999"
+ *                           calories:
+ *                             type: number
+ *                             example: 350
+ *                           roundsCount:
+ *                             type: number
+ *                             example: 5
+ *                           duration:
+ *                             type: number
+ *                             example: 30
+ *                           level:
+ *                             type: string
+ *                             enum: [beginner, intermediate, advanced]
+ *                             example: "beginner"
+ *                           recommended:
+ *                             type: string
+ *                             enum: [YES, NO]
+ *                             example: "YES"
+ *                           planRounds:
+ *                             type: array
+ *                             description: An array of workout day rounds
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 rounds:
+ *                                   type: array
+ *                                   items:
+ *                                     type: object
+ *                                     properties:
+ *                                       title:
+ *                                         type: string
+ *                                         example: "Push Ups"
+ *                                       duration:
+ *                                         type: number
+ *                                         example: 45
+ *                                       set:
+ *                                         type: number
+ *                                         example: 3
+ *                                       animation:
+ *                                         type: string
+ *                                         example: "https://example.com/pushup.gif"
+ *                                       reps:
+ *                                         type: number
+ *                                         example: 12
+ *                                       restBetweenSet:
+ *                                         type: number
+ *                                         example: 30
+ *                                       instruction:
+ *                                         type: string
+ *                                         example: "Keep your back straight during the movement."
+ *                                       workoutExerciseType:
+ *                                         type: string
+ *                                         enum: [time, set-reps]
+ *                                         example: "set-reps"
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Don't flare your elbows", "Keep core tight"]
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                         example: ["Inhale on the way down", "Exhale on push"]
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/watch?v=pushup123"
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: "chest"
+ *                                             degree:
+ *                                               type: string
+ *                                               example: "high"
  *                                       status:
  *                                         type: string
  *                                         enum: [completed, in-progress]

@@ -116,13 +116,54 @@ router.post(ROUTE_GOOGLE_SIGNUP, (req, res)=>{
  *             properties:
  *               email:
  *                 type: string
+ *                 example: user@example.com
  *               password:
  *                 type: string
+ *                 example: password123
  *     responses:
  *       200:
  *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Access token (JWT)
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 user:
+ *                   type: object
+ *                   description: Logged in user details
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "612345abcdef67890"
+ *                     email:
+ *                       type: string
+ *                       example: user@example.com
+ *                     userType:
+ *                       type: string
+ *                       example: admin
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                 refreshToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       401:
  *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Invalid email or password
  */
 router.post(ROUTE_LOGIN, (req, res)=>{
     const userController = new UserController()
@@ -383,10 +424,18 @@ router.post(ROUTE_VERIFY_PASSWORD_OTP, (req, res)=>{
 /**
  * @swagger
  * /auth/refresh-token:
- *   get:
+ *   post:
  *     summary: Refresh Access Token
  *     tags:
  *       - Auth
+ *     description: Uses a refresh token to generate a new access token.
+ *     parameters:
+ *       - in: header
+ *         name: x-refresh-token
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: The refresh token sent in the header
  *     responses:
  *       200:
  *         description: Access token successfully refreshed
@@ -395,9 +444,9 @@ router.post(ROUTE_VERIFY_PASSWORD_OTP, (req, res)=>{
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       400:
  *         description: Refresh token is missing or invalid
  *         content:
@@ -410,7 +459,7 @@ router.post(ROUTE_VERIFY_PASSWORD_OTP, (req, res)=>{
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: No refresh token
+ *                   example: No refresh token provided
  *       401:
  *         description: Invalid or expired refresh token
  *         content:
@@ -423,7 +472,7 @@ router.post(ROUTE_VERIFY_PASSWORD_OTP, (req, res)=>{
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: Invalid refresh token
+ *                   example: Invalid or expired refresh token
  */
 
 router.post(ROUTE_REFRESH_TOKEN, (req, res)=>{

@@ -35,6 +35,7 @@ const {
   ROUTE_GET_NOTIFICATIONS,
   ROUTE_BROADCAST_NOTIFICATION,
   ROUTE_GET_SUBSCRIPTION_STATUS,
+  ROUTE_UPDATE_DEVICE_TOKEN,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1861,6 +1862,59 @@ router.get(ROUTE_GET_NOTIFICATIONS  , auth, (req, res) => {
 router.post(ROUTE_BROADCAST_NOTIFICATION, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.broadcastNotification(req, res);
+});
+
+/**
+ * @swagger
+ * /users/update-device-token:
+ *   put:
+ *     summary: Update the device token for push notifications
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               deviceToken:
+ *                 type: string
+ *                 example: ceieswodjkafrdsf
+ *                 description: The new device token for push notifications
+ *     responses:
+ *       200:
+ *         description: Devicve token updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Device token updated successfully.
+ *       400:
+ *         description: Bad request (e.g. incorrect device token, mismatch, or missing fields)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Device token is incorrect.
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put(ROUTE_UPDATE_DEVICE_TOKEN, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.updateDeviceToken(req, res);
 });
 
 module.exports = router;

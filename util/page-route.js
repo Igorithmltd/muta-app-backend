@@ -28,6 +28,7 @@ exports.ROUTE_CHANGE_PASSWORD = '/change-password'
 exports.ROUTE_GET_COACHES_BY_SPECIALTY = '/get-coaches-by-specialty'
 exports.ROUTE_GET_NOTIFICATIONS = '/get-notifications'
 exports.ROUTE_BROADCAST_NOTIFICATION = '/broadcast-notification'
+exports.ROUTE_UPDATE_DEVICE_TOKEN = '/update-device-token'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'
@@ -154,6 +155,7 @@ exports.ROUTE_SEED = '/seed'
 //upload images - UTILS
 exports.ROUTE_IMAGE_UPLOAD_MULTIPLE = '/image-upload-multiple'
 exports.ROUTE_IMAGE_UPLOAD_SINGLE = '/image-upload-single'
+exports.ROUTE_VIDEO_UPLOAD_SINGLE = '/video-upload-single'
 
 //email
 exports.ROUTE_SEND_EMAIL = '/send-email'
