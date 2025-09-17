@@ -27,6 +27,7 @@ const webhookFunction = async (req, res) => {
 
     if (event.event === "charge.success") {
       const { data } = event;
+      const metadata = data.metadata || {};
       const transactionId = data.id;
       const reference = data.reference;
       const userEmail = data.customer.email;
@@ -55,26 +56,6 @@ const webhookFunction = async (req, res) => {
       // ✅ Update wallet balance safely
       wallet.balance += amount;
       await wallet.save();
-
-      // ✅ Save transaction record
-    //   const transaction = new TransactionModel({
-    //     userId: user._id,
-    //     walletId: wallet._id,
-    //     amount,
-    //     transaction: reference,
-    //     status: "success",
-    //     type: "wallet", // money coming in
-    //     gatewayResponse: data.gateway_response,
-    //     trxref: transactionId,
-    //   });
-    //   await transaction.save();
-
-      // ✅ Create notification
-    //   await NotificationModel.create({
-    //     userId: user._id,
-    //     title: "Wallet Funded",
-    //     message: `₦${amount.toLocaleString()} has been added to your wallet.`,
-    //   });
 
       console.log(`✅ Wallet funded: User ${user._id}, Amount ₦${amount}`);
     }
