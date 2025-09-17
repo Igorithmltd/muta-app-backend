@@ -1774,14 +1774,19 @@ router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
  *                         type: string
  *                         description: Notification title
  *                         example: "Workout Reminder"
- *                       description:
+ *                       body:
  *                         type: string
  *                         description: Notification description
  *                         example: "Don't forget to complete your workout today!"
- *                       time:
+ *                       type:
  *                         type: string
- *                         description: Formatted notification time (e.g., "Tue, 12:09 PM")
- *                         example: "Tue, 12:09 PM"
+ *                         description: Notification description
+ *                         enum: ['streak', 'weight', 'challenge', 'system']
+ *                         example: "streak"
+ *                       isRead:
+ *                         type: boolean
+ *                         description: Notification read status
+ *                         example: true
  *       401:
  *         description: Unauthorized - user not authenticated
  *       500:
