@@ -684,13 +684,13 @@ class UserService extends BaseService {
   async refreshToken(req, res) {
     try {
       const refreshToken = req.headers["x-refresh-token"]; // better than Authorization
-  
+
       if (!refreshToken) {
         return BaseService.sendFailedResponse({
           error: "No refresh token provided",
         });
       }
-  
+
       let decoded;
       try {
         decoded = verifyRefreshToken(refreshToken);
@@ -699,15 +699,15 @@ class UserService extends BaseService {
           error: "Invalid or expired refresh token",
         });
       }
-  
+
       const newAccessToken = signAccessToken({
         id: decoded.id,
         userType: decoded.userType,
       });
-  
+
       // Optionally: set as Authorization header or return in body
       res.header("Authorization", `Bearer ${newAccessToken}`);
-  
+
       return BaseService.sendSuccessResponse({
         message: newAccessToken,
       });
@@ -717,7 +717,7 @@ class UserService extends BaseService {
         error: "Something went wrong. Please try again later.",
       });
     }
-  }  
+  }
   async completeOnboarding(req) {
     try {
       const post = req.body;
@@ -1108,31 +1108,31 @@ class UserService extends BaseService {
   async logUserWeight(req, res) {
     try {
       const userId = req.user.id;
-  
+
       const { value, unit } = req.body;
-  
+
       const validateRule = {
         value: "numeric|required|min:1",
         unit: "string|in:kg,lbs",
       };
-  
+
       const validateResult = validateData(req.body, validateRule, {
         required: ":attribute is required.",
         "in.unit": "Weight unit must be either 'kg' or 'lbs'.",
       });
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found." });
       }
-  
+
       const oldWeight = user.weight?.value || null;
       const oldUnit = user.weight?.unit || "kg";
-  
+
       // Convert old weight to new unit if different (optional, assuming kg and lbs conversion)
       let oldWeightInNewUnit = oldWeight;
       if (oldWeight !== null && oldUnit !== unit) {
@@ -1142,31 +1142,35 @@ class UserService extends BaseService {
           oldWeightInNewUnit = oldWeight * 2.20462;
         }
       }
-  
+
       user.weight = {
         value: Number(value),
         unit: unit || "kg",
       };
-  
+
       await user.save();
-  
+
       // Compare weight and prepare notification message
       let notificationTitle = "Weight Update";
       let notificationDescription;
-  
+
       if (oldWeightInNewUnit === null) {
         notificationDescription = `Your weight of ${value} ${unit} has been recorded.`;
       } else {
         const diff = Number(value) - oldWeightInNewUnit;
         if (diff > 0) {
-          notificationDescription = `You have gained ${diff.toFixed(2)} ${unit}. Keep tracking your progress!`;
+          notificationDescription = `You have gained ${diff.toFixed(
+            2
+          )} ${unit}. Keep tracking your progress!`;
         } else if (diff < 0) {
-          notificationDescription = `Great job! You have lost ${Math.abs(diff).toFixed(2)} ${unit}. Keep it up!`;
+          notificationDescription = `Great job! You have lost ${Math.abs(
+            diff
+          ).toFixed(2)} ${unit}. Keep it up!`;
         } else {
           notificationDescription = `Your weight remains the same at ${value} ${unit}. Keep maintaining it!`;
         }
       }
-  
+
       // Create notification for the user
       await NotificationModel.create({
         userId,
@@ -1175,18 +1179,22 @@ class UserService extends BaseService {
         time: new Date(),
         type: "weight",
       });
-      if(user.deviceToken){
-        sendPushNotification({deviceToken: user.deviceToken, title: notificationTitle, body: notificationDescription});
+      if (user.deviceToken) {
+        sendPushNotification({
+          deviceToken: user.deviceToken,
+          title: notificationTitle,
+          body: notificationDescription,
+        });
       }
-  
+
       return BaseService.sendSuccessResponse({
-        message: "Weight updated successfully"
+        message: "Weight updated successfully",
       });
     } catch (err) {
       console.error(err);
       return BaseService.sendFailedResponse("Internal server error");
     }
-  }  
+  }
   async logUserHeight(req, res) {
     try {
       const userId = req.user.id;
@@ -1374,166 +1382,209 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error });
     }
   }
-  async subscribePlan(req, res) {
-    try {
-      const { coachId, planId, isGift, recipientEmail } = req.body;
-      const userId = req.user.id;
+  async createSubscriptionFromMetadata({
+    userId,
+    coachId,
+    planId,
+    reference,
+    isGift,
+    recipientEmail
+  }) {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new Error("User not found");
   
-      // ✅ Validate coachId
-      if (!mongoose.isValidObjectId(coachId)) {
-        return BaseService.sendFailedResponse({ error: "Invalid coach ID" });
-      }
+    const coach = await UserModel.findOne({ _id: coachId, userType: "coach" });
+    if (!coach) throw new Error("Coach not found");
   
-      // ✅ Validate planId
-      if (!mongoose.isValidObjectId(planId)) {
-        return BaseService.sendFailedResponse({ error: "Invalid plan ID" });
-      }
+    const plan = await PlanModel.findById(planId);
+    if (!plan) throw new Error("Plan not found");
   
-      // ✅ Find coach
-      const coach = await UserModel.findOne({
-        _id: coachId,
-        userType: "coach",
+    if (isGift) {
+      if (!recipientEmail) throw new Error("Recipient email is required");
+  
+      const couponCode =
+        "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+  
+      await CouponModel.create({
+        code: couponCode,
+        coachId,
+        planId,
+        giftedByUserId: userId,
+        recipientEmail,
+        used: false,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
-      if (!coach) {
-        return BaseService.sendFailedResponse({ error: "Coach not found" });
-      }
-  
-      // ✅ Find plan
-      const plan = await PlanModel.findById(planId);
-      if (!plan) {
-        return BaseService.sendFailedResponse({ error: "Plan not found" });
-      }
-  
-      // 🎁 If it’s a gift
-      if (isGift) {
-        if (!recipientEmail) {
-          return BaseService.sendFailedResponse({
-            error: "Recipient email required for gift",
-          });
-        }
-  
-        // Generate coupon code
-        const couponCode =
-          "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
-  
-        await CouponModel.create({
-          code: couponCode,
-          coachId,
-          planId,
-          giftedByUserId: userId,
-          recipientEmail,
-          used: false,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
-        });
-  
-        const emailHtml = `
-          <p>Hi, ${recipientEmail}</p>
-          <p>You have received a ${plan.duration} premium subscription gift for coach ${coach.firstName}.</p>
-          <p>Your coupon code is: <b>${couponCode}</b></p>
-          <p>Use this coupon on your account to activate your subscription.</p>
-        `;
-  
-        await sendEmail({
-          from: "Muta App <no-reply@fitnessapp.com>",
-          subject: `You've received a gift subscription!`,
-          to: recipientEmail,
-          html: emailHtml,
-        });
-  
-        return BaseService.sendSuccessResponse({
-          message: "Gift coupon created",
-          couponCode,
-        });
-      }
-  
-      // 💳 If direct subscription
-      const user = await UserModel.findById(userId);
-  
-      // Calculate expiry date
-      let expiryDate = new Date();
-      if (plan.duration === "monthly") {
-        expiryDate.setMonth(expiryDate.getMonth() + 1);
-      } else if (plan.duration === "yearly" || plan.duration === "annually") {
-        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-      }
-  
-      // ✅ Create Subscription entry
-      const subscription = await SubscriptionModel.create({
-        plan: plan.duration, // "monthly" or "yearly"
-        reference: "TEMP-" + Date.now(), // ⚠️ replace later with Paystack ref
-        status: "active",
-        startDate: new Date(),
-        expiryDate,
-        user: userId
-      });
-  
-  
-      // await user.save();
-  
-      // Notify user
-      const emailHtml = `
-        <p>Hi, ${user.firstName}</p>
-        <p>You have successfully subscribed to a ${plan.duration} premium subscription with coach ${coach.firstName}.</p>
-      `;
   
       await sendEmail({
         from: "Muta App <no-reply@fitnessapp.com>",
-        subject: `Subscription successful!`,
-        to: user.email,
-        html: emailHtml,
+        subject: `You've received a gift subscription!`,
+        to: recipientEmail,
+        html: `<p>You have received a ${plan.duration} premium subscription from ${user.firstName}. Your coupon code is <b>${couponCode}</b>.</p>`,
       });
   
-      return BaseService.sendSuccessResponse({
-        message: "Subscription successful",
-        subscriptionId: subscription._id,
-      });
-    } catch (error) {
-      console.error("Subscription error:", error);
-      return BaseService.sendFailedResponse({ error: error.message });
+      return { success: true, message: "Gift coupon sent", couponCode };
     }
+  
+    // Direct subscription
+    let expiryDate = new Date();
+    if (plan.duration === "monthly") {
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+    } else if (["yearly", "annually"].includes(plan.duration)) {
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    }
+  
+    await SubscriptionModel.create({
+      plan: plan.duration,
+      reference,
+      status: "active",
+      startDate: new Date(),
+      expiryDate,
+      user: user._id,
+      paystackSubscriptionId: plan.paystackSubscriptionId
+    });
+  
+    await sendEmail({
+      from: "Muta App <no-reply@fitnessapp.com>",
+      subject: `Subscription successful!`,
+      to: user.email,
+      html: `<p>You have successfully subscribed to a ${plan.duration} premium plan with coach ${coach.firstName}.</p>`,
+    });
+  
+    return { success: true, message: "Subscription created" };
   }
+  async subscribeUserToPlan(userId, planId, paystackPlanCode) {
+    // 1. Find user and existing subscription
+    const user = await UserModel.findById(userId);
+    if (!user)  return BaseService.sendFailedResponse({ error: "User not found" });
+
+  
+    const existingSub = await SubscriptionModel.findOne({
+      user: userId,
+      status: "active",
+    });
+
+    const plan = await PlanModel.findById(planId);
+
+    if(!plan){
+      return BaseService.sendFailedResponse({ error: "Plan not found" });
+    }
+  
+    // 2. If active subscription exists for same plan, skip
+    if (existingSub && existingSub.plan.toString() === planId.toString()) {
+      return existingSub; // Already subscribed to this plan
+    }
+  
+    // 3. If active subscription exists for different plan, cancel it first (handle in next step)
+  
+    // 4. Create Paystack subscription
+    const paystackSub = await createPaystackSubscription(user.email, paystackPlanCode);
+  
+    // 5. Save subscription in DB
+    const newSub = await SubscriptionModel.create({
+      user: userId,
+      plan: planId,
+      reference: paystackSub.subscription_code,
+      status: "active", // We'll mark active now; adjust if pending needed
+      startDate: new Date(),
+      expiryDate: UserService.calculateExpiryDateBasedOnPlan(paystackPlanCode),
+      paystackSubscriptionId: plan.paystackSubscriptionId
+    });
+  
+    return newSub;
+  }
+
+  async createPaystackSubscription(userEmail, planPaystackCode) {
+    const response = await axios.post('https://api.paystack.co/subscription', {
+      customer: userEmail,
+      plan: planPaystackCode, // Paystack plan code created in Paystack dashboard
+    }, {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  
+    return response.data.data; // Contains subscription info including subscription_code
+  }
+
+  async cancelPaystackSubscription(subscriptionCode) {
+    const response = await axios.post(
+      `https://api.paystack.co/subscription/disable`,
+      {
+        code: subscriptionCode,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  }
+  
+  async upgradeOrDowngradeSubscription(userId, newPlanId, newPaystackPlanCode) {
+    const existingSub = await SubscriptionModel.findOne({
+      user: userId,
+      status: "active",
+    });
+  
+    // If user has active subscription and it's different from new plan
+    if (existingSub && existingSub.plan.toString() !== newPlanId.toString()) {
+      // Cancel old subscription in Paystack
+      await cancelPaystackSubscription(existingSub.reference);
+  
+      // Mark old subscription as expired
+      existingSub.status = "expired";
+      existingSub.expiryDate = new Date();
+      await existingSub.save();
+    }
+  
+    // Create new subscription
+    const newSub = await subscribeUserToPlan(userId, newPlanId, newPaystackPlanCode);
+    return newSub;
+  }
+
   async getSubscriptionStatus(req, res) {
     try {
       const userId = req.user.id;
-  
+
       // Populate user with subscription and plan
       const user = await UserModel.findById(userId)
-        .populate("subscription")     // SubscriptionModel
+        .populate("subscription") // SubscriptionModel
         .populate("subscriptionPlan"); // PlanModel
-  
+
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-  
-      if (!user.subscription) {
+
+      const userSubscriptionPlan = await SubscriptionModel.findOne({
+        user: userId,
+        status: "active",
+        expiryDate: { $gt: new Date() },
+      }).populate("plan");
+      if (!userSubscriptionPlan) {
         return BaseService.sendSuccessResponse({
           message: "No active subscription",
           subscription: null,
         });
       }
-  
-      const subscription = user.subscription;
-      const plan = user.subscriptionPlan;
-  
+
+      // const subscription = user.subscription;
+      // const plan = user.subscriptionPlan;
+
       // Auto-expire if past expiry date
       if (
-        subscription.status === "active" &&
-        subscription.expiryDate < new Date()
+        userSubscriptionPlan.status === "active" &&
+        userSubscriptionPlan.expiryDate < new Date()
       ) {
-        subscription.status = "expired";
-        await subscription.save();
+        userSubscriptionPlan.status = "expired";
+        await userSubscriptionPlan.save();
       }
-  
+
       return BaseService.sendSuccessResponse({
         message: "Subscription state retrieved successfully",
-        subscription: {
-          plan: plan ? plan.name : subscription.plan,
-          duration: plan ? plan.duration : null,
-          status: subscription.status,
-          startDate: subscription.startDate,
-          expiryDate: subscription.expiryDate,
-          features: plan ? plan.features : [],
-        },
+        subscription: userSubscriptionPlan
       });
     } catch (error) {
       console.error("Subscription error:", error);
@@ -1544,34 +1595,38 @@ class UserService extends BaseService {
     try {
       const { couponCode } = req.body;
       const userId = req.user._id;
-  
+
       // Fetch user
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-  
+
       // Find coupon
       const coupon = await CouponModel.findOne({ code: couponCode });
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-  
+
       // Validate coupon expiration
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
-  
+
       // Validate coupon usage
       if (coupon.used) {
-        return BaseService.sendFailedResponse({ error: "Coupon has already been used" });
+        return BaseService.sendFailedResponse({
+          error: "Coupon has already been used",
+        });
       }
-  
+
       // Validate recipient
       if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
-        return BaseService.sendFailedResponse({ error: "Coupon not valid for this user" });
+        return BaseService.sendFailedResponse({
+          error: "Coupon not valid for this user",
+        });
       }
-  
+
       // Check if user already has an active subscription
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
@@ -1583,13 +1638,15 @@ class UserService extends BaseService {
           error: "User already has an active subscription",
         });
       }
-  
+
       // Load plan from coupon
       const plan = await PlanModel.findById(coupon.planId);
       if (!plan) {
-        return BaseService.sendFailedResponse({ error: "Associated plan not found" });
+        return BaseService.sendFailedResponse({
+          error: "Associated plan not found",
+        });
       }
-  
+
       // Calculate expiry date
       let expiryDate = new Date();
       if (plan.duration === "monthly") {
@@ -1597,7 +1654,7 @@ class UserService extends BaseService {
       } else if (plan.duration === "yearly") {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-  
+
       // Create subscription
       const subscription = await SubscriptionModel.create({
         user: userId,
@@ -1605,14 +1662,15 @@ class UserService extends BaseService {
         status: "active",
         startDate: new Date(),
         expiryDate,
+        paystackSubscriptionId: plan.paystackSubscriptionId
       });
-  
+
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
-      coupon.usedAt = new Date();
+      // coupon.usedAt = new Date();
       await coupon.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
         subscription: {
@@ -1855,7 +1913,10 @@ class UserService extends BaseService {
         today.getDate()
       );
 
-      const entry = await WaterEntryModel.findOne({ userId, date: todayMidnight });
+      const entry = await WaterEntryModel.findOne({
+        userId,
+        date: todayMidnight,
+      });
 
       return BaseService.sendSuccessResponse({
         message: entry,
@@ -1895,7 +1956,9 @@ class UserService extends BaseService {
       const { title, body, notificationType } = req.body;
 
       if (!title || !body) {
-        return BaseService.sendFailedResponse({ error: "Title and body are required" });
+        return BaseService.sendFailedResponse({
+          error: "Title and body are required",
+        });
       }
 
       // Find all regular users (not coach or admin)
@@ -1917,11 +1980,10 @@ class UserService extends BaseService {
       }));
 
       await NotificationModel.insertMany(notifications);
-      await sendPushNotification({title, body, topic: 'all-users'});
-
+      await sendPushNotification({ title, body, topic: "all-users" });
 
       return BaseService.sendSuccessResponse({
-        message: 'Notification broadcasted successfully',
+        message: "Notification broadcasted successfully",
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
@@ -1935,7 +1997,9 @@ class UserService extends BaseService {
 
       const { deviceToken } = req.body;
       if (!deviceToken) {
-        return BaseService.sendFailedResponse({ error: "Device token is required" });
+        return BaseService.sendFailedResponse({
+          error: "Device token is required",
+        });
       }
       const user = await UserModel.findById(userId);
       if (!user) {
@@ -1951,6 +2015,16 @@ class UserService extends BaseService {
         error: "Failed to fetch water logs",
       });
     }
+  }
+
+  static calculateExpiryDateBasedOnPlan(paystackPlanCode) {
+    const now = new Date();
+    if (paystackPlanCode.includes("monthly")) {
+      now.setMonth(now.getMonth() + 1);
+    } else if (paystackPlanCode.includes("yearly")) {
+      now.setFullYear(now.getFullYear() + 1);
+    }
+    return now;
   }
 }
 

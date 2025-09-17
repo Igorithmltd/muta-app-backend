@@ -1,5 +1,8 @@
 const crypto = require("crypto");
 const UserModel = require("../models/user.model.js");
+const UserService = require("../services/user.service.js");
+const PlanModel = require("../models/plan.model.js");
+const SubscriptionModel = require("../models/subscription.model.js");
 // const WalletModel = require("../models/wallet.model.js");
 // const TransactionModel = require("../models/transaction.model.js");
 // const NotificationModel = require("../models/notification.model.js");
@@ -8,6 +11,7 @@ const UserModel = require("../models/user.model.js");
 const webhookFunction = async (req, res) => {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   const signature = req.headers["x-paystack-signature"];
+  const userService = new UserService()
 
   // ✅ Ensure raw body for signature verification (middleware must provide rawBody)
   const hash = crypto
@@ -38,34 +42,68 @@ const webhookFunction = async (req, res) => {
         return res.status(404).send("User not found");
       }
 
-      // ✅ Check if transaction already processed
-      const existingTx = await TransactionModel.findOne({ transaction: reference });
-      if (existingTx) {
-        return res.status(200).send("Duplicate transaction ignored");
-      }
 
-      // ✅ Get or create wallet
-      let wallet = await WalletModel.findOne({ userId: user._id });
-      if (!wallet) {
-        wallet = await WalletModel.create({
-          userId: user._id,
-          balance: 0,
-        });
+      if (metadata.purpose === "subscription") {
+        try {
+          await userService.createSubscriptionFromMetadata({
+            userId: user._id,
+            coachId: metadata.coachId,
+            planId: metadata.planId,
+            reference,
+            isGift: metadata.isGift,
+            recipientEmail: metadata.recipientEmail,
+          });
+    
+          return res.status(200).send("Subscription processed");
+        } catch (err) {
+          console.error("❌ Subscription failed:", err.message);
+          return res.status(500).send("Subscription error");
+        }
       }
-
-      // ✅ Update wallet balance safely
-      wallet.balance += amount;
-      await wallet.save();
 
       console.log(`✅ Wallet funded: User ${user._id}, Amount ₦${amount}`);
     }
-    
-    if (event.event === "transfer.success" || event.event === "transfer.failed") {
-      const data = event.data;
-      const transferCode = data.transfer_code;
-      const status = event.event === "transfer.success" ? "success" : "failed";
 
-    }
+    if (event.event === 'subscription.charge.success') {
+        const data = event.data;
+        const paystackSubscriptionId = data.subscription.subscription_code;
+        const reference = data.reference;
+        const amount = data.amount / 100;
+    
+        // Find subscription by Paystack subscription ID
+        const subscription = await SubscriptionModel.findOne({ paystackSubscriptionId });
+    
+        if (!subscription) {
+          return res.status(404).send('Subscription not found');
+        }
+    
+        // Update subscription expiry based on plan duration
+        const plan = await PlanModel.findById(subscription.plan);
+        let newExpiryDate = new Date(subscription.expiryDate);
+    
+        if (plan.duration === 'monthly') {
+          newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
+        } else if (plan.duration === 'yearly') {
+          newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+        }
+    
+        subscription.expiryDate = newExpiryDate;
+        subscription.status = 'active';
+        subscription.reference = reference; // last payment reference
+        await subscription.save();
+    
+        // Optionally notify user or log success
+        console.log(`Subscription renewed for user ${subscription.user} until ${newExpiryDate}`);
+    
+        return res.sendStatus(200);
+      }
+    
+    // if (event.event === "transfer.success" || event.event === "transfer.failed") {
+    //   const data = event.data;
+    //   const transferCode = data.transfer_code;
+    //   const status = event.event === "transfer.success" ? "success" : "failed";
+
+    // }
 
 
     return res.sendStatus(200);

@@ -28,6 +28,8 @@ const PlanSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  paystackSubscriptionId: { type: String },
+
 }, { timestamps: true });
 
 const PlanModel = mongoose.model("Plan", PlanSchema);
