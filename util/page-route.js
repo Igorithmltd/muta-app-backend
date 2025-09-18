@@ -29,6 +29,8 @@ exports.ROUTE_GET_COACHES_BY_SPECIALTY = '/get-coaches-by-specialty'
 exports.ROUTE_GET_NOTIFICATIONS = '/get-notifications'
 exports.ROUTE_BROADCAST_NOTIFICATION = '/broadcast-notification'
 exports.ROUTE_UPDATE_DEVICE_TOKEN = '/update-device-token'
+exports.ROUTE_MARK_NOTIFICATION_AS_READ = '/mark-notification-as-read'
+exports.ROUTE_DELETE_NOTIFICATION = '/delete-notification'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'

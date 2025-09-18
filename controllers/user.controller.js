@@ -330,6 +330,23 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, broadcastNotification.data)
     }
+    async markNotificationAsRead(req, res){
+        const userService = new UserService()
+        const markNotificationAsRead = await userService.markNotificationAsRead(req)
+        if(!markNotificationAsRead.success){
+            return BaseController.sendFailedResponse(res, markNotificationAsRead.data)
+        }
+        return BaseController.sendSuccessResponse(res, markNotificationAsRead.data)
+    }
+    async deleteNotifications(req, res){
+        const userService = new UserService()
+        const deleteNotifications = await userService.deleteNotifications(req)
+        if(!deleteNotifications.success){
+            return BaseController.sendFailedResponse(res, deleteNotifications.data)
+        }
+        return BaseController.sendSuccessResponse(res, deleteNotifications.data)
+    }
+    
     async updateDeviceToken(req, res){
         const userService = new UserService()
         const updateDeviceToken = await userService.updateDeviceToken(req)

@@ -1991,6 +1991,64 @@ class UserService extends BaseService {
       });
     }
   }
+  async markNotificationAsRead(req) {
+    try {
+      const { notificationids } = req.body;
+
+      if(!Array.isArray(notificationids)){
+        return BaseService.sendFailedResponse({
+          error: "notificationids must be an array of IDs",
+        });
+      }
+
+      if(notificationids.length < 1){
+        return BaseService.sendFailedResponse({
+          error: "notificationids array cannot be empty",
+        });
+      }
+
+      await NotificationModel.updateMany(
+        { _id: { $in: notificationids } },
+        { $set: { isRead: true } }
+      );
+
+      return BaseService.sendSuccessResponse({
+        message: `${notificationids.length == 1 ? 'Notification' : 'Notifications'} marked as read successfully`,
+      });
+
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async deleteNotifications(req) {
+    try {
+      const { notificationids } = req.body;
+
+      if(!Array.isArray(notificationids)){
+        return BaseService.sendFailedResponse({
+          error: "notificationids must be an array of IDs",
+        });
+      }
+
+      if(notificationids.length < 1){
+        return BaseService.sendFailedResponse({
+          error: "notificationids array cannot be empty",
+        });
+      }
+
+      await NotificationModel.deleteMany({ _id: { $in: notificationids } });
+
+      return BaseService.sendSuccessResponse({
+        message: `${notificationids.length == 1 ? 'Notification' : 'Notifications'} deleted successfully`,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
   async updateDeviceToken(req) {
     try {
       const userId = req.user.id;

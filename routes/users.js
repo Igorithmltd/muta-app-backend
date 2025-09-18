@@ -36,6 +36,8 @@ const {
   ROUTE_BROADCAST_NOTIFICATION,
   ROUTE_GET_SUBSCRIPTION_STATUS,
   ROUTE_UPDATE_DEVICE_TOKEN,
+  ROUTE_MARK_NOTIFICATION_AS_READ,
+  ROUTE_DELETE_NOTIFICATION,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1867,6 +1869,80 @@ router.get(ROUTE_GET_NOTIFICATIONS  , auth, (req, res) => {
 router.post(ROUTE_BROADCAST_NOTIFICATION, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.broadcastNotification(req, res);
+});
+
+/**
+ * @swagger
+ * /users/mark-notification-as-read:
+ *   patch:
+ *     summary: Mark multiple notifications as read
+ *     description: Mark one or more notifications as read using their IDs.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Array of notification IDs to mark as read.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               notificationids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["60d5ecf5f0b5f78c3fef9d87", "60d5ecf5f0b5f78c3fef9d88"]
+ *     responses:
+ *       200:
+ *         description: Notifications marked as read successfully
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: Unauthorized access
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_MARK_NOTIFICATION_AS_READ, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.markNotificationAsRead(req, res);
+});
+
+/**
+ * @swagger
+ * /users/delete-notifications:
+ *   delete:
+ *     summary: Delete multiple notifications
+ *     description: Delete one or more notifications by their IDs.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Array of notification IDs to delete.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               notificationids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["60d5ecf5f0b5f78c3fef9d87", "60d5ecf5f0b5f78c3fef9d88"]
+ *     responses:
+ *       200:
+ *         description: Notifications deleted successfully
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: Unauthorized access
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_DELETE_NOTIFICATION, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.deleteNotifications(req, res);
 });
 
 /**
