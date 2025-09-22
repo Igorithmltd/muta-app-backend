@@ -544,9 +544,7 @@ class DietServicee extends BaseService {
         .lean();
 
       if (!recommendedDiets.length) {
-        return BaseService.sendFailedResponse({
-          error: "No recommended diets found",
-        });
+        return BaseService.sendSuccessResponse({message: []});
       }
 
       const enrichedDiets = await Promise.all(
@@ -585,9 +583,7 @@ class DietServicee extends BaseService {
         .lean();
   
       if (!activeDiets.length) {
-        return BaseService.sendFailedResponse({
-          error: "No active diets found",
-        });
+        return BaseService.sendSuccessResponse({message: []});
       }
   
       const enrichedDiets = await Promise.all(
