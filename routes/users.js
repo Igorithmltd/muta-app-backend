@@ -1768,9 +1768,13 @@ router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
  *                   items:
  *                     type: object
  *                     properties:
- *                       id:
+ *                       _id:
  *                         type: string
  *                         description: Notification ID
+ *                         example: "64df2139a1e4f3c00123abcd"
+ *                       userId:
+ *                         type: string
+ *                         description: user ID
  *                         example: "64df2139a1e4f3c00123abcd"
  *                       title:
  *                         type: string
@@ -1820,10 +1824,15 @@ router.get(ROUTE_GET_NOTIFICATIONS  , auth, (req, res) => {
  *                 type: string
  *                 description: The notification title
  *                 example: Your workout streak is alive
- *               description:
+ *               body:
  *                 type: string
  *                 description: The notification message body
  *                 example: You have logged workouts for day 2. Keep it going - Consistency is your secret weapon!
+ *               type:
+ *                 type: string
+ *                 description: Notification description
+ *                 enum: ['streak', 'weight', 'challenge', 'system']
+ *                 example: "streak"
  *     responses:
  *       200:
  *         description: Notification sent successfully
@@ -1874,7 +1883,7 @@ router.post(ROUTE_BROADCAST_NOTIFICATION, adminAuth, (req, res) => {
 /**
  * @swagger
  * /users/mark-notification-as-read:
- *   patch:
+ *   post:
  *     summary: Mark multiple notifications as read
  *     description: Mark one or more notifications as read using their IDs.
  *     tags: [Users]
