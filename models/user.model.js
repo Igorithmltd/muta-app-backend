@@ -11,6 +11,10 @@ const UserSchema = new mongoose.Schema(
     lastName: { type: String, trim: true },
     gender: { type: String },
     age: { type: Number },
+    weightLoss: {
+      type: Number,
+      default: 0,
+    },
     weight: {
       value: { type: String },
       unit: { type: String, enum: ["kg", "lbs"], default: "kg" },

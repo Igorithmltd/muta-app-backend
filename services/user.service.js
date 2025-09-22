@@ -1045,6 +1045,18 @@ class UserService extends BaseService {
     const weightTips = getWeightImprovementTipsByWeight(weight, height)
     return BaseService.sendSuccessResponse({ message: weightTips });
   }
+  async getUserWeightLoss(req) {
+    const userId = req.user.id;
+    const user = await UserModel.findById(userId)
+    if (!user){
+      return BaseService.sendFailedResponse({ error: "User not found" });
+    };
+  
+    
+    let weightLossDiff = user.weightLoss || 0;
+  
+    return BaseService.sendFailedResponse({message: weightLossDiff });
+  }  
   async adminDashboardStat() {
     try {
       const response = {};
@@ -1127,31 +1139,31 @@ class UserService extends BaseService {
   async logUserWeight(req, res) {
     try {
       const userId = req.user.id;
-
+  
       const { value, unit } = req.body;
-
+  
       const validateRule = {
         value: "numeric|required|min:1",
         unit: "string|in:kg,lbs",
       };
-
+  
       const validateResult = validateData(req.body, validateRule, {
         required: ":attribute is required.",
         "in.unit": "Weight unit must be either 'kg' or 'lbs'.",
       });
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found." });
       }
-
-      const oldWeight = user.weight?.value || null;
+  
+      const oldWeight = user.weight?.value ? Number(user.weight.value) : null;
       const oldUnit = user.weight?.unit || "kg";
-
+  
       // Convert old weight to new unit if different (optional, assuming kg and lbs conversion)
       let oldWeightInNewUnit = oldWeight;
       if (oldWeight !== null && oldUnit !== unit) {
@@ -1161,22 +1173,34 @@ class UserService extends BaseService {
           oldWeightInNewUnit = oldWeight * 2.20462;
         }
       }
-
+  
+      const newWeightValue = Number(value);
+  
+      // Calculate weight loss
+      let weightLossDiff = 0;
+      if (oldWeightInNewUnit !== null && oldWeightInNewUnit > newWeightValue) {
+        weightLossDiff = oldWeightInNewUnit - newWeightValue;
+      }
+  
+      // Update user's weightLoss field (accumulate)
+      user.weightLoss = (user.weightLoss || 0) + weightLossDiff;
+  
+      // Update user's weight
       user.weight = {
-        value: Number(value),
+        value: newWeightValue,
         unit: unit || "kg",
       };
-
+  
       await user.save();
-
-      // Compare weight and prepare notification message
+  
+      // Prepare notification message
       let notificationTitle = "Weight Update";
       let notificationDescription;
-
+  
       if (oldWeightInNewUnit === null) {
         notificationDescription = `Your weight of ${value} ${unit} has been recorded.`;
       } else {
-        const diff = Number(value) - oldWeightInNewUnit;
+        const diff = newWeightValue - oldWeightInNewUnit;
         if (diff > 0) {
           notificationDescription = `You have gained ${diff.toFixed(
             2
@@ -1189,7 +1213,7 @@ class UserService extends BaseService {
           notificationDescription = `Your weight remains the same at ${value} ${unit}. Keep maintaining it!`;
         }
       }
-
+  
       // Create notification for the user
       await NotificationModel.create({
         userId,
@@ -1198,6 +1222,7 @@ class UserService extends BaseService {
         time: new Date(),
         type: "weight",
       });
+  
       if (user.deviceToken) {
         sendPushNotification({
           deviceToken: user.deviceToken,
@@ -1205,7 +1230,7 @@ class UserService extends BaseService {
           body: notificationDescription,
         });
       }
-
+  
       return BaseService.sendSuccessResponse({
         message: "Weight updated successfully",
       });
@@ -1213,7 +1238,7 @@ class UserService extends BaseService {
       console.error(err);
       return BaseService.sendFailedResponse("Internal server error");
     }
-  }
+  }  
   async logUserHeight(req, res) {
     try {
       const userId = req.user.id;

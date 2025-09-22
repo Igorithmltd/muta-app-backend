@@ -162,6 +162,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, applyCoachVerificationBadge.data)
     }
+    async getUserWeightLoss(req, res){
+        const userService = new UserService()
+        const getUserWeightLoss = await userService.getUserWeightLoss(req)
+        if(!getUserWeightLoss.success){
+            return BaseController.sendFailedResponse(res, getUserWeightLoss.data)
+        }
+        return BaseController.sendSuccessResponse(res, getUserWeightLoss.data)
+    }
     async logUserWeight(req, res){
         const userService = new UserService()
         const logUserWeight = await userService.logUserWeight(req)

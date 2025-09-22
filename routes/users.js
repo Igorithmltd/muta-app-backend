@@ -39,6 +39,7 @@ const {
   ROUTE_MARK_NOTIFICATION_AS_READ,
   ROUTE_DELETE_NOTIFICATION,
   ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS,
+  ROUTE_GET_USER_WEIGHT_LOSS,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -628,6 +629,38 @@ router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.adminDashboardStat(req, res);
 });
+
+/**
+ * @swagger
+ * /users/get-user-weight-loss:
+ *   get:
+ *     summary:  track weight loss
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Weight updated successfully, returns total weight loss
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: number
+ *                   example: 5.3
+ *       400:
+ *         description: Invalid request (e.g., missing or invalid weight/unit)
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_GET_USER_WEIGHT_LOSS, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getUserWeightLoss(req, res);
+});
+
 /**
  * @swagger
  * /users/log-weight:
