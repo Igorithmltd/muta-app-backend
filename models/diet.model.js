@@ -43,7 +43,7 @@ const DietSchema = new mongoose.Schema(
             status: {
               type: String,
               required: true,
-              enum: ["completed", "in-progress", "missed"],
+              enum: ["completed", "in-progress", "missed", "not-started"],
               default: "in-progress",
             },
           }
