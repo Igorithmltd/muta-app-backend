@@ -299,8 +299,13 @@ class DietServicee extends BaseService {
       });
 
       await newUserDiet.save();
-      await newUserDiet.populate("dietId");
-
+      await newUserDiet.populate({
+        path: "dietId",
+        populate: {
+          path: "category",
+        },
+      });
+      
       return BaseService.sendSuccessResponse({
         message: "Diet joined successfully",
         diet: newUserDiet,
