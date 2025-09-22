@@ -9,6 +9,7 @@ const {
   verifyRefreshToken,
   signAccessToken,
   formatNotificationTime,
+  getWeightImprovementTipsByWeight,
 } = require("../util/helper");
 const { EXPIRES_AT } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
@@ -1025,6 +1026,24 @@ class UserService extends BaseService {
     // | 30.0 – 34.9 | Obese (Class I)   |
     // | 35.0 – 39.9 | Obese (Class II)  |
     // | ≥ 40.0      | Obese (Class III) |
+  }
+  async getWeightImprovementTips(req) {
+    const userId = req.user.id;
+    const user = await UserModel.findById(userId);
+    if (empty(user) || empty(user.weight) || empty(user.height)) {
+      return BaseService.sendFailedResponse({ error: "User not found" });
+    }
+
+    const weight = user.weight.value
+    const height = user.height.value
+
+    if (empty(weight) || empty(height)) {
+      return BaseService.sendFailedResponse({
+        error: "Please log your weight and height",
+      });
+    }
+    const weightTips = getWeightImprovementTipsByWeight(weight, height)
+    return BaseService.sendSuccessResponse({ message: weightTips });
   }
   async adminDashboardStat() {
     try {

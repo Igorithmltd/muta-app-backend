@@ -282,6 +282,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deletePlan.data)
     }
+    async getWeightImprovementTips(req, res){
+        const userService = new UserService()
+        const getWeightImprovementTips = await userService.getWeightImprovementTips(req)
+        if(!getWeightImprovementTips.success){
+            return BaseController.sendFailedResponse(res, getWeightImprovementTips.data)
+        }
+        return BaseController.sendSuccessResponse(res, getWeightImprovementTips.data)
+    }
     async logSleep(req, res){
         const userService = new UserService()
         const logSleep = await userService.logSleep(req)

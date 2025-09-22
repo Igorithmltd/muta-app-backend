@@ -32,3 +32,61 @@ module.exports.getCurrentWeekNumber = ()=> {
     const options = { weekday: "short", hour: "numeric", minute: "numeric" };
     return new Intl.DateTimeFormat("en-US", options).format(date);
   }
+
+
+  module.exports.getWeightImprovementTipsByWeight = (weightKg, heightCm)=> {
+    const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+
+  // Determine BMI category
+  let bmiCategory = '';
+  if (bmi < 16.0) {
+    bmiCategory = 'underweight';
+  } else if (bmi >= 16.0 && bmi < 18.5) {
+    bmiCategory = 'underweight';
+  } else if (bmi >= 18.5 && bmi < 25) {
+    bmiCategory = 'normal';
+  } else if (bmi >= 25 && bmi < 30) {
+    bmiCategory = 'overweight';
+  } else {
+    bmiCategory = 'obese';
+  }
+
+  // Tips dictionary
+  const tips = {
+    underweight: [
+      "Eat more frequently and include healthy snacks.",
+      "Increase intake of nutrient-rich foods with good calories.",
+      "Incorporate strength training exercises to build muscle mass.",
+      "Avoid empty-calorie foods and focus on balanced nutrition.",
+      "Consult a nutritionist for a personalized meal plan.",
+      "Stay hydrated but avoid drinking water before meals to avoid feeling full.",
+    ],
+    normal: [
+      "Maintain a balanced diet with appropriate portion sizes.",
+      "Continue regular physical activity to keep your weight stable.",
+      "Include plenty of fruits, vegetables, whole grains, and lean proteins.",
+      "Monitor your weight regularly to detect any changes early.",
+      "Avoid excessive consumption of processed and sugary foods.",
+      "Stay hydrated and get enough sleep.",
+    ],
+    overweight: [
+      "Adopt a calorie-controlled, balanced diet focusing on whole foods.",
+      "Increase daily physical activity, including cardio and strength training.",
+      "Limit intake of sugary drinks and high-fat foods.",
+      "Eat smaller, frequent meals to help control hunger.",
+      "Track your food intake to identify and reduce excess calories.",
+      "Consult a healthcare provider for personalized weight loss advice.",
+    ],
+    obese: [
+      "Seek guidance from a healthcare professional for a tailored plan.",
+      "Focus on a nutrient-dense, low-calorie diet with controlled portions.",
+      "Incorporate regular, supervised physical activity gradually.",
+      "Avoid fad diets; aim for sustainable, long-term changes.",
+      "Consider behavioral therapy or support groups for motivation.",
+      "Monitor your progress regularly and adjust your plan as needed.",
+    ],
+  };
+
+  return tips[bmiCategory] || ["Maintain a healthy lifestyle with balanced diet and exercise."];
+  }

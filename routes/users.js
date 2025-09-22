@@ -38,6 +38,7 @@ const {
   ROUTE_UPDATE_DEVICE_TOKEN,
   ROUTE_MARK_NOTIFICATION_AS_READ,
   ROUTE_DELETE_NOTIFICATION,
+  ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1576,51 +1577,31 @@ router.delete(ROUTE_DELETE_PLAN, adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /users/log-sleep:
- *   put:
- *     summary: Log last night's sleep hours
- *     tags: [Sleep]
+ * /users/get-weight-improvement-tips:
+ *   get:
+ *     summary: Get weight improvement tips based on logged-in user's weight and height
+ *     tags: [Users]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       description: Sleep hours to log
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - hours
- *             properties:
- *               hours:
- *                 type: number
- *                 minimum: 0
- *                 maximum: 24
- *                 example: 7.5
  *     responses:
  *       200:
- *         description: Sleep entry updated
+ *         description: Weight improvement tips returned successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                 entry:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     userId:
- *                       type: string
- *                     date:
- *                       type: string
- *                       format: date
- *                     hours:
- *                       type: number
- *       400:
- *         description: Invalid request (e.g., invalid hours)
+ *                   type: array
+ *                   description: List of weight improvement tips
+ *                   items:
+ *                     type: string
+ *                   example: [
+ *                     "Maintain a balanced diet with appropriate portion sizes.",
+ *                     "Include regular physical activity such as walking or jogging.",
+ *                     "Stay hydrated by drinking plenty of water throughout the day.",
+ *                     "Avoid excessive consumption of processed and sugary foods."
+ *                   ]
  *       401:
  *         description: Unauthorized
  *       500:
@@ -1629,6 +1610,54 @@ router.delete(ROUTE_DELETE_PLAN, adminAuth, (req, res) => {
 router.put(ROUTE_LOG_SLEEP, auth, (req, res) => {
   const userController = new UserController();
   return userController.logSleep(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-weight-improvement-tips:
+ *   get:
+ *     summary: Get weight improvement tips based on user's weight and height
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: weightKg
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: 1
+ *         description: User's weight in kilograms
+ *       - in: query
+ *         name: heightCm
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: 30
+ *         description: User's height in centimeters
+ *     responses:
+ *       200:
+ *         description: Weight improvement tips returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: List of weight improvement tips
+ *       400:
+ *         description: Invalid input data (e.g., missing or out of range weight/height)
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getWeightImprovementTips(req, res);
 });
 
 /**
