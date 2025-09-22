@@ -181,7 +181,7 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
 
 /**
  * @swagger
- * /workoutplan/get-all-workoutplan:
+ * /workoutplan/get-all-workoutplans:
  *   get:
  *     summary: Get all workout plans
  *     tags:
