@@ -259,9 +259,9 @@ class DietServicee extends BaseService {
       const alreadyJoined = await DietActionModel.findOne({
         userId,
         dietId: post.dietId,
-      });
+      }).populate({ path: 'dietId', populate: { path: 'category' } });
 
-      if (alreadyJoined) {
+      if (alreadyJoined && alreadyJoined.status === "in-progress") {
         return BaseService.sendSuccessResponse({
           message: "You have already joined this diet plan",
         });
@@ -290,26 +290,40 @@ class DietServicee extends BaseService {
         };
       });
 
-      const newUserDiet = new DietActionModel({
-        userId,
-        dietId: post.dietId,
-        startDate: startDate.toDate(),
-        endDate: endDate.toDate(),
-        dailyMealBreakdown: breakdownWithDays,
-      });
+      if(alreadyJoined && alreadyJoined.status !== "not-started"){
+        alreadyJoined.startDate = startDate.toDate();
+        alreadyJoined.endDate = endDate.toDate();
+        alreadyJoined.dailyMealBreakdown = breakdownWithDays;
+        alreadyJoined.status = "in-progress";
+        alreadyJoined.progress = 0;
+        await alreadyJoined.save();
+        return BaseService.sendSuccessResponse({
+          message: "Diet re-joined successfully",
+          diet: alreadyJoined,
+        })
+      }else{
+        const newUserDiet = new DietActionModel({
+          userId,
+          dietId: post.dietId,
+          startDate: startDate.toDate(),
+          endDate: endDate.toDate(),
+          dailyMealBreakdown: breakdownWithDays,
+        });
+  
+        await newUserDiet.save();
+        await newUserDiet.populate({
+          path: "dietId",
+          populate: {
+            path: "category",
+          },
+        });
+  
+        return BaseService.sendSuccessResponse({
+          message: "Diet joined successfully",
+          diet: newUserDiet,
+        });
+      }
 
-      await newUserDiet.save();
-      await newUserDiet.populate({
-        path: "dietId",
-        populate: {
-          path: "category",
-        },
-      });
-      
-      return BaseService.sendSuccessResponse({
-        message: "Diet joined successfully",
-        diet: newUserDiet,
-      });
     } catch (error) {
       console.error("Error joining diet:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
