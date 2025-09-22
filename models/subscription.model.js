@@ -2,25 +2,17 @@ const mongoose = require("mongoose");
 
 const SubscriptionSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    plan: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Plan",
-      // enum: ["basic", "monthly", "quarterly", "yearly"],
-      // default: "basic",
-    },
-    reference: String, // Paystack reference
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    planId: { type: mongoose.Schema.Types.ObjectId, ref: "Plan", required: true },
+    categoryId: { type: mongoose.Schema.Types.ObjectId, required: true }, // New field
+    reference: { type: String, required: true },
     status: {
       type: String,
-      enum: ["active", "expired", "pending"],
+      enum: ["active", "pending", "cancelled"],
       default: "pending",
     },
-    startDate: Date,
-    expiryDate: Date,
-    recurring: { type: Boolean, default: false },
+    startDate: { type: Date, default: Date.now },
+    expiryDate: { type: Date },
     paystackSubscriptionId: { type: String },
   },
   { timestamps: true }

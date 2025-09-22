@@ -1430,21 +1430,26 @@ class UserService extends BaseService {
     userId,
     coachId,
     planId,
+    categoryDuration, // new param to specify which category (monthly/yearly) the subscription is for
     reference,
     isGift,
     recipientEmail
   }) {
     const user = await UserModel.findById(userId);
-    if (!user) throw new Error("User not found");
+    if (!user) BaseService.sendFailedResponse({error: "User not found"});
   
     const coach = await UserModel.findOne({ _id: coachId, userType: "coach" });
-    if (!coach) throw new Error("Coach not found");
+    if (!coach) BaseService.sendFailedResponse({error: "Coach not found"});
   
     const plan = await PlanModel.findById(planId);
-    if (!plan) throw new Error("Plan not found");
+    if (!plan) BaseService.sendFailedResponse({error: "Plan not found"});
+  
+    // Find the category object matching the requested duration
+    const category = plan.categories.find(cat => cat.duration === categoryDuration);
+    if (!category) BaseService.sendFailedResponse({error: `Plan category '${categoryDuration}' not found`});
   
     if (isGift) {
-      if (!recipientEmail) throw new Error("Recipient email is required");
+      if (!recipientEmail) BaseService.sendFailedResponse({error: "Recipient email is required"});
   
       const couponCode =
         "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -1463,79 +1468,101 @@ class UserService extends BaseService {
         from: "Muta App <no-reply@fitnessapp.com>",
         subject: `You've received a gift subscription!`,
         to: recipientEmail,
-        html: `<p>You have received a ${plan.duration} premium subscription from ${user.firstName}. Your coupon code is <b>${couponCode}</b>.</p>`,
+        html: `<p>You have received a ${category.duration} premium subscription from ${user.firstName}. Your coupon code is <b>${couponCode}</b>.</p>`,
       });
   
-      return { success: true, message: "Gift coupon sent", couponCode };
+      return BaseService.sendSuccessResponse({ message: "Gift coupon sent" });
     }
   
     // Direct subscription
     let expiryDate = new Date();
-    if (plan.duration === "monthly") {
+    if (category.duration === "monthly") {
       expiryDate.setMonth(expiryDate.getMonth() + 1);
-    } else if (["yearly", "annually"].includes(plan.duration)) {
+    } else if (["yearly", "annually"].includes(category.duration)) {
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     }
   
     await SubscriptionModel.create({
-      plan: plan.duration,
+      planId: plan._id,
+      categoryId: category._id,  // store which category this subscription is for
       reference,
       status: "active",
       startDate: new Date(),
       expiryDate,
       user: user._id,
-      paystackSubscriptionId: plan.paystackSubscriptionId
+      paystackSubscriptionId: plan.paystackSubscriptionId,
+      features: category.features,
     });
   
     await sendEmail({
       from: "Muta App <no-reply@fitnessapp.com>",
       subject: `Subscription successful!`,
       to: user.email,
-      html: `<p>You have successfully subscribed to a ${plan.duration} premium plan with coach ${coach.firstName}.</p>`,
+      html: `<p>You have successfully subscribed to a ${category.duration} premium plan with coach ${coach.firstName}.</p>`,
     });
   
-    return { success: true, message: "Subscription created" };
+    return BaseService.sendSuccessResponse({ message: "Subscription created" });
   }
-  async subscribeUserToPlan(userId, planId, paystackPlanCode) {
+  
+  async subscribeUserToPlan(userId, planId, categoryDuration, paystackPlanCode) {
     // 1. Find user and existing subscription
     const user = await UserModel.findById(userId);
-    if (!user)  return BaseService.sendFailedResponse({ error: "User not found" });
-
+    if (!user) return BaseService.sendFailedResponse({ error: "User not found" });
   
     const existingSub = await SubscriptionModel.findOne({
       user: userId,
       status: "active",
     });
-
+  
     const plan = await PlanModel.findById(planId);
-
-    if(!plan){
+  
+    if (!plan) {
       return BaseService.sendFailedResponse({ error: "Plan not found" });
     }
   
-    // 2. If active subscription exists for same plan, skip
-    if (existingSub && existingSub.plan.toString() === planId.toString()) {
-      return existingSub; // Already subscribed to this plan
+    // Find the category (monthly, yearly, etc.)
+    const category = plan.categories.find(cat => cat.duration === categoryDuration);
+    if (!category) {
+      return BaseService.sendFailedResponse({ error: `Plan category '${categoryDuration}' not found` });
     }
   
-    // 3. If active subscription exists for different plan, cancel it first (handle in next step)
+    // 2. If active subscription exists for same plan and category, skip
+    if (
+      existingSub &&
+      existingSub.plan.toString() === planId.toString() &&
+      existingSub.categoryDuration === categoryDuration
+    ) {
+      return existingSub; // Already subscribed to this plan and category
+    }
+  
+    // 3. If active subscription exists for different plan or category, handle cancel if needed (not shown here)
   
     // 4. Create Paystack subscription
     const paystackSub = await createPaystackSubscription(user.email, paystackPlanCode);
   
-    // 5. Save subscription in DB
+    // 5. Calculate expiry date based on category duration
+    let expiryDate = new Date();
+    if (category.duration === "monthly") {
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+    } else if (["yearly", "annually"].includes(category.duration)) {
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    }
+  
+    // 6. Save subscription in DB
     const newSub = await SubscriptionModel.create({
       user: userId,
-      plan: planId,
+      planId: planId,
+      categoryId: category._id, // Save selected category duration
       reference: paystackSub.subscription_code,
-      status: "active", // We'll mark active now; adjust if pending needed
+      status: "active",
       startDate: new Date(),
-      expiryDate: UserService.calculateExpiryDateBasedOnPlan(paystackPlanCode),
-      paystackSubscriptionId: plan.paystackSubscriptionId
+      expiryDate, // save category features if needed
+      paystackSubscriptionId: plan.paystackSubscriptionId,
     });
   
-    return newSub;
+    return BaseService.sendSuccessResponse({ message: "Subscription created" });
   }
+  
 
   async createPaystackSubscription(userEmail, planPaystackCode) {
     const response = await axios.post('https://api.paystack.co/subscription', {
@@ -1639,38 +1666,38 @@ class UserService extends BaseService {
     try {
       const { couponCode } = req.body;
       const userId = req.user._id;
-
+  
       // Fetch user
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-
+  
       // Find coupon
       const coupon = await CouponModel.findOne({ code: couponCode });
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-
+  
       // Validate coupon expiration
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
-
+  
       // Validate coupon usage
       if (coupon.used) {
         return BaseService.sendFailedResponse({
           error: "Coupon has already been used",
         });
       }
-
+  
       // Validate recipient
       if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
       }
-
+  
       // Check if user already has an active subscription
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
@@ -1682,7 +1709,7 @@ class UserService extends BaseService {
           error: "User already has an active subscription",
         });
       }
-
+  
       // Load plan from coupon
       const plan = await PlanModel.findById(coupon.planId);
       if (!plan) {
@@ -1690,37 +1717,48 @@ class UserService extends BaseService {
           error: "Associated plan not found",
         });
       }
-
-      // Calculate expiry date
+  
+      // Find category from coupon or fallback (assuming coupon stores categoryDuration)
+      const categoryDuration = coupon.categoryDuration; // e.g., "monthly" or "yearly"
+      const category = plan.categories.find(cat => cat.duration === categoryDuration);
+  
+      if (!category) {
+        return BaseService.sendFailedResponse({
+          error: `Plan category '${categoryDuration}' not found`,
+        });
+      }
+  
+      // Calculate expiry date based on category duration
       let expiryDate = new Date();
-      if (plan.duration === "monthly") {
+      if (category.duration === "monthly") {
         expiryDate.setMonth(expiryDate.getMonth() + 1);
-      } else if (plan.duration === "yearly") {
+      } else if (["yearly", "annually"].includes(category.duration)) {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-
+  
       // Create subscription
       const subscription = await SubscriptionModel.create({
         user: userId,
-        plan: plan._id,
+        planId: plan._id,
+        categoryId: category._id,
         status: "active",
         startDate: new Date(),
         expiryDate,
-        paystackSubscriptionId: plan.paystackSubscriptionId
+        paystackSubscriptionId: plan.paystackSubscriptionId,
       });
-
+  
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
       // coupon.usedAt = new Date();
       await coupon.save();
-
+  
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
         subscription: {
           id: subscription._id,
           plan: plan.name,
-          duration: plan.duration,
+          categoryDuration: category.duration,
           startDate: subscription.startDate,
           expiryDate: subscription.expiryDate,
           status: subscription.status,
@@ -1731,43 +1769,80 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
+  
   async createPlan(req, res) {
     try {
       const post = req.body;
-
+  
+      // Basic validation rules for new plan structure
       const validateRule = {
-        name: "email|required",
-        duration: "string|required",
-        price: "integer|required",
+        name: "string|required",
+        categories: "array|required",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
-        "email.email": "Please provide a valid :attribute.",
+        "string.name": "Please provide a valid :attribute.",
+        "array.categories": ":attribute must be an array",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-      const { name, duration, price } = post;
+  
+      // Validate each category inside categories array
+      for (const [index, category] of post.categories.entries()) {
+        if (
+          !category.duration ||
+          !["monthly", "yearly"].includes(category.duration)
+        ) {
+          return BaseService.sendFailedResponse({
+            error: `categories[${index}].duration must be 'monthly' or 'yearly'`,
+          });
+        }
+        if (
+          category.price === undefined ||
+          typeof category.price !== "number" ||
+          category.price < 0
+        ) {
+          return BaseService.sendFailedResponse({
+            error: `categories[${index}].price must be a non-negative number`,
+          });
+        }
+        if (
+          category.features !== undefined &&
+          !Array.isArray(category.features)
+        ) {
+          return BaseService.sendFailedResponse({
+            error: `categories[${index}].features must be an array if provided`,
+          });
+        }
+      }
+  
+      const { name, categories } = post;
+  
       const plan = new PlanModel({
         name,
-        duration,
-        price,
-        ...(post.features && { features: post.features }),
+        categories,
+        isActive: true,
+        // Add other generic fields here if needed
       });
+  
       await plan.save();
+  
       return BaseService.sendSuccessResponse({ message: plan });
     } catch (error) {
+      console.error("Create plan error:", error);
       return BaseService.sendFailedResponse({ error: "Failed to create plan" });
     }
   }
+  
   async getPlans(req, res) {
     try {
       const plans = await PlanModel.find();
-      return BaseService.sendSuccessResponse({ message: plans });
+      return BaseService.sendSuccessResponse({ message: plans || [] });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: "Failed to get plans" });
     }
