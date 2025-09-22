@@ -249,7 +249,7 @@ class DietServicee extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const diet = await DietModel.findById(post.dietId);
+      const diet = await DietModel.findById(post.dietId).populate('category');
       if (!diet) {
         return BaseService.sendFailedResponse({
           error: "Diet not found",
@@ -626,8 +626,8 @@ class DietServicee extends BaseService {
         createdAt: -1,
       });
       if (empty(dietCategories)) {
-        return BaseService.sendFailedResponse({
-          error: "No diet categories found",
+        return BaseService.sendSuccessResponse({
+          message: [],
         });
       }
       return BaseService.sendSuccessResponse({
