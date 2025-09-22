@@ -290,7 +290,7 @@ class DietServicee extends BaseService {
         };
       });
 
-      if(alreadyJoined && alreadyJoined.status !== "not-started"){
+      if(alreadyJoined){
         alreadyJoined.startDate = startDate.toDate();
         alreadyJoined.endDate = endDate.toDate();
         alreadyJoined.dailyMealBreakdown = breakdownWithDays;
