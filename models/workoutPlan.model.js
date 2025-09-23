@@ -48,7 +48,7 @@ const WorkoutPlanSchema = new mongoose.Schema(
             youtubeLink: {type: String},
             workoutExerciseType: {type: String, required: true, enum: ["time", "set-reps"]},
             breathingTips: [String],
-            focusArea: [{value: String, degree: String}],
+            focusArea: [{value: String, impact: String}],
             status: {
               type: String,
               required: true,

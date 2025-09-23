@@ -1046,6 +1046,7 @@ class UserService extends BaseService {
     return BaseService.sendSuccessResponse({ message: weightTips });
   }
   async getUserWeightLoss(req) {
+    console.log('called...')
     const userId = req.user.id;
     const user = await UserModel.findById(userId)
     if (!user){
@@ -1055,7 +1056,7 @@ class UserService extends BaseService {
     
     let weightLossDiff = user.weightLoss || 0;
   
-    return BaseService.sendFailedResponse({message: weightLossDiff });
+    return BaseService.sendSuccessResponse({message: weightLossDiff });
   }  
   async adminDashboardStat() {
     try {
