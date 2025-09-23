@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema(
       unit: {
         type: String,
         enum: ["cm", "ft"],
-        default: "cm",
+        default: "ft",
       },
     },
     focusArea: [String],

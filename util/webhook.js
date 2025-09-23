@@ -78,7 +78,7 @@ const webhookFunction = async (req, res) => {
         }
     
         // Update subscription expiry based on plan duration
-        const plan = await PlanModel.findById(subscription.plan);
+        const plan = await PlanModel.findById(subscription.planId);
         let newExpiryDate = new Date(subscription.expiryDate);
     
         if (plan.duration === 'monthly') {

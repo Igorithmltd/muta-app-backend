@@ -649,8 +649,6 @@ router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
  *                 message:
  *                   type: number
  *                   example: 5.3
- *       400:
- *         description: Invalid request (e.g., missing or invalid weight/unit)
  *       401:
  *         description: Unauthorized
  *       500:
