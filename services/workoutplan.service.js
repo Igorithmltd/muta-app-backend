@@ -326,6 +326,7 @@ class WorkoutplanService extends BaseService {
         animation: round.animation,
         reps: round.reps ? round.reps : null,
         workoutExerciseType: round.workoutExerciseType,
+        youtubeLink: round.youtubeLink,
         restBetweenSet: round.restBetweenSet,
         instruction: round.instruction,
         commonMistakesToAvoid: round.commonMistakesToAvoid || [],
@@ -353,7 +354,7 @@ class WorkoutplanService extends BaseService {
     await NotificationModel.create({
       userId,
       title: "You just joined a new workout plan",
-      description: `You have to rememeber that consistency is the key. Well done!`,
+      body: `You have to rememeber that consistency is the key. Well done!`,
       createdAt: new Date(),
       type: "streak",
     });
@@ -362,7 +363,7 @@ class WorkoutplanService extends BaseService {
     }
 
 
-    await newWorkoutplanAction.populate("workoutPlanId");
+    await newWorkoutplanAction.populate({path: "workoutPlanId", populate: {path: "category"}});
 
     return BaseService.sendSuccessResponse({
       message: "Workout plan joined successfully",
