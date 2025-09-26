@@ -90,7 +90,7 @@ router.get(ROUTE_GET_CHATS, (req, res)=>{
  * @swagger
  * /chat/get-chat-messages/{roomId}:
  *   get:
- *     summary: Fetch all messages from a specific room
+ *     summary: Fetch all messages from a specific room with optional time filters and pagination
  *     tags: [Chat]
  *     security:
  *       - bearerAuth: []
@@ -101,9 +101,37 @@ router.get(ROUTE_GET_CHATS, (req, res)=>{
  *         schema:
  *           type: string
  *         description: Room ID
+ *       - name: afterTime
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Return messages created *after* this time (exclusive)
+ *       - name: beforeTime
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Return messages created *before* this time (exclusive)
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination (default is 1)
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Number of messages per page (default is 50)
  *     responses:
  *       200:
- *         description: List of messages
+ *         description: List of messages with pagination info
  *         content:
  *           application/json:
  *             schema:
@@ -111,7 +139,8 @@ router.get(ROUTE_GET_CHATS, (req, res)=>{
  *               properties:
  *                 success:
  *                   type: boolean
- *                 messages:
+ *                   example: true
+ *                 message:
  *                   type: array
  *                   items:
  *                     type: object
@@ -126,6 +155,17 @@ router.get(ROUTE_GET_CHATS, (req, res)=>{
  *                       createdAt:
  *                         type: string
  *                         format: date-time
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *                     totalMessages:
+ *                       type: integer
  *       404:
  *         description: Room not found
  *       500:

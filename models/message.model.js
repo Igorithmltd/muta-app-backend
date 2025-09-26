@@ -31,6 +31,12 @@ const MessageSchema = new mongoose.Schema(
       enum: ["text", "image", "file"],
       default: "text",
     },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
