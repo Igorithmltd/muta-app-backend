@@ -472,10 +472,10 @@ class WorkoutplanService extends BaseService {
   }
   async getWorkoutplanAction(req) {
     try {
-      const workoutplanActionId = req.params.id;
+      const workoutplanId = req.params.id;
 
-      const workoutplanAction = await WorkoutPlanActionModel.findById(
-        workoutplanActionId
+      const workoutplanAction = await WorkoutPlanActionModel.findOne(
+        {workoutPlanId: workoutplanId, userId: req.user.id}
       ).populate({ path: "workoutPlanId", populate: { path: "category" } });
       if (!workoutplanAction) {
         return BaseService.sendFailedResponse({
