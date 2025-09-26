@@ -2168,6 +2168,20 @@ class UserService extends BaseService {
       });
     }
   }
+  async deleteAllNotifications(req) {
+    try {
+
+      await NotificationModel.deleteMany({});
+
+      return BaseService.sendSuccessResponse({
+        message: 'Notifications deleted successfully',
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
   async updateDeviceToken(req) {
     try {
       const userId = req.user.id;

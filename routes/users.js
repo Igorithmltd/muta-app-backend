@@ -40,6 +40,7 @@ const {
   ROUTE_DELETE_NOTIFICATION,
   ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS,
   ROUTE_GET_USER_WEIGHT_LOSS,
+  ROUTE_DELETE_ALL_NOTIFICATION,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2009,9 +2010,33 @@ router.post(ROUTE_MARK_NOTIFICATION_AS_READ, adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_DELETE_NOTIFICATION, adminAuth, (req, res) => {
+router.delete(ROUTE_DELETE_NOTIFICATION, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.deleteNotifications(req, res);
+});
+
+/**
+ * @swagger
+ * /users/delete-all-notifications:
+ *   delete:
+ *     summary: Delete multiple notifications
+ *     description: Delete one or more notifications by their IDs.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Notifications deleted successfully
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: Unauthorized access
+ *       500:
+ *         description: Server error
+ */
+router.delete(ROUTE_DELETE_ALL_NOTIFICATION, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.deleteAllNotifications(req, res);
 });
 
 /**

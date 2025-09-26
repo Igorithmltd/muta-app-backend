@@ -362,6 +362,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deleteNotifications.data)
     }
+    async deleteAllNotifications(req, res){
+        const userService = new UserService()
+        const deleteAllNotifications = await userService.deleteAllNotifications(req)
+        if(!deleteAllNotifications.success){
+            return BaseController.sendFailedResponse(res, deleteAllNotifications.data)
+        }
+        return BaseController.sendSuccessResponse(res, deleteAllNotifications.data)
+    }
     
     async updateDeviceToken(req, res){
         const userService = new UserService()
