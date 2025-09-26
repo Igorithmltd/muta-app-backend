@@ -598,14 +598,6 @@ router.delete(ROUTE_DELETE_WORKOUTPLAN + "/:id", adminAuth, (req, res) => {
  *     summary: Join workoutplan
  *     tags:
  *       - Workoutplan
- *     parameters:
- *       - in: params
- *         name: type
- *         schema:
- *           id: string
- *           exapmle: "6863ece6b0d40e2dd2eabe12"
- *         description: Workoutplan id
- *         example: 6863ece6b0d40e2dd2eabe12
  *     requestBody:
  *       required: true
  *       content:

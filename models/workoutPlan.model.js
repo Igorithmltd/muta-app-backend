@@ -52,7 +52,7 @@ const WorkoutPlanSchema = new mongoose.Schema(
             status: {
               type: String,
               required: true,
-              enum: ["completed", "in-progress"],
+              enum: ["completed", "in-progress", "not-started"],
               default: "in-progress",
             },
           },

@@ -19,6 +19,7 @@ const WorkoutPlanActionSchema = new mongoose.Schema(
             animation: { type: String, required: true },
             reps: { type: Number },
             youtubeLink: {type: String},
+            image: { imageUrl: { type: String }, publicId: { type: String } },
             restBetweenSet: { type: Number, required: true },
             workoutExerciseType: {type: String, required: true, enum: ["time", "set-reps"]},
             instruction: { type: String, required: true },
