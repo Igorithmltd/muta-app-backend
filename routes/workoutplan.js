@@ -131,6 +131,15 @@ const router = require("express").Router();
  *                           youtubeLink:
  *                             type: string
  *                             example: "https://youtube.com/example"
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: "https://res.cloudinary.com/your-cloud/image/upload/v123456789/sample.jpg"
+ *                               publicId:
+ *                                 type: string
+ *                                 example: "sample_public_id"
  *                           workoutExerciseType:
  *                             type: string
  *                             enum: [time, set-reps]
@@ -854,9 +863,17 @@ router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
  * @swagger
  * /workoutplan/workoutplan-task:
  *   put:
- *     summary: Mark a workoutplan task as completed
+ *     summary: Mark a workout plan task or an entire day as completed
  *     tags:
  *       - Workoutplan
+ *     parameters:
+ *       - in: query
+ *         name: select
+ *         schema:
+ *           type: string
+ *           enum: [all]
+ *         required: false
+ *         description: Optional flag. If set to `all`, it marks all rounds within the day (identified by `workoutplanRoundId`) as completed.
  *     requestBody:
  *       required: true
  *       content:
@@ -864,20 +881,23 @@ router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - challengeId
- *               - challengeTaskId
+ *               - workoutplanId
+ *               - workoutplanRoundId
  *             properties:
  *               workoutplanId:
  *                 type: string
- *                 description: The ID of the workoutplan
+ *                 description: The ID of the workout plan
  *                 example: "64a123456789abcdef123456"
  *               workoutplanRoundId:
  *                 type: string
- *                 description: The ID of the task to mark as completed
+ *                 description: 
+ *                   The ID of the round to mark as completed. 
+ *                   If `select=all` is passed in the query, this should be the day ID (planRounds._id). 
+ *                   Otherwise, it should be the round ID.
  *                 example: "64a987654321abcdef123456"
  *     responses:
  *       200:
- *         description: Task marked as completed successfully
+ *         description: Task(s) marked as completed successfully
  *         content:
  *           application/json:
  *             schema:
@@ -888,7 +908,7 @@ router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Task marked as completed
+ *                   example: Workout round marked as completed
  *       400:
  *         description: Invalid request body or missing parameters
  *         content:
@@ -901,9 +921,9 @@ router.get(ROUTE_GET_WORKOUTPLAN_ACTION + "/:id", auth, (req, res) => {
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: Workoutplan task not found
+ *                   example: Workout round not found
  *       401:
- *         description: Unauthorized - user not part of the workoutplan
+ *         description: Unauthorized - user not part of the workout plan
  *       500:
  *         description: Server error
  */
