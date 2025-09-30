@@ -141,7 +141,8 @@ class WorkoutplanService extends BaseService {
           createdAt: -1,
         })
         .populate("category");
-      return BaseService.sendSuccessResponse({ message: workoutplans });
+        const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(workoutplans)
+      return BaseService.sendSuccessResponse({ message: workoutplansWithUserCounts });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -285,6 +286,7 @@ class WorkoutplanService extends BaseService {
     if (joinedWorkoutplan) {
       return BaseService.sendSuccessResponse({
         message: "You have already joined this Workout plan",
+        workoutPlanAction: joinedWorkoutplan,
       });
     }
 
@@ -698,13 +700,14 @@ class WorkoutplanService extends BaseService {
       })
         .populate("category")
         .sort({ createdAt: -1 });
+        const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(recommendedWorkoutplans)
       // if (empty(recommendedWorkoutplans)) {
       //   return BaseService.sendFailedResponse({
       //     error: "No recommended workout plan found",
       //   });
       // }
       return BaseService.sendSuccessResponse({
-        message: recommendedWorkoutplans || [],
+        message: workoutplansWithUserCounts || [],
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
@@ -747,6 +750,44 @@ class WorkoutplanService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  // async activeWorkoutplans(req, res) {
+  //   try {
+  //     const activeWorkoutplans = await WorkoutPlanActionModel.find({
+  //       userId: req.user.id,
+  //       status: "in-progress",
+  //     })
+  //       .populate({ path: "workoutPlanId", populate: { path: "category" } })
+  //       .sort({ createdAt: -1 });
+
+  //     // Add daysPassed to each workout plan
+  //     const plansWithDaysPassed = activeWorkoutplans.map((plan) => {
+  //       // Find the earliest dayDate in planRounds
+  //       const allDates = plan.planRounds.map(
+  //         (round) => new Date(round.dayDate)
+  //       );
+  //       const startDate = new Date(Math.min(...allDates));
+  //       const today = new Date();
+
+  //       // Calculate difference in days
+  //       const diffTime = today - startDate;
+  //       const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  //       // Convert plan to plain object and attach daysPassed
+  //       const planObj = plan.toObject();
+  //       planObj.daysPassed = daysPassed >= 0 ? daysPassed : 0;
+
+  //       return planObj;
+  //     });
+
+  //     return BaseService.sendSuccessResponse({
+  //       message: plansWithDaysPassed,
+  //     });
+  //   } catch (error) {
+  //     return BaseService.sendFailedResponse({
+  //       error: this.server_error_message,
+  //     });
+  //   }
+  // }
   async activeWorkoutplans(req, res) {
     try {
       const activeWorkoutplans = await WorkoutPlanActionModel.find({
@@ -755,27 +796,24 @@ class WorkoutplanService extends BaseService {
       })
         .populate({ path: "workoutPlanId", populate: { path: "category" } })
         .sort({ createdAt: -1 });
-
-      // Add daysPassed to each workout plan
+  
       const plansWithDaysPassed = activeWorkoutplans.map((plan) => {
-        // Find the earliest dayDate in planRounds
-        const allDates = plan.planRounds.map(
-          (round) => new Date(round.dayDate)
-        );
-        const startDate = new Date(Math.min(...allDates));
-        const today = new Date();
-
-        // Calculate difference in days
-        const diffTime = today - startDate;
-        const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        // Convert plan to plain object and attach daysPassed
+        // Count how many planRounds (days) are completed:
+        // A day is completed only if all rounds in that day have status "completed"
+        const completedDaysCount = plan.planRounds.reduce((count, day) => {
+          const allRoundsCompleted = day.rounds.every(
+            (round) => round.status === "completed"
+          );
+          return allRoundsCompleted ? count + 1 : count;
+        }, 0);
+  
+        // Convert plan to plain object and attach daysPassed as completed days count
         const planObj = plan.toObject();
-        planObj.daysPassed = daysPassed >= 0 ? daysPassed : 0;
-
+        planObj.daysCompleted = completedDaysCount;
+  
         return planObj;
       });
-
+  
       return BaseService.sendSuccessResponse({
         message: plansWithDaysPassed,
       });
@@ -785,6 +823,7 @@ class WorkoutplanService extends BaseService {
       });
     }
   }
+  
   async popularWorkoutPlans() {
     try {
       const result = await WorkoutPlanActionModel.aggregate([
@@ -980,8 +1019,9 @@ class WorkoutplanService extends BaseService {
         })
       );
 
+      const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(enrichedWorkoutplans)
       return BaseService.sendSuccessResponse({
-        message: enrichedWorkoutplans,
+        message: workoutplansWithUserCounts,
       });
     } catch (error) {
       console.error("Error in searchDietByTitle:", error);
@@ -1028,13 +1068,14 @@ class WorkoutplanService extends BaseService {
           };
         })
       );
+      const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(enrichedWorkoutplans)
 
       const totalPages = Math.ceil(totalCount / limit);
 
       return BaseService.sendSuccessResponse({
         message: "Workoutplans fetched successfully.",
         data: {
-          workoutplan: enrichedWorkoutplans,
+          workoutplan: workoutplansWithUserCounts,
           pagination: {
             totalCount,
             totalPages,

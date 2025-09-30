@@ -7,6 +7,7 @@ const WorkoutPlanActionSchema = new mongoose.Schema(
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
     // streak: { type: Number, default: 0 },
     status: { type: String, required: true, enum: ["completed", "in-progress", "not-started"], default: "in-progress" },
+    startDate: { type: Date, default: Date.now },
     planRounds: [
       {
         dayLabel: { type: String, required: true },

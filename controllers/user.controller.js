@@ -354,6 +354,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, markNotificationAsRead.data)
     }
+    async markAllNotificationsAsRead(req, res){
+        const userService = new UserService()
+        const markAllNotificationsAsRead = await userService.markAllNotificationsAsRead(req)
+        if(!markAllNotificationsAsRead.success){
+            return BaseController.sendFailedResponse(res, markAllNotificationsAsRead.data)
+        }
+        return BaseController.sendSuccessResponse(res, markAllNotificationsAsRead.data)
+    }
     async deleteNotifications(req, res){
         const userService = new UserService()
         const deleteNotifications = await userService.deleteNotifications(req)

@@ -32,6 +32,7 @@ exports.ROUTE_GET_NOTIFICATIONS = '/get-notifications'
 exports.ROUTE_BROADCAST_NOTIFICATION = '/broadcast-notification'
 exports.ROUTE_UPDATE_DEVICE_TOKEN = '/update-device-token'
 exports.ROUTE_MARK_NOTIFICATION_AS_READ = '/mark-notification-as-read'
+exports.ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ = '/mark-all-notifications-as-read'
 exports.ROUTE_DELETE_NOTIFICATION = '/delete-notification'
 exports.ROUTE_DELETE_ALL_NOTIFICATION = '/delete-all-notification'
 

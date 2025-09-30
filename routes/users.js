@@ -41,6 +41,7 @@ const {
   ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS,
   ROUTE_GET_USER_WEIGHT_LOSS,
   ROUTE_DELETE_ALL_NOTIFICATION,
+  ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1976,6 +1977,42 @@ router.post(ROUTE_BROADCAST_NOTIFICATION, adminAuth, (req, res) => {
 router.post(ROUTE_MARK_NOTIFICATION_AS_READ, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.markNotificationAsRead(req, res);
+});
+
+/**
+ * @swagger
+ * /users/mark-all-notifications-as-read:
+ *   post:
+ *     summary: Mark all notifications as read
+ *     description: Mark all notifications for the authenticated user as read.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: No request body needed.
+ *       required: false
+ *     responses:
+ *       200:
+ *         description: All notifications marked as read successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: All notifications marked as read successfully
+ *       401:
+ *         description: Unauthorized access
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ, adminAuth, (req, res) => {
+  const userController = new UserController();
+  return userController.markAllNotificationsAsRead(req, res);
 });
 
 /**

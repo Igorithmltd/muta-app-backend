@@ -1517,6 +1517,10 @@ router.get(ROUTE_TOTAL_COMPLETED_WORKOUTPLANS, auth, (req, res) => {
  *                             type: string
  *                             enum: [active, inactive]
  *                             example: "active"
+ *                           daysCompleted:
+ *                             type: integer
+ *                             description: Number of days completed in the workout plan
+ *                             example: 3
  *                           image:
  *                             type: object
  *                             properties:

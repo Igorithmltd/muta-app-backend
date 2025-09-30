@@ -2141,6 +2141,24 @@ class UserService extends BaseService {
       });
     }
   }
+  async markAllNotificationsAsRead(req) {
+    try {
+      // Assuming you want to mark all notifications for the logged-in user as read:
+      await NotificationModel.updateMany(
+        { userId: req.user.id, isRead: false }, // only unread notifications for that user
+        { $set: { isRead: true } }
+      );
+  
+      return BaseService.sendSuccessResponse({
+        message: "All notifications marked as read successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to mark notifications as read",
+      });
+    }
+  }
+  
   async deleteNotifications(req) {
     try {
       const { notificationids } = req.body;
