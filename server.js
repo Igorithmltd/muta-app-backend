@@ -2,7 +2,7 @@ require("dotenv").config();
 require("./lib/cron/updateDietStatus.js");
 require("./lib/cron/updateSubscriptionPlan.js");
 const express = require("express");
-const socketIO = require("socket.io");
+const {Server} = require("socket.io");
 const rateLimit = require("express-rate-limit");
 const http = require("http");
 const router = require("./routes");
@@ -29,7 +29,14 @@ const options = {
   maxHttpBufferSize: 1e7, // ~10MB
   cors: { origin: "*", methods: ["GET", "POST"] }
 };
-const io = socketIO(httpServer, options);
+// const io = socketIO(httpServer, options);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
 const corsOptions = {
   origin: "*",
@@ -188,6 +195,14 @@ io.on("connection", async (socket) => {
     });
   });
 });
+
+io.engine.on("upgrade", (req) => {
+  console.log("WebSocket upgrade request received");
+});
+io.engine.on("error", (err) => {
+  console.error("Engine error:", err);
+});
+
 
 
 // app.use("/webhook", express.raw({ type: "application/json" }));
