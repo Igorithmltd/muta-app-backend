@@ -1,6 +1,6 @@
 const CallController = require('../controllers/call-log.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS } = require('../util/page-route')
+const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -215,6 +215,11 @@ router.post(ROUTE_REJECT_CALL, [auth], (req, res)=>{
 router.post(ROUTE_GET_USER_CALL_LOGS+"/:id", [auth], (req, res)=>{
     const callController = new CallController()
     return callController.getUserCallLogs(req, res)
+})
+
+router.get(ROUTE_GET_AGORA_TOKEN+"/:id", [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.getAgoraToken(req, res)
 })
 
 module.exports = router

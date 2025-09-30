@@ -1,6 +1,6 @@
 const CallLogModel = require("../models/call-log.model");
 const BaseService = require("./base");
-
+import { RtcTokenBuilder, RtcRole } from "agora-access-token";
 class CallLogService extends BaseService {
   async initiateCall(req) {
     try {
@@ -211,6 +211,38 @@ class CallLogService extends BaseService {
       }).sort({ createdAt: -1 });
 
       return BaseService.sendSuccessResponse({ message: logs });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async getAgoraToken(req) {
+    try {
+      const appID = process.env.AGORA_APP_ID;
+      const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+      const channelName = req.query.channel;
+
+      if (!channelName) {
+        return BaseService.sendFailedResponse({ error: "Channel name is required" });
+      }
+
+      const uid = 0; // auto assign UID
+      const role = RtcRole.PUBLISHER;
+      const expirationTimeInSeconds = 3600; // 1 hour
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+      const token = RtcTokenBuilder.buildTokenWithUid(
+        appID,
+        appCertificate,
+        channelName,
+        uid,
+        role,
+        privilegeExpiredTs
+      );
+
+
+      return BaseService.sendSuccessResponse({ message: token });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
