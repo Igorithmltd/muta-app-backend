@@ -1,6 +1,7 @@
 const CallLogModel = require("../models/call-log.model");
 const BaseService = require("./base");
-import { RtcTokenBuilder, RtcRole } from "agora-access-token";
+const AgoraToken = require('agora-token')
+const RtcTokenBuilder = AgoraToken.RtcTokenBuilder
 class CallLogService extends BaseService {
   async initiateCall(req) {
     try {
@@ -227,7 +228,11 @@ class CallLogService extends BaseService {
       }
 
       const uid = 0; // auto assign UID
-      const role = RtcRole.PUBLISHER;
+      const RtcRole = {
+        ROLE_PUBLISHER: 1,
+        ROLE_SUBSCRIBER: 2,
+      };      
+      // const role = RtcRole.PUBLISHER;
       const expirationTimeInSeconds = 3600; // 1 hour
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
@@ -237,7 +242,7 @@ class CallLogService extends BaseService {
         appCertificate,
         channelName,
         uid,
-        role,
+        RtcRole.ROLE_PUBLISHER,
         privilegeExpiredTs
       );
 
