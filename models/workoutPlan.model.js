@@ -80,7 +80,7 @@ const WorkoutPlanSchema = new mongoose.Schema(
 );
 
 WorkoutPlanSchema.virtual("durationInDays").get(function () {
-  return this.playRounds.length;
+  return this.planRounds ? this.planRounds.length : 0;
 })
 
 WorkoutPlanSchema.statics.addNumberOfUsersToPlan = async function (plans){
