@@ -56,11 +56,12 @@ app.post("/webhook", express.raw({ type: "application/json" }), webhookFunction)
 app.use(express.json());
 app.use(cookieParser());
 
+
+app.set('trust proxy', 1);
 app.set("views", "./views");
 app.set("view engine", "ejs");
 
 app.options("*", cors(corsOptions));
-
 const limiter = rateLimit({
   max: 100,
   windowMs: 15 * 60 * 1000, // 15 minutes

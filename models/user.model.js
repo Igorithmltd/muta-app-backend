@@ -143,6 +143,10 @@ UserSchema.pre("save", async function (next) {
 
 UserSchema.methods.comparePassword = async function (password) {
   const user = this;
+  console.log({password, userPassword: user.password})
+  if (!password || !user.password) {
+    throw new Error('Missing password or hash for comparison');
+  }
   return await bcrypt.compare(password, user.password);
 };
 
