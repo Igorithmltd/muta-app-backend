@@ -300,13 +300,13 @@ class UserService extends BaseService {
       }
 
       if (userExists.servicePlatform !== "local") {
-        return BaseService.sendSuccessResponse({
+        return BaseService.sendFailedResponse({
           error: `Please login using the ${userExists.servicePlatform} platform`,
         });
       }
 
       if (!userExists.password) {
-        return BaseService.sendSuccessResponse({
+        return BaseService.sendFailedResponse({
           error: `Please login using the ${userExists.servicePlatform} platform`,
         });
       }
