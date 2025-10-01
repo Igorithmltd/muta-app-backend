@@ -156,6 +156,7 @@ class UserService extends BaseService {
         email,
         image: { imageUrl: picture, publicId: "" },
         isVerified: true,
+        servicePlatform: 'google',
         userType: post.userType,
       };
 
@@ -303,6 +304,14 @@ class UserService extends BaseService {
           error: `Please login using the ${userExists.servicePlatform} platform`,
         });
       }
+
+      if (!userExists.password) {
+        return BaseService.sendSuccessResponse({
+          error: `Please login using the ${userExists.servicePlatform} platform`,
+        });
+      }
+
+      
 
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
