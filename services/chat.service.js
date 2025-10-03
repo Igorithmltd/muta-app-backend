@@ -59,7 +59,8 @@ class UserService extends BaseService {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("sender")
+      .populate("senderId")
+      .populate("receiverId")
       .populate("likes")
       .populate("readBy");
   
