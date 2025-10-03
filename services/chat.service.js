@@ -3,6 +3,7 @@ const { empty } = require("../util");
 const validateData = require("../util/validate");
 const ChatRoomModel = require("../models/chatModel");
 const MessageModel = require("../models/message.model");
+const mongoose = require("mongoose");
 
 class UserService extends BaseService {
   async createPrivateChat(req) {
