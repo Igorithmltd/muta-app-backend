@@ -34,6 +34,14 @@ class ChatController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, generalChat.data)
     }
+    async searchMessage(req, res){
+        const chatService = new ChatService()
+        const searchMessage = await chatService.searchMessage(req)
+        if(!searchMessage.success){
+            return BaseController.sendFailedResponse(res, searchMessage.data)
+        }
+        return BaseController.sendSuccessResponse(res, searchMessage.data)
+    }
 }
 
 module.exports = ChatController

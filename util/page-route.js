@@ -122,6 +122,7 @@ exports.ROUTE_CREATE_PRIVATE_CHAT = '/create-private-chat'
 exports.ROUTE_GET_CHATS = '/get-chats'
 exports.ROUTE_GET_CHAT_MESSAGES = '/get-chat-messages'
 exports.ROUTE_GENERAL_CHAT = '/general-chat'
+exports.ROUTE_SEARCH_MESSAGE = '/search-message'
 
 //products
 exports.ROUTE_CREATE_PRODUCT = '/create-product'

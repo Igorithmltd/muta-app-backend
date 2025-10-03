@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -211,6 +211,90 @@ router.get(ROUTE_GET_CHAT_MESSAGES+"/:id", (req, res)=>{
 router.get(ROUTE_GENERAL_CHAT, (req, res)=>{
     const chatController = new ChatController()
     return chatController.generalChat(req, res)
+})
+
+/**
+ * @swagger
+ * /chat/search-message:
+ *   get:
+ *     summary: Search messages in a chat room by keyword
+ *     tags: [Chat]
+ *     parameters:
+ *       - in: query
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the chat room
+ *       - in: query
+ *         name: keyword
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Keyword to search within the messages
+ *     responses:
+ *       200:
+ *         description: List of matching messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messages:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       room:
+ *                         type: string
+ *                       senderId:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                       receiverId:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                       message:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *                         enum: [text, image, file]
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Missing or invalid parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: roomId and keyword are required
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Server error
+ */
+router.get(ROUTE_SEARCH_MESSAGE, (req, res)=>{
+    const chatController = new ChatController()
+    return chatController.searchMessage(req, res)
 })
 
 module.exports = router

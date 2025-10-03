@@ -74,12 +74,38 @@ class UserService extends BaseService {
   async generalChat(req) {
     const generalChat = await ChatRoomModel.findOne({ type: "general" }).populate("participants");
     if (!generalChat) {
-      return BaseService.sendFailedResponse({ message: "General chat room not found" });
+      return BaseService.sendFailedResponse({ error: "General chat room not found" });
     }
   
     return BaseService.sendSuccessResponse({
       message: generalChat
     });
+  }
+  async searchMessage(req) {
+    try {
+      const { roomId, keyword } = req.query;
+      if (!roomId) {
+        return BaseService.sendFailedResponse({ error: "roomId is required" });
+      }
+
+      if (!keyword) {
+        return BaseService.sendSuccessResponse({ message: [] });
+      }
+
+      const messages = await MessageModel.find({
+        room: roomId,
+        message: { $regex: keyword, $options: "i" }, 
+      })
+        .sort({ createdAt: -1 })
+        .populate("senderId") 
+        .populate("receiverId");
+    
+      return BaseService.sendSuccessResponse({
+        message: messages
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
   }
   
   
