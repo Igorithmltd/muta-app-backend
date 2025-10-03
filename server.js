@@ -18,6 +18,7 @@ const MessageModel = require("./models/message.model.js");
 const setupSwagger = require("./swagger");
 const CallLogModel = require("./models/call-log.model.js");
 const webhookFunction = require("./util/webhook.js");
+const ChatRoomModel = require("./models/chatModel.js");
 
 const port = process.env.PORT || 5000;
 const mongoURL = process.env.MONGODB_URL;
