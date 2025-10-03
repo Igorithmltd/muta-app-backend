@@ -97,6 +97,7 @@ io.use((socket, next) => {
 
 io.on("connection", async (socket) => {
   const userId = socket.handshake.auth.userId;
+  console.log({userId},'websocket connection attempt')
   if (!userId) return;
 
   users[userId] = socket.id;
