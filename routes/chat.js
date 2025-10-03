@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -179,7 +179,7 @@ router.get(ROUTE_GET_CHAT_MESSAGES+"/:id", (req, res)=>{
 
 /**
  * @swagger
- * /chat/rooms/general:
+ * /chat/general-chat:
  *   get:
  *     summary: Get information about the general (forum) room
  *     tags: [Chat]
@@ -207,5 +207,10 @@ router.get(ROUTE_GET_CHAT_MESSAGES+"/:id", (req, res)=>{
  *       500:
  *         description: Server error
  */
+
+router.get(ROUTE_GENERAL_CHAT, (req, res)=>{
+    const chatController = new ChatController()
+    return chatController.generalChat(req, res)
+})
 
 module.exports = router

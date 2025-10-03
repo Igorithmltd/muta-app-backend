@@ -71,6 +71,16 @@ class UserService extends BaseService {
       },
     });
   }
+  async generalChat(req) {
+    const generalChat = await ChatRoomModel.findOne({ type: "general" }).populate("participants");
+    if (!generalChat) {
+      return BaseService.sendFailedResponse({ message: "General chat room not found" });
+    }
+  
+    return BaseService.sendSuccessResponse({
+      message: generalChat
+    });
+  }
   
   
 }

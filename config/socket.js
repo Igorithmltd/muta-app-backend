@@ -42,7 +42,20 @@ function setupSocket(httpServer) {
       name: "general",
     });
     if (generalRoom) {
-      socket.join(generalRoom._id.toString());
+      const isParticipant = generalRoom.participants.some(
+        (id) => id.toString() === userId.toString()
+      );
+      if (!isParticipant) {
+        generalRoom.participants.push(userId);
+        await generalRoom.save();
+      }
+      const roomId = generalRoom._id.toString();
+      socket.join(roomId);
+
+      io.to(roomId).emit("userJoined", {
+        userId,
+        message: `User ${userId} joined the general room.`,
+      });
     }
 
     // 2. Join all rooms the user is a part of
