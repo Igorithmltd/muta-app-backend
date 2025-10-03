@@ -227,7 +227,7 @@ app.all("*", (req, res, next) => {
 
 app.use(errorController);
 
-app.listen(port, async () => {
+httpServer.listen(port, async () => {
   console.log(`Server running on ${port}`);
   await connectToMongoDB(mongoURL);
 });
