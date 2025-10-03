@@ -75,34 +75,11 @@ const WorkoutPlanSchema = new mongoose.Schema(
     ],
     averageRating: { type: Number, default: 0 },
     totalRatings: { type: Number, default: 0 },
+    durationInDays: { type: Number, default: 0 },
+    numberOfUsers: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
-
-WorkoutPlanSchema.virtual("durationInDays").get(function () {
-  return this.planRounds ? this.planRounds.length : 0;
-})
-
-WorkoutPlanSchema.statics.addNumberOfUsersToPlan = async function (plans){
-  const plansIds = plans.map(plan => plan._id)
-  const counts = await WorkoutPlanActionModel.aggregate([
-    {$match: {workoutPlanId: {$in: plansIds}}},
-    {$group: {_id: '$workoutPlanId', users: {$addToSet: '$userId'}}},
-    {$project: { numberOfUsers: {$size: '$users'}}}
-  ])
-  const countsMap = counts.reduce((acc, item) => {
-    acc[item._id.toString()] = item.numberOfUsers
-    return acc
-  })
-  return plans.map(plan=> {
-    const planObj = plan.toObject ? plan.toObject() : plan
-    planobj.numberOfUsers = countsMap[plan._id.toString()] || 0
-    return planObj
-  })
-}
-
-WorkoutPlanSchema.set("toObject", { virtuals: true })
-WorkoutPlanSchema.set("toJSON", { virtuals: true })
 
 const WorkoutPlanModel = mongoose.model("WorkoutPlan", WorkoutPlanSchema);
 module.exports = WorkoutPlanModel;

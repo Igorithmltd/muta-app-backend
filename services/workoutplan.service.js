@@ -10,6 +10,9 @@ const { sendPushNotification } = require("./firebase.service");
 const UserModel = require("../models/user.model");
 
 class WorkoutplanService extends BaseService {
+  static formatDate(date) {
+    return date.toLocaleString("en-US", { month: "short", day: "numeric" });
+  }
   async createWorkoutplan(req) {
     try {
       const post = req.body;
@@ -119,7 +122,7 @@ class WorkoutplanService extends BaseService {
       // return console.log('newChallenge')
 
       // Create a new challenge
-      const workoutplan = new WorkoutPlanModel(post);
+      const workoutplan = new WorkoutPlanModel({...post, durationInDays: post.planRounds.length});
       // Save the workoutplan to the database
       const savedWorkoutplan = await workoutplan.save();
 
@@ -141,8 +144,7 @@ class WorkoutplanService extends BaseService {
           createdAt: -1,
         })
         .populate("category");
-        const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(workoutplans)
-      return BaseService.sendSuccessResponse({ message: workoutplansWithUserCounts });
+      return BaseService.sendSuccessResponse({ message: workoutplans });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -291,9 +293,7 @@ class WorkoutplanService extends BaseService {
     }
 
     // Helper to format date strings like "Jul 23"
-    function formatDate(date) {
-      return date.toLocaleString("en-US", { month: "short", day: "numeric" });
-    }
+   
 
     // Generate planRounds with dayLabel and dayDate based on roundsCount or planRounds length
     const planRounds = [];
@@ -311,7 +311,7 @@ class WorkoutplanService extends BaseService {
 
     for (let i = 0; i < daysCount; i++) {
       const dayLabel = `Day ${i + 1}`;
-      const dayDate = formatDate(
+      const dayDate = WorkoutplanService.formatDate(
         new Date(today.getTime() + i * 24 * 60 * 60 * 1000)
       );
 
@@ -354,6 +354,8 @@ class WorkoutplanService extends BaseService {
     });
 
     await newWorkoutplanAction.save();
+    workoutplan.numberOfUsers += 1;
+    await workoutplan.save();
 
     await NotificationModel.create({
       userId,
@@ -700,14 +702,13 @@ class WorkoutplanService extends BaseService {
       })
         .populate("category")
         .sort({ createdAt: -1 });
-        const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(recommendedWorkoutplans)
       // if (empty(recommendedWorkoutplans)) {
       //   return BaseService.sendFailedResponse({
       //     error: "No recommended workout plan found",
       //   });
       // }
       return BaseService.sendSuccessResponse({
-        message: workoutplansWithUserCounts || [],
+        message: recommendedWorkoutplans || [],
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
@@ -1019,9 +1020,8 @@ class WorkoutplanService extends BaseService {
         })
       );
 
-      const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(enrichedWorkoutplans)
       return BaseService.sendSuccessResponse({
-        message: workoutplansWithUserCounts,
+        message: enrichedWorkoutplans || [],
       });
     } catch (error) {
       console.error("Error in searchDietByTitle:", error);
@@ -1068,14 +1068,13 @@ class WorkoutplanService extends BaseService {
           };
         })
       );
-      const workoutplansWithUserCounts = await WorkoutPlanModel.addNumberOfUsersToPlan(enrichedWorkoutplans)
 
       const totalPages = Math.ceil(totalCount / limit);
 
       return BaseService.sendSuccessResponse({
         message: "Workoutplans fetched successfully.",
         data: {
-          workoutplan: workoutplansWithUserCounts,
+          workoutplan: enrichedWorkoutplans || [],
           pagination: {
             totalCount,
             totalPages,
