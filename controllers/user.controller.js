@@ -218,6 +218,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, changePassword.data)
     }
+    async getAllVerfiedCoach(req, res){
+        const userService = new UserService()
+        const getAllVerfiedCoach = await userService.getAllVerfiedCoach(req)
+        if(!getAllVerfiedCoach.success){
+            return BaseController.sendFailedResponse(res, getAllVerfiedCoach.data)
+        }
+        return BaseController.sendSuccessResponse(res, getAllVerfiedCoach.data)
+    }
     async getCoachBySpecialty(req, res){
         const userService = new UserService()
         const getCoachBySpecialty = await userService.getCoachBySpecialty(req)

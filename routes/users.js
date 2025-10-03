@@ -42,6 +42,7 @@ const {
   ROUTE_GET_USER_WEIGHT_LOSS,
   ROUTE_DELETE_ALL_NOTIFICATION,
   ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ,
+  ROUTE_GET_VERIFIED_COACHES,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1206,6 +1207,62 @@ router.put(ROUTE_CHANGE_PASSWORD, adminAuth, (req, res) => {
 router.get(ROUTE_GET_COACHES_BY_SPECIALTY, auth, (req, res) => {
   const userController = new UserController();
   return userController.getCoachBySpecialty(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-verified-coaches:
+ *   get:
+ *     summary: Get list of coaches
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: List of matching coaches
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 60d21b4667d0d8992e610c85
+ *                   firstName:
+ *                     type: string
+ *                     example: Jane
+ *                   lastName:
+ *                     type: string
+ *                     example: Doe
+ *                   specialty:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["yoga", "meditation"]
+ *                   userType:
+ *                     type: string
+ *                     example: coach
+ *                   isVerifiedCoach:
+ *                     type: boolean
+ *                     example: true
+ *                   image:
+ *                     type: object
+ *                     properties:
+ *                       imageUrl:
+ *                         type: string
+ *                         example: https://example.com/jane.jpg
+ *                       publicId:
+ *                         type: string
+ *                         example: abc123
+ *       400:
+ *         description: Invalid query parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_GET_VERIFIED_COACHES, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getAllVerfiedCoach(req, res);
 });
 
 /**

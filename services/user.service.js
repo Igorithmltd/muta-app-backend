@@ -1411,6 +1411,25 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error });
     }
   }
+  async getAllVerfiedCoach(req) {
+    try {
+
+      const query = {
+        userType: "coach",
+        isVerifiedCoach: true
+      };
+
+      const coaches = await UserModel.find(query);
+
+      return BaseService.sendSuccessResponse({
+        message: coaches || [],
+      });
+      
+    } catch (error) {
+      console.log(error, "the admin error");
+      return BaseService.sendFailedResponse({ error });
+    }
+  }
   async getCoachBySpecialty(req) {
     try {
       const { specialty } = req.query;
