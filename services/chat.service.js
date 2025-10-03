@@ -35,7 +35,7 @@ class UserService extends BaseService {
     if(!mongoose.Types.ObjectId.isValid(id)){
       return BaseService.sendFailedResponse({ error: "Invalid chat room ID" });
     }
-    
+
     const afterTime = req.query.afterTime ? new Date(req.query.afterTime) : null;
     const beforeTime = req.query.beforeTime ? new Date(req.query.beforeTime) : null;
   
@@ -76,7 +76,7 @@ class UserService extends BaseService {
     });
   }
   async generalChat(req) {
-    const generalChat = await ChatRoomModel.findOne({ type: "general" }).populate("participants");
+    const generalChat = await ChatRoomModel.findOne({ name: "general" }).populate("participants");
     if (!generalChat) {
       return BaseService.sendFailedResponse({ error: "General chat room not found" });
     }

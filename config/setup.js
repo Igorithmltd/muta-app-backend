@@ -3,7 +3,7 @@ const ChatRoomModel = require("../models/chatModel");
 
 const initGroupChat = async () => {
   try {
-    const existing = await ChatRoomModel.findOne();
+    const existing = await ChatRoomModel.findOne({type: 'group', name: 'general'});
 
     if (!existing) {
       const defaultSettings = {
