@@ -240,7 +240,7 @@ router.get(ROUTE_GENERAL_CHAT, (req, res)=>{
  *             schema:
  *               type: object
  *               properties:
- *                 messages:
+ *                 message:
  *                   type: array
  *                   items:
  *                     type: object
