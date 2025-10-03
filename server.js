@@ -15,6 +15,7 @@ const webhookFunction = require("./util/webhook.js");
 const setupSocket = require("./config/socket.js");
 const limiter = require("./middlewares/rateLimiter.js");
 const corsMiddleware = require('./config/cors.js');
+const setupApp = require("./config/setup.js");
 
 
 const port = process.env.PORT || 5000;
@@ -69,6 +70,7 @@ app.use(errorController);
 
 setupSocket(httpServer)
 
+setupApp()
 httpServer.listen(port, async () => {
   console.log(`Server running on ${port}`);
   await connectToMongoDB(mongoURL);
