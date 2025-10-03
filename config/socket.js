@@ -74,6 +74,29 @@ function setupSocket(httpServer) {
       });
     });
 
+    // Mark messages as read
+    socket.on("markAsRead", async ({ roomId, messageIds }) => {
+      try {
+        // Add current userId to readBy array of each message
+        await MessageModel.updateMany(
+          {
+            _id: { $in: messageIds },
+            room: roomId,
+            readBy: { $ne: socket.userId },
+          },
+          { $push: { readBy: socket.userId } }
+        );
+
+        // Optionally emit an event back to notify others in the room
+        io.to(roomId).emit("messagesRead", {
+          userId: socket.userId,
+          messageIds,
+        });
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
+    });
+
     // =================== LISTEN TO CALL ACTIONS ===================
     socket.on("end_call", async (data) => {
       // Update DB and notify other party
