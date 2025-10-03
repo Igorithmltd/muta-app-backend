@@ -145,6 +145,45 @@ function setupSocket(httpServer) {
       socket.to(roomId).emit("isTyping", { senderId: userId, isTyping });
     });
 
+    // Like or unlike a message
+    socket.on("likeMessage", async ({ messageId }) => {
+      try {
+        const userId = socket.userId;
+
+        const message = await MessageModel.findById(messageId);
+        if (!message) {
+          return socket.emit("error", { message: "Message not found" });
+        }
+
+        const hasLiked = message.likes.some(
+          (likeUserId) => likeUserId.toString() === userId.toString()
+        );
+
+        if (hasLiked) {
+          // Unlike: remove userId from likes array
+          message.likes = message.likes.filter(
+            (likeUserId) => likeUserId.toString() !== userId.toString()
+          );
+        } else {
+          // Like: add userId to likes array
+          message.likes.push(userId);
+        }
+
+        await message.save();
+
+        // Emit updated likes to room members
+        io.to(message.room.toString()).emit("messageLiked", {
+          messageId,
+          likes: message.likes,
+          likedBy: userId,
+          action: hasLiked ? "unliked" : "liked",
+        });
+      } catch (error) {
+        console.error("Error liking message:", error);
+        socket.emit("error", { message: "Could not like the message" });
+      }
+    });
+
     // =================== NUDGE ===================
     socket.on("nudge", (targetUserId) => {
       const targetSocketId = users[targetUserId];

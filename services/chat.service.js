@@ -32,6 +32,10 @@ class UserService extends BaseService {
   }
   async getChatMessages(req) {
     const { id } = req.params;
+    if(!mongoose.Types.ObjectId.isValid(id)){
+      return BaseService.sendFailedResponse({ error: "Invalid chat room ID" });
+    }
+    
     const afterTime = req.query.afterTime ? new Date(req.query.afterTime) : null;
     const beforeTime = req.query.beforeTime ? new Date(req.query.beforeTime) : null;
   
