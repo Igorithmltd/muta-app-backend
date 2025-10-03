@@ -9,6 +9,7 @@ const router = require("./routes");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectToMongoDB = require("./db/connect.js");
+const jwt = require('jsonwebtoken');
 
 const errorController = require("./controllers/error.controller.js");
 const AppError = require("./util/appError.js");
