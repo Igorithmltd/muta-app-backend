@@ -162,8 +162,8 @@ class UserService extends BaseService {
         message: { $regex: keyword, $options: "i" },
       })
         .sort({ createdAt: -1 })
-        .populate("senderId")
-        .populate("receiverId");
+        .populate("senderId", "firstName lastName email")
+        .populate("receiverId", "firstName lastName email");
 
       return BaseService.sendSuccessResponse({
         message: messages,
