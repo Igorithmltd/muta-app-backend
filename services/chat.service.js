@@ -36,7 +36,7 @@ class UserService extends BaseService {
     });
 
     return BaseService.sendSuccessResponse({
-      message: "Message sent successfully",
+      message: newMessage,
     });
   }
   async createPrivateChat(req) {

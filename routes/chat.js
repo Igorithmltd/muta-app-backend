@@ -81,6 +81,48 @@ router.post(ROUTE_CREATE_PRIVATE_CHAT, (req, res)=>{
  *     responses:
  *       201:
  *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 651d0a8e9d4c1c001f8d4e8a
+ *                     senderId:
+ *                       type: string
+ *                       example: 651d0a8e9d4c1c001f8d4e89
+ *                     receiverId:
+ *                       type: string
+ *                       example: 651d0a8e9d4c1c001f8d4e90
+ *                     room:
+ *                       type: string
+ *                       example: 651d0a8e9d4c1c001f8d4e91
+ *                     message:
+ *                       type: string
+ *                       example: "Hello, how are you?"
+ *                     type:
+ *                       type: string
+ *                       example: "text"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-10-03T18:00:00.000Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-10-03T18:00:00.000Z"
+ *                     readBy:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     likes:
+ *                       type: array
+ *                       items:
+ *                         type: string
  *       400:
  *         description: Invalid input
  *       401:
