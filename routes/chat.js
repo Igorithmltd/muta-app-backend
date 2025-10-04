@@ -2,6 +2,7 @@ const ChatController = require('../controllers/chat.controller')
 const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE } = require('../util/page-route')
 
 const router = require('express').Router()
+const auth = require('../middlewares/auth')
 
 /**
  * @swagger
@@ -41,7 +42,7 @@ const router = require('express').Router()
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_CREATE_PRIVATE_CHAT, (req, res)=>{
+router.post(ROUTE_CREATE_PRIVATE_CHAT, auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.createPrivateChat(req, res)
 })
@@ -130,7 +131,7 @@ router.post(ROUTE_CREATE_PRIVATE_CHAT, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_SEND_MESSAGE, (req, res)=>{
+router.post(ROUTE_SEND_MESSAGE, auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.createMessage(req, res)
 })
@@ -170,7 +171,7 @@ router.post(ROUTE_SEND_MESSAGE, (req, res)=>{
  *                         items:
  *                           type: string
  */
-router.get(ROUTE_GET_CHATS, (req, res)=>{
+router.get(ROUTE_GET_CHATS, auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.getMyChats(req, res)
 })
@@ -260,7 +261,7 @@ router.get(ROUTE_GET_CHATS, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_CHAT_MESSAGES+"/:id", (req, res)=>{
+router.get(ROUTE_GET_CHAT_MESSAGES+"/:id", auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.getChatMessages(req, res)
 })
@@ -297,7 +298,7 @@ router.get(ROUTE_GET_CHAT_MESSAGES+"/:id", (req, res)=>{
  *         description: Server error
  */
 
-router.get(ROUTE_GENERAL_CHAT, (req, res)=>{
+router.get(ROUTE_GENERAL_CHAT, auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.generalChat(req, res)
 })
@@ -381,7 +382,7 @@ router.get(ROUTE_GENERAL_CHAT, (req, res)=>{
  *                   type: string
  *                   example: Server error
  */
-router.get(ROUTE_SEARCH_MESSAGE, (req, res)=>{
+router.get(ROUTE_SEARCH_MESSAGE, auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.searchMessage(req, res)
 })
