@@ -43,6 +43,7 @@ const MessageSchema = new mongoose.Schema(
   }
 );
 
+MessageSchema.index({message: 'text'});
 // ✅ Add virtual field for like count
 MessageSchema.virtual("likeCount").get(function () {
   return this.likes?.length || 0;

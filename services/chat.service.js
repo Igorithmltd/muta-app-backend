@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 class UserService extends BaseService {
   async createMessage(req) {
     const post = req.body;
-    const userId = req.user.id
+    const userId = req.user.id;
 
     const validateRule = {
       roomId: "string|required",
@@ -122,8 +122,22 @@ class UserService extends BaseService {
     const totalMessages = await MessageModel.countDocuments(filter);
     const totalPages = Math.ceil(totalMessages / limit);
 
+    const enrichedMessages = messages.map((msg) => {
+      const msgObj = msg.toObject();
+
+      msgObj.isLikedByMe = msg.likes.some(
+        (likedUser) => likedUser._id.toString() === userId.toString()
+      );
+
+      // msgObj.isReadByMe = msg.readBy.some(
+      //   (reader) => reader._id.toString() === userId.toString()
+      // );
+
+      return msgObj;
+    });
+
     return BaseService.sendSuccessResponse({
-      message: messages,
+      message: enrichedMessages,
       pagination: {
         page,
         limit,
@@ -159,7 +173,7 @@ class UserService extends BaseService {
 
       const messages = await MessageModel.find({
         roomId: roomId,
-        message: { $regex: keyword, $options: "i" },
+        $text: { $search: keyword },
       })
         .sort({ createdAt: -1 })
         .populate("senderId", "firstName lastName email image")
@@ -167,8 +181,22 @@ class UserService extends BaseService {
         .populate("likes")
         .populate("readBy", "firstName lastName email image");
 
+      const enrichedMessages = messages.map((msg) => {
+        const msgObj = msg.toObject();
+
+        msgObj.isLikedByMe = msg.likes.some(
+          (likedUser) => likedUser._id.toString() === userId.toString()
+        );
+
+        // msgObj.isReadByMe = msg.readBy.some(
+        //   (reader) => reader._id.toString() === userId.toString()
+        // );
+
+        return msgObj;
+      });
+
       return BaseService.sendSuccessResponse({
-        message: messages,
+        message: enrichedMessages,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: error.message });
