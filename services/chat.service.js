@@ -163,6 +163,7 @@ class UserService extends BaseService {
   async searchMessage(req) {
     try {
       const { roomId, keyword } = req.query;
+      console.log("called...");
       if (!roomId) {
         return BaseService.sendFailedResponse({ error: "roomId is required" });
       }
@@ -173,13 +174,14 @@ class UserService extends BaseService {
 
       const messages = await MessageModel.find({
         roomId: roomId,
-        $text: { $search: keyword },
+        message: { $regex: keyword, $options: "i" }, // contains keyword anywhere
       })
         .sort({ createdAt: -1 })
         .populate("senderId", "firstName lastName email image")
         .populate("receiverId", "firstName lastName email image")
         .populate("likes")
         .populate("readBy", "firstName lastName email image");
+
 
       const enrichedMessages = messages.map((msg) => {
         const msgObj = msg.toObject();
