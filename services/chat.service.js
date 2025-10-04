@@ -100,7 +100,7 @@ class UserService extends BaseService {
     const skip = (page - 1) * limit;
 
     // Build the query filter dynamically
-    const filter = { room: id };
+    const filter = { roomId: id };
 
     if (afterTime && beforeTime) {
       filter.createdAt = { $gt: afterTime, $lt: beforeTime };
