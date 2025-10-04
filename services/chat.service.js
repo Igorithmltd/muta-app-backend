@@ -31,6 +31,7 @@ class UserService extends BaseService {
     const newMessage = await MessageModel.create({
       senderId: userId,
       ...(receiverId && { receiverId }),
+      readBy: [userId],
       message: message,
       roomId: roomId,
     });
