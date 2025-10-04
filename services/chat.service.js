@@ -32,7 +32,7 @@ class UserService extends BaseService {
       senderId: userId,
       ...(receiverId && { receiverId }),
       message: message,
-      room: roomId,
+      roomId: roomId,
     });
 
     return BaseService.sendSuccessResponse({
