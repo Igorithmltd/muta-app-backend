@@ -204,6 +204,41 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
+  async likeMessage(req) {
+    try {
+      const userId = req.user.id; // assuming you have auth middleware
+    const { messageId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return BaseService.sendFailedResponse({ error: "Invalid message ID" });
+    }
+    const message = await MessageModel.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    const hasLiked = message.likes.some(
+      (likeUserId) => likeUserId.toString() === userId.toString()
+    );
+
+    if (hasLiked) {
+      // Unlike
+      message.likes = message.likes.filter(
+        (likeUserId) => likeUserId.toString() !== userId.toString()
+      );
+    } else {
+      // Like
+      message.likes.push(userId);
+    }
+
+    await message.save();
+
+      return BaseService.sendSuccessResponse({
+        message: `Message ${hasLiked ? "unliked" : "liked"} successfully`,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
 }
 
 module.exports = UserService;

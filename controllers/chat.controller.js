@@ -50,6 +50,14 @@ class ChatController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, searchMessage.data)
     }
+    async likeMessage(req, res){
+        const chatService = new ChatService()
+        const likeMessage = await chatService.likeMessage(req)
+        if(!likeMessage.success){
+            return BaseController.sendFailedResponse(res, likeMessage.data)
+        }
+        return BaseController.sendSuccessResponse(res, likeMessage.data)
+    }
 }
 
 module.exports = ChatController

@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE, ROUTE_LIKE_UNLIKE_MESSAGE } = require('../util/page-route')
 
 const router = require('express').Router()
 const auth = require('../middlewares/auth')
@@ -382,6 +382,71 @@ router.get(ROUTE_GENERAL_CHAT, auth, (req, res)=>{
 router.get(ROUTE_SEARCH_MESSAGE, auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.searchMessage(req, res)
+})
+
+/**
+ * @swagger
+ * /chat/like-unlike-message/{messageId}:
+ *   put:
+ *     summary: Like or unlike a message
+ *     description: Toggles the like status of a message for the currently authenticated user.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the message to like or unlike
+ *     responses:
+ *       200:
+ *         description: Like status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Message like status updated
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     messageId:
+ *                       type: string
+ *                       example: 651dfaaab12a24c87b99b101
+ *                     likeCount:
+ *                       type: integer
+ *                       example: 3
+ *                     likedByMe:
+ *                       type: boolean
+ *                       example: true
+ *       404:
+ *         description: Message not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Message not found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.put(ROUTE_LIKE_UNLIKE_MESSAGE+"/:id", auth, (req, res)=>{
+    const chatController = new ChatController()
+    return chatController.likeMessage(req, res)
 })
 
 module.exports = router
