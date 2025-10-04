@@ -10,6 +10,14 @@ class ChatController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, createPrivateChat.data)
     }
+    async createMessage(req, res){
+        const chatService = new ChatService()
+        const createMessage = await chatService.createMessage(req)
+        if(!createMessage.success){
+            return BaseController.sendFailedResponse(res, createMessage.data)
+        }
+        return BaseController.sendSuccessResponse(res, createMessage.data)
+    }
     async getMyChats(req, res){
         const chatService = new ChatService()
         const getMyChats = await chatService.getMyChats(req)

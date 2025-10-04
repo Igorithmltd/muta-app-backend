@@ -11,7 +11,7 @@ const MessageSchema = new mongoose.Schema(
     receiverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       // unique: true,
     },
     room: {

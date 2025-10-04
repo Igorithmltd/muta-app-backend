@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_CREATE_MESSAGE } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -44,6 +44,53 @@ const router = require('express').Router()
 router.post(ROUTE_CREATE_PRIVATE_CHAT, (req, res)=>{
     const chatController = new ChatController()
     return chatController.createPrivateChat(req, res)
+})
+
+/**
+ * @swagger
+ * /chat/send-message:
+ *   post:
+ *     summary: Send a new message to a chat room (group or private)
+ *     tags:
+ *       - Chat
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - roomId
+ *               - message
+ *             properties:
+ *               roomId:
+ *                 type: string
+ *                 description: ID of the chat room
+ *               receiverId:
+ *                 type: string
+ *                 description: ID of the recipient (for private chats only)
+ *               message:
+ *                 type: string
+ *                 description: The message content
+ *               type:
+ *                 type: string
+ *                 enum: [text, image, file, audio, video]
+ *                 default: text
+ *     responses:
+ *       201:
+ *         description: Message sent successfully
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_CREATE_MESSAGE, (req, res)=>{
+    const chatController = new ChatController()
+    return chatController.createMessage(req, res)
 })
 
 /**
