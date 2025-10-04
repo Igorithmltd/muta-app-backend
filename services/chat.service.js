@@ -26,7 +26,7 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
 
-    const { message, roomId } = post;
+    const { message, roomId, receiverId } = post;
 
     const newMessage = await MessageModel.create({
       senderId: userId,
