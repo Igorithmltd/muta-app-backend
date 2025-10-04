@@ -158,7 +158,7 @@ class UserService extends BaseService {
       }
 
       const messages = await MessageModel.find({
-        room: roomId,
+        roomId: roomId,
         message: { $regex: keyword, $options: "i" },
       })
         .sort({ createdAt: -1 })
