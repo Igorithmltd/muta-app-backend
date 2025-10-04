@@ -118,20 +118,20 @@ function setupSocket(httpServer) {
     });
 
     // =================== SEND MESSAGE ===================
-    socket.on("sendMessage", async ({ roomId, message, type = "text" }) => {
+    socket.on("sendMessage", async ({ roomId, message, type = "text", createdAt }) => {
       try {
-        const newMessage = await MessageModel.create({
-          sender: userId,
-          room: roomId,
-          message,
-          type,
-        });
+        // const newMessage = await MessageModel.create({
+        //   sender: userId,
+        //   room: roomId,
+        //   message,
+        //   type,
+        // });
 
         io.to(roomId).emit("receiveMessage", {
           roomId,
           senderId: userId,
-          message: newMessage.message,
-          createdAt: newMessage.createdAt,
+          message: message,
+          createdAt: createdAt,
         });
       } catch (error) {
         console.error("Error sending message:", error);
