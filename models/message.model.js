@@ -6,13 +6,11 @@ const MessageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      // unique: true,
     },
     receiverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: false,
-      // unique: true,
     },
     roomId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -38,8 +36,17 @@ const MessageSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+// ✅ Add virtual field for like count
+MessageSchema.virtual("likeCount").get(function () {
+  return this.likes?.length || 0;
+});
 
 const MessageModel = mongoose.model("Message", MessageSchema);
 module.exports = MessageModel;
