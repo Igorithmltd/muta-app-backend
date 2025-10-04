@@ -114,10 +114,10 @@ class UserService extends BaseService {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("senderId")
-      .populate("receiverId")
+      .populate("senderId", "firstName lastName email image")
+      .populate("receiverId", "firstName lastName email image")
       .populate("likes")
-      .populate("readBy");
+      .populate("readBy", "firstName lastName email image");
 
     const totalMessages = await MessageModel.countDocuments(filter);
     const totalPages = Math.ceil(totalMessages / limit);
@@ -164,6 +164,8 @@ class UserService extends BaseService {
         .sort({ createdAt: -1 })
         .populate("senderId", "firstName lastName email image")
         .populate("receiverId", "firstName lastName email image");
+        .populate("likes")
+        .populate("readBy", "firstName lastName email image");
 
       return BaseService.sendSuccessResponse({
         message: messages,
