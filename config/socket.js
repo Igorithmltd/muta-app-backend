@@ -119,7 +119,8 @@ function setupSocket(httpServer) {
     });
 
     // =================== SEND MESSAGE ===================
-    socket.on("sendMessage", async ({ roomId, message }) => {
+    socket.on("sendMessage", async (data) => {
+      const roomId = data?.roomId || null
       try {
         // const newMessage = await MessageModel.create({
         //   sender: userId,
@@ -128,10 +129,7 @@ function setupSocket(httpServer) {
         //   type,
         // });
 
-        socket.to(roomId).emit("receiveMessage", {
-          roomId,
-          message
-        });
+        socket.to(roomId).emit("receiveMessage", data);
       } catch (error) {
         console.error("Error sending message:", error);
       }
