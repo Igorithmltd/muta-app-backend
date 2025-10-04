@@ -120,7 +120,7 @@ exports.ROUTE_CATEGORY = '/category'
 
 //chat
 exports.ROUTE_CREATE_PRIVATE_CHAT = '/create-private-chat'
-exports.ROUTE_CREATE_MESSAGE = '/create-message'
+exports.ROUTE_SEND_MESSAGE = '/send-message'
 exports.ROUTE_GET_CHATS = '/get-chats'
 exports.ROUTE_GET_CHAT_MESSAGES = '/get-chat-messages'
 exports.ROUTE_GENERAL_CHAT = '/general-chat'

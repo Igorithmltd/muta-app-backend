@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_MY_CHATS, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_CREATE_MESSAGE } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -130,7 +130,7 @@ router.post(ROUTE_CREATE_PRIVATE_CHAT, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_CREATE_MESSAGE, (req, res)=>{
+router.post(ROUTE_SEND_MESSAGE, (req, res)=>{
     const chatController = new ChatController()
     return chatController.createMessage(req, res)
 })
