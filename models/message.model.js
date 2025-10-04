@@ -14,7 +14,7 @@ const MessageSchema = new mongoose.Schema(
       required: false,
       // unique: true,
     },
-    room: {
+    roomId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ChatRoom",
       required: true,
