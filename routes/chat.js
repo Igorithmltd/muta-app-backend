@@ -93,9 +93,6 @@ router.post(ROUTE_CREATE_PRIVATE_CHAT, auth, (req, res)=>{
  *                     _id:
  *                       type: string
  *                       example: 651d0a8e9d4c1c001f8d4e8a
- *                     senderId:
- *                       type: string
- *                       example: 651d0a8e9d4c1c001f8d4e89
  *                     receiverId:
  *                       type: string
  *                       example: 651d0a8e9d4c1c001f8d4e90
