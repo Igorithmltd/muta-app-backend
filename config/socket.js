@@ -169,7 +169,7 @@ function setupSocket(httpServer) {
         // await message.save();
 
         // Emit updated likes to room members
-        io.to(message.roomId.toString()).emit("messageLiked", {...message, hasLiked: hasLiked});
+        io.to(message.roomId.toString()).emit("messageLiked", {messageId, likeCount: message.likes.length});
       } catch (error) {
         console.error("Error liking message:", error);
         socket.emit("error", { message: "Could not like the message" });
