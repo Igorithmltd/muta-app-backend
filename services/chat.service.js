@@ -75,12 +75,17 @@ class UserService extends BaseService {
     return BaseService.sendSuccessResponse({ message: chat });
   }
   async getMyChats(req) {
-    const userId = req.user.id;
-
-    const chats = await ChatRoomModel.find({ participants: userId }).populate(
-      "participants"
-    );
-    return BaseService.sendSuccessResponse({ message: chats });
+    try {
+      
+      const userId = req.user.id;
+  
+      const chats = await ChatRoomModel.find({ participants: userId, type: 'private' }).populate(
+        "participants"
+      );
+      return BaseService.sendSuccessResponse({ message: chats });
+    } catch (error) {
+      return BaseService.sendFailedResponse({error: error.message})
+    }
   }
   async getChatMessages(req) {
     const { id } = req.params;
@@ -208,7 +213,7 @@ class UserService extends BaseService {
     try {
       const userId = req.user.id; // assuming you have auth middleware
     const { id: messageId } = req.params;
-    console.log("Message ID to like/unlike:", messageId);
+
     if (!mongoose.Types.ObjectId.isValid(messageId)) {
       return BaseService.sendFailedResponse({ error: "Invalid message ID" });
     }
