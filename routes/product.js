@@ -22,57 +22,89 @@ const router = require('express').Router()
  *               - title
  *               - price
  *               - category
- *               - stock
+ *               - description
+ *               - keyFeatures
+ *               - images
+ *               - variations
  *             properties:
  *               title:
  *                 type: string
  *                 description: Title of the product
- *                 example: hand bell one
+ *                 example: Men's Running Shoe
  *               description:
  *                 type: string
  *                 description: Description of the product
- *                 example: hand bell description
+ *                 example: Lightweight and breathable running shoe
  *               price:
  *                 type: number
- *                 description: Price of the product
+ *                 description: Base price of the product
  *                 example: 5500
  *               category:
  *                 type: string
  *                 description: Category of the product
- *                 example: weight burn
- *               color:
- *                     type: array
- *                     items:
- *                       type: string
- *                     description: Colors of the product
- *                     example: ["#fffbee", "#000000"]
- *               size:
- *                     type: array
- *                     items:
- *                       type: string
- *                     description: Colors of the product
- *                     example: ["#fffbee", "#000000"]
+ *                 example: Footwear
  *               keyFeatures:
- *                     type: array
- *                     items:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Key features of the product
+ *                 example: ["lightweight", "durable"]
+ *               images:
+ *                 type: array
+ *                 description: General product images
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     imageUrl:
  *                       type: string
- *                     description: Key features of the product
- *                     example: ["lightweight", "durable"]
- *               stock:
- *                 type: number
- *                 description: Available stock of the product
- *                 example: 44
- *               image:
- *                 type: object
- *                 description: Product image details
- *                 properties:
- *                   imageUrl:
- *                     type: string
- *                     format: uri
- *                     example: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQPd9rxSyLvQEvW8TqQ6T_5Z5xhyeKFoUnAw&s
- *                   publicId:
- *                     type: string
- *                     example: publicIdone
+ *                       format: uri
+ *                       example: https://example.com/image.jpg
+ *                     publicId:
+ *                       type: string
+ *                       example: product-image-public-id
+ *               variations:
+ *                 type: array
+ *                 description: Product variations (color, size, stock)
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - color
+ *                     - size
+ *                     - stock
+ *                   properties:
+ *                     color:
+ *                       type: string
+ *                       description: Color of the variation
+ *                       example: Red
+ *                     size:
+ *                       type: string
+ *                       description: Size of the variation
+ *                       example: "42"
+ *                     stock:
+ *                       type: number
+ *                       description: Stock available for this variation
+ *                       example: 10
+ *                     price:
+ *                       type: number
+ *                       description: Optional price override for the variation
+ *                       example: 5800
+ *                     sku:
+ *                       type: string
+ *                       description: SKU for the variation
+ *                       example: SHOE-RED-42
+ *                     images:
+ *                       type: array
+ *                       description: Images specific to this variation
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           imageUrl:
+ *                             type: string
+ *                             format: uri
+ *                             example: https://example.com/variation-image.jpg
+ *                           publicId:
+ *                             type: string
+ *                             example: variation-image-public-id
  *     responses:
  *       201:
  *         description: Product created successfully
@@ -369,7 +401,7 @@ router.delete(ROUTE_DELETE_PRODUCT+"/:id", adminAuth, (req, res)=>{
  */
 router.post(ROUTE_CREATE_PRODUCT_CATEGORY, adminAuth, (req, res)=>{
     const productController = new ProductController()
-    return productController.createProduct(req, res)
+    return productController.createProductCategory(req, res)
 })
 
 /**

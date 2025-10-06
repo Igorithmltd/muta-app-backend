@@ -19,6 +19,7 @@ const auth = require("../middlewares/auth");
  *           schema:
  *             type: object
  *             required:
+ *               - paymentMethod
  *               - shippingAddress
  *             properties:
  *               paymentMethod:
@@ -27,13 +28,20 @@ const auth = require("../middlewares/auth");
  *                 example: paystack
  *               shippingAddress:
  *                 type: object
+ *                 required:
+ *                   - address
+ *                   - fullName
+ *                   - phoneNumber
+ *                   - city
+ *                   - region
+ *                   - deliveryNote
  *                 properties:
  *                   address:
  *                     type: string
  *                     example: "123 Main St"
  *                   fullName:
  *                     type: string
- *                     example: "John doe"
+ *                     example: "John Doe"
  *                   phoneNumber:
  *                     type: string
  *                     example: "09183279483"
@@ -45,7 +53,7 @@ const auth = require("../middlewares/auth");
  *                     example: "Anambra"
  *                   deliveryNote:
  *                     type: string
- *                     example: "And that is the end of the story"
+ *                     example: "Leave package at the door"
  *     responses:
  *       201:
  *         description: Order created successfully
@@ -56,7 +64,10 @@ const auth = require("../middlewares/auth");
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Order placed successfully
+ *                   example: Order created successfully
+ *                 order:
+ *                   type: object
+ *                   description: The created order details
  *       400:
  *         description: Cart is empty or invalid request
  *       401:

@@ -4,51 +4,73 @@ const ProductCategoryModel = require("../models/productCategory.model");
 const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
+const FavoriteProductModel = require("../models/favorite.model");
 
 class ProductService extends BaseService {
   async createProduct(req) {
     try {
       const post = req.body;
+  
+      // Validate main product fields
       const validateRule = {
         title: "string|required",
         description: "string|required",
         price: "integer|required",
         category: "string|required",
-        color: "array|required",
-        size: "array|required",
         keyFeatures: "array|required",
-        stock: "integer|required",
         images: "array|required",
+        variations: "array|required|min:1",
       };
+  
       const validateMessage = {
         required: ":attribute is required",
         "string.string": ":attribute must be a string.",
-        "integer.integer": ":attribute must be a integer.",
+        "integer.integer": ":attribute must be an integer.",
+        "array.array": ":attribute must be an array.",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
+      // Extra manual validation for variations
+      for (const variation of post.variations) {
+        if (
+          !variation.color ||
+          !variation.size ||
+          typeof variation.stock !== 'number'
+        ) {
+          return BaseService.sendFailedResponse({
+            error: "Each variation must have color, size, and stock (number)",
+          });
+        }
+      }
+  
+      // Check if product already exists
       const existingProduct = await ProductModel.findOne({
         title: post.title,
       });
+  
       if (existingProduct) {
         return BaseService.sendFailedResponse({
           error: "Product with this title already exists",
         });
       }
+  
+      // Create and save the product
       const newProduct = new ProductModel(post);
       await newProduct.save();
+  
       return BaseService.sendSuccessResponse({
         message: "Product created successfully",
       });
+  
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }
+  }  
   async getAllProducts(req) {
     try {
       const filter = req.query.category ? { category: req.query.category } : {};
@@ -245,26 +267,41 @@ class ProductService extends BaseService {
     try {
       const userId = req.user.id;
       const { productId } = req.body;
-
+  
+      // Ensure product exists
       const product = await ProductModel.findById(productId);
       if (!product) {
         return BaseService.sendFailedResponse({ error: "Product not found" });
       }
-
-      const user = await UserModel.findById(userId);
-      if (user.favorites.includes(productId)) {
-        return BaseService.sendSuccessResponse({
-          message: "Product is already in favorites",
+  
+      // Find or create the user's favorite record
+      let favoriteRecord = await FavoriteProductModel.findOne({ userId });
+  
+      if (favoriteRecord) {
+        // Check if already favorited
+        if (favoriteRecord.product.includes(productId)) {
+          return BaseService.sendSuccessResponse({
+            message: "Product is already in favorites",
+          });
+        }
+  
+        // Add product to existing favorites
+        favoriteRecord.product.push(productId);
+      } else {
+        // Create new favorite record
+        favoriteRecord = new FavoriteProductModel({
+          userId,
+          product: [productId],
         });
       }
-
-      user.favorites.push(productId);
-      await user.save();
-
+  
+      await favoriteRecord.save();
+  
       return BaseService.sendSuccessResponse({
         message: "Product added to favorites",
       });
     } catch (error) {
+      console.error("Add to favorites error:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
@@ -274,23 +311,26 @@ class ProductService extends BaseService {
     try {
       const userId = req.user.id;
       const { productId } = req.body;
-
-      const user = await UserModel.findById(userId);
-      if (!user.favorites.includes(productId)) {
+  
+      const favoriteRecord = await FavoriteProductModel.findOne({ userId });
+  
+      if (!favoriteRecord || !favoriteRecord.product.includes(productId)) {
         return BaseService.sendFailedResponse({
           message: "Product is not in favorites",
         });
       }
-
-      user.favorites = user.favorites.filter(
+  
+      // Filter out the productId
+      favoriteRecord.product = favoriteRecord.product.filter(
         (favId) => favId.toString() !== productId
       );
-      await user.save();
-
+      await favoriteRecord.save();
+  
       return BaseService.sendSuccessResponse({
         message: "Product removed from favorites",
       });
     } catch (error) {
+      console.error("Remove from favorites error:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });

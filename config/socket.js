@@ -120,6 +120,7 @@ function setupSocket(httpServer) {
 
     // =================== SEND MESSAGE ===================
     socket.on("sendMessage", async (data) => {
+      console.log("sendMessage event received:", data);
       const roomId = data?.roomId || null
       try {
         // const newMessage = await MessageModel.create({

@@ -125,6 +125,7 @@ exports.ROUTE_GET_CHATS = '/get-chats'
 exports.ROUTE_GET_CHAT_MESSAGES = '/get-chat-messages'
 exports.ROUTE_GENERAL_CHAT = '/general-chat'
 exports.ROUTE_LIKE_UNLIKE_MESSAGE = '/like-unlike-message'
+exports.ROUTE_SEARCH_MESSAGE = '/search-message'
 
 //products
 exports.ROUTE_CREATE_PRODUCT = '/create-product'

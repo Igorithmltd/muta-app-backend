@@ -96,12 +96,12 @@ const UserSchema = new mongoose.Schema(
     weeklyStreak: { type: Number, default: 0 },
     lastWeeklyStreakWeek: { type: Number },
     location: { type: String, trim: true },
-    favorites: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
+    // favorites: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Product",
+    //   },
+    // ],
     coachVerification: {
       status: {
         type: String,

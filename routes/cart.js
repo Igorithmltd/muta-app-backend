@@ -9,7 +9,7 @@ const router = require('express').Router();
  * @swagger
  * /cart/add-to-cart:
  *   post:
- *     summary: Add a product to the cart
+ *     summary: Add a product variation to the user's cart
  *     tags: [Cart]
  *     security:
  *       - bearerAuth: []
@@ -22,6 +22,8 @@ const router = require('express').Router();
  *             required:
  *               - productId
  *               - quantity
+ *               - color
+ *               - size
  *             properties:
  *               productId:
  *                 type: string
@@ -30,20 +32,39 @@ const router = require('express').Router();
  *               quantity:
  *                 type: integer
  *                 minimum: 1
+ *                 description: Quantity of the product to add
  *                 example: 2
  *               color:
  *                 type: string
- *                 example: "red"
+ *                 description: Color of the product variation
+ *                 example: "Red"
  *               size:
  *                 type: string
+ *                 description: Size of the product variation
  *                 example: "45"
  *     responses:
  *       200:
  *         description: Product added to cart successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Product added to cart successfully
  *       400:
- *         description: Invalid product ID or input
+ *         description: Invalid product ID, variation not found, or insufficient stock
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Product variation not found
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - user must be logged in
  */
 router.post(ROUTE_ADD_TO_CART, auth, async (req, res) => {
     const cartController = new CartController();
@@ -54,7 +75,7 @@ router.post(ROUTE_ADD_TO_CART, auth, async (req, res) => {
  * @swagger
  * /cart/remove-from-cart:
  *   put:
- *     summary: Remove a product from the cart
+ *     summary: Remove a specific product variation from the cart
  *     tags: [Cart]
  *     security:
  *       - bearerAuth: []
@@ -66,19 +87,44 @@ router.post(ROUTE_ADD_TO_CART, auth, async (req, res) => {
  *             type: object
  *             required:
  *               - productId
- *               - quantity
+ *               - color
+ *               - size
  *             properties:
  *               productId:
  *                 type: string
  *                 description: ID of the product to remove
  *                 example: 665fa28b4a1c3f1a32044ea9
+ *               color:
+ *                 type: string
+ *                 description: Color of the product variation
+ *                 example: "Red"
+ *               size:
+ *                 type: string
+ *                 description: Size of the product variation
+ *                 example: "45"
  *     responses:
  *       200:
- *         description: Product removed from cart successfully
+ *         description: Product variation removed from cart successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Product variation removed from cart successfully
  *       400:
- *         description: Invalid product ID
+ *         description: Invalid input or item not found in cart
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Item not found in cart
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - user must be logged in
  */
 router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
     const cartController = new CartController();
@@ -89,7 +135,7 @@ router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
  * @swagger
  * /cart/update-cart:
  *   put:
- *     summary: Update the quantity of a product in the cart
+ *     summary: Update the quantity of a product variation in the cart
  *     tags: [Cart]
  *     security:
  *       - bearerAuth: []
@@ -102,6 +148,8 @@ router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
  *             required:
  *               - productId
  *               - quantity
+ *               - color
+ *               - size
  *             properties:
  *               productId:
  *                 type: string
@@ -109,8 +157,16 @@ router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
  *                 example: 665fa28b4a1c3f1a32044ea9
  *               quantity:
  *                 type: integer
- *                 description: New quantity (set to 0 to remove)
+ *                 description: New quantity (minimum 1)
  *                 example: 3
+ *               color:
+ *                 type: string
+ *                 description: Color variation of the product
+ *                 example: "red"
+ *               size:
+ *                 type: string
+ *                 description: Size variation of the product
+ *                 example: "45"
  *     responses:
  *       200:
  *         description: Cart updated successfully
@@ -140,35 +196,52 @@ router.put(ROUTE_UPDATE_CART, auth, async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 cartItems:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       product:
+ *                 cart:
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
  *                         type: object
  *                         properties:
- *                           _id:
- *                             type: string
- *                             example: "665fa28b4a1c3f1a32044ea9"
- *                           title:
- *                             type: string
- *                             example: "Hand Bell One"
- *                           price:
- *                             type: number
- *                             example: 5500
- *                           image:
+ *                           product:
  *                             type: object
  *                             properties:
- *                               imageUrl:
+ *                               _id:
  *                                 type: string
- *                                 example: "https://example.com/product.jpg"
- *                       quantity:
- *                         type: number
- *                         example: 2
- *                 totalPrice:
- *                   type: number
- *                   example: 11000
+ *                                 example: "665fa28b4a1c3f1a32044ea9"
+ *                               title:
+ *                                 type: string
+ *                                 example: "Hand Bell One"
+ *                               price:
+ *                                 type: number
+ *                                 example: 5500
+ *                               images:
+ *                                 type: array
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                     imageUrl:
+ *                                       type: string
+ *                                       example: "https://example.com/product.jpg"
+ *                                     publicId:
+ *                                       type: string
+ *                                       example: "publicIdOne"
+ *                           quantity:
+ *                             type: number
+ *                             example: 2
+ *                           color:
+ *                             type: string
+ *                             example: "red"
+ *                           size:
+ *                             type: string
+ *                             example: "45"
+ *                     totalItems:
+ *                       type: number
+ *                       example: 3
+ *                     totalPrice:
+ *                       type: number
+ *                       example: 16500
  *       401:
  *         description: Unauthorized - missing or invalid token
  *       500:
