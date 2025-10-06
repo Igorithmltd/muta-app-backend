@@ -142,9 +142,10 @@ function setupSocket(httpServer) {
     });
 
     // Like or unlike a message
-    socket.on("likeMessage", async ({ messageId }) => {
+    socket.on("likeMessage", async (data) => {
       try {
         const userId = socket.userId;
+        const messageId = data.messageId
 
         const message = await MessageModel.findById(messageId);
         if (!message) {
@@ -155,25 +156,20 @@ function setupSocket(httpServer) {
           (likeUserId) => likeUserId.toString() === userId.toString()
         );
 
-        if (hasLiked) {
-          // Unlike: remove userId from likes array
-          message.likes = message.likes.filter(
-            (likeUserId) => likeUserId.toString() !== userId.toString()
-          );
-        } else {
-          // Like: add userId to likes array
-          message.likes.push(userId);
-        }
+        // if (hasLiked) {
+        //   // Unlike: remove userId from likes array
+        //   message.likes = message.likes.filter(
+        //     (likeUserId) => likeUserId.toString() !== userId.toString()
+        //   );
+        // } else {
+        //   // Like: add userId to likes array
+        //   message.likes.push(userId);
+        // }
 
-        await message.save();
+        // await message.save();
 
         // Emit updated likes to room members
-        io.to(message.room.toString()).emit("messageLiked", {
-          messageId,
-          likes: message.likes,
-          likedBy: userId,
-          action: hasLiked ? "unliked" : "liked",
-        });
+        io.to(message.roomId.toString()).emit("messageLiked", {...message, hasLiked: hasLiked});
       } catch (error) {
         console.error("Error liking message:", error);
         socket.emit("error", { message: "Could not like the message" });
