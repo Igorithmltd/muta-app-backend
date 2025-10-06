@@ -17,41 +17,44 @@ const mongoose = require("mongoose");
 //   },
 // }, { _id: false }); // no separate _id for subdocs if you want
 
-const PlanSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  categories: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-      duration: {
-        type: String,
-        enum: ["monthly", "yearly"],
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-      features: {
-        type: [String],
-        default: [],
-      },
+const PlanSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
     },
-  ],
-  isActive: {
-    type: Boolean,
-    default: true,
+    description: {
+      type: String,
+      required: true,
+    },
+    categories: [
+      {
+        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+        duration: {
+          type: String,
+          enum: ["monthly", "yearly"],
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        features: {
+          type: [String],
+          default: [],
+        },
+        paystackSubscriptionId: { type: String },
+      },
+    ],
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    // paystackSubscriptionId: { type: String },
   },
-  paystackSubscriptionId: { type: String },
-}, { timestamps: true });
-
+  { timestamps: true }
+);
 
 const PlanModel = mongoose.model("Plan", PlanSchema);
 module.exports = PlanModel;

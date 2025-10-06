@@ -23,6 +23,12 @@ const MessageSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    seenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     message: { type: String, required: true },
     type: {
       type: String,

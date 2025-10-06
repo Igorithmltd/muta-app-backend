@@ -58,7 +58,20 @@ function setupSocket(httpServer) {
 
     // 2. Join all rooms the user is a part of
     const userRooms = await ChatRoomModel.find({ participants: userId });
-    userRooms.forEach((room) => {
+    userRooms.forEach(async (room) => {
+
+      const unreadMessages = await MessageModel.find({
+        roomId: room._id,
+        readBy: { $ne: userId },
+      }).sort({ createdAt: 1 });
+
+      if (unreadMessages.length > 0) {
+        socket.emit("receiveUnreadMessages", {
+          roomId: room._id,
+          messages: unreadMessages,
+        });
+      }
+
       socket.join(room._id.toString());
     });
 
@@ -121,7 +134,12 @@ function setupSocket(httpServer) {
     // =================== SEND MESSAGE ===================
     socket.on("sendMessage", async (data) => {
       console.log("sendMessage event received:", data);
+      const messageId = data?.message.id
       const roomId = data?.roomId || null
+      const message = await MessageModel.findbyId(messageId)
+      if(!message){
+        return socket.emit("error", { message: "Could not mark messages as read" });
+      }
       try {
         // const newMessage = await MessageModel.create({
         //   sender: userId,
@@ -129,6 +147,8 @@ function setupSocket(httpServer) {
         //   message,
         //   type,
         // });
+        message.readBy = [userId];
+        await message.save();
 
         socket.to(roomId).emit("receiveMessage", data);
       } catch (error) {
