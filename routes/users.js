@@ -1280,61 +1280,77 @@ router.get(ROUTE_GET_VERIFIED_COACHES, auth, (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - coachId
  *               - planId
- *               - isGift
+ *               - categoryDuration
+ *               - paystackPlanCode
  *             properties:
- *               coachId:
- *                 type: string
- *                 description: ID of the coach to subscribe to
  *               planId:
  *                 type: string
  *                 description: ID of the subscription plan
+ *                 example: 64f4c3a2d9f4e89b2c3a4b5c
+ *               categoryDuration:
+ *                 type: string
+ *                 description: Duration category of the plan to subscribe to
+ *                 enum: [monthly, yearly]
+ *                 example: monthly
+ *               paystackPlanCode:
+ *                 type: string
+ *                 description: Paystack subscription plan code
+ *                 example: PLN_6zfouuzmqmts3gg
  *               isGift:
  *                 type: boolean
- *                 description: Whether the plan is being gifted
+ *                 description: Whether the plan is being gifted (optional)
+ *                 example: false
  *               recipientEmail:
  *                 type: string
  *                 description: Email of the gift recipient (required if isGift is true)
+ *                 example: recipient@example.com
  *               expiresAt:
  *                 type: string
  *                 format: date-time
  *                 description: Expiration date of the gift coupon (optional)
+ *                 example: 2025-12-31T23:59:59Z
  *     responses:
  *       200:
- *         description: Success (either coupon generated or subscription completed)
+ *         description: Subscription created successfully or existing subscription returned
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 couponCode:
- *                   type: string
- *                   description: Returned if the plan is gifted
  *                 message:
  *                   type: string
- *                 subscriptionExpiry:
- *                   type: string
- *                   format: date-time
- *                 plan:
+ *                   example: Subscription created
+ *                 subscription:
  *                   type: object
+ *                   description: Details of the subscription
  *                   properties:
  *                     id:
  *                       type: string
- *                     name:
+ *                     user:
  *                       type: string
- *                     duration:
+ *                     planId:
  *                       type: string
- *                     price:
- *                       type: number
- *                     currency:
+ *                     categoryId:
+ *                       type: string
+ *                     reference:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                     startDate:
+ *                       type: string
+ *                       format: date-time
+ *                     expiryDate:
+ *                       type: string
+ *                       format: date-time
+ *                     paystackSubscriptionId:
  *                       type: string
  *       400:
- *         description: Bad request or missing/invalid fields
+ *         description: Validation error or bad request
  *       404:
- *         description: Coach or plan not found
+ *         description: User or Plan not found
  *       500:
- *         description: Server error
+ *         description: Internal server error
  */
 router.post(ROUTE_SUBSCRIBE_PLAN, auth, (req, res) => {
   const userController = new UserController();
@@ -1401,36 +1417,48 @@ router.post(ROUTE_REDEEM_PLAN, auth, (req, res) => {
  *             required:
  *               - name
  *               - description
- *               - duration
- *               - price
+ *               - categories
  *             properties:
  *               name:
  *                 type: string
  *                 description: The name of the plan
- *                 example: premium
+ *                 example: Premium Membership
  *               description:
  *                 type: string
  *                 description: Description of the plan
- *                 example: Access to all premium features with priority support
- *               duration:
- *                 type: string
- *                 description: Billing cycle duration
- *                 enum: [monthly, yearly]
- *                 example: monthly
- *               price:
- *                 type: number
- *                 description: Price of the plan in USD
- *                 minimum: 0
- *                 example: 29.99
- *               features:
+ *                 example: Access to all premium features and exclusive content.
+ *               categories:
  *                 type: array
- *                 description: List of features included in the plan
+ *                 description: List of subscription categories for the plan
  *                 items:
- *                   type: string
- *                 example:
- *                   - Unlimited projects
- *                   - Priority email support
- *                   - Advanced analytics
+ *                   type: object
+ *                   required:
+ *                     - duration
+ *                     - price
+ *                   properties:
+ *                     duration:
+ *                       type: string
+ *                       description: Billing cycle duration
+ *                       enum: [monthly, yearly]
+ *                       example: monthly
+ *                     price:
+ *                       type: number
+ *                       description: Price of the subscription category in your currency
+ *                       minimum: 0
+ *                       example: 4500
+ *                     features:
+ *                       type: array
+ *                       description: List of features included in this category
+ *                       items:
+ *                         type: string
+ *                       example:
+ *                         - Ad-free experience
+ *                         - Priority support
+ *                         - Unlimited downloads
+ *                     paystackSubscriptionId:
+ *                       type: string
+ *                       description: Paystack subscription identifier for this category
+ *                       example: PLN_6zfouuzmqmts3gg
  *               isActive:
  *                 type: boolean
  *                 description: Whether the plan is active or not

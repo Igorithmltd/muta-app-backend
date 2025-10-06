@@ -236,7 +236,7 @@ class UserController extends BaseController{
     }
     async subscribePlan(req, res){
         const userService = new UserService()
-        const subscribePlan = await userService.subscribePlan(req)
+        const subscribePlan = await userService.subscribeUserToPlan(req)
         if(!subscribePlan.success){
             return BaseController.sendFailedResponse(res, subscribePlan.data)
         }

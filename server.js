@@ -4,7 +4,6 @@ require("./lib/cron/updateSubscriptionPlan.js");
 const express = require("express");
 const http = require("http");
 const router = require("./routes");
-const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectToMongoDB = require("./db/connect.js");
 

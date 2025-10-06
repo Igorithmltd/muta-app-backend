@@ -65,37 +65,140 @@ const webhookFunction = async (req, res) => {
     }
 
     if (event.event === 'subscription.charge.success') {
+
+
+      try {
         const data = event.data;
-        const paystackSubscriptionId = data.subscription.subscription_code;
+        const paystackSubscriptionCode = data.subscription.subscription_code;
         const reference = data.reference;
+        const userEmail = data.customer.email;
         const amount = data.amount / 100;
     
-        // Find subscription by Paystack subscription ID
-        const subscription = await SubscriptionModel.findOne({ paystackSubscriptionId });
+        // Find user by email
+        const user = await UserModel.findOne({ email: userEmail });
+        if (!user) {
+          console.log(`User with email ${userEmail} not found`);
+          return res.status(404).send('User not found');
+        }
+    
+        // Find subscription by paystackSubscriptionId (subscription_code)
+        let subscription = await SubscriptionModel.findOne({ paystackSubscriptionId: paystackSubscriptionCode });
     
         if (!subscription) {
-          return res.status(404).send('Subscription not found');
+          // No subscription found, create one based on Paystack subscription info
+    
+          // Find the plan and category that matches this paystackSubscriptionCode
+          // Plans store paystackSubscriptionId inside categories, so we can query:
+          // const plan = await PlanModel.findOne({ 'categories.paystackSubscriptionId': paystackSubscriptionCode });
+          // if (!plan) {
+          //   console.log(`Plan for paystackSubscriptionId ${paystackSubscriptionCode} not found`);
+          //   return res.status(404).send('Plan not found');
+          // }
+    
+          // // Find category matching the paystackSubscriptionCode
+          // const category = plan.categories.find(cat => cat.paystackSubscriptionId === paystackSubscriptionCode);
+    
+          // if (!category) {
+          //   console.log(`Category with paystackSubscriptionId ${paystackSubscriptionCode} not found in plan`);
+          //   return res.status(404).send('Category not found');
+          // }
+    
+          // // Calculate expiry date based on category duration
+          // let expiryDate = new Date();
+          // if (category.duration === 'monthly') {
+          //   expiryDate.setMonth(expiryDate.getMonth() + 1);
+          // } else if (category.duration === 'yearly') {
+          //   expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+          // }
+    
+          // subscription = new SubscriptionModel({
+          //   user: user._id,
+          //   planId: plan._id,
+          //   categoryId: category._id,
+          //   paystackSubscriptionId: paystackSubscriptionCode,
+          //   reference,
+          //   status: 'active',
+          //   startDate: new Date(),
+          //   expiryDate,
+          // });
+    
+          // await subscription.save();
+          // console.log(`Created new subscription for user ${user._id}`);
+          console.log('subscription not found')
+        } else {
+          // Subscription exists, update expiry and status
+    
+          // Get plan and category from subscription references
+          const plan = await PlanModel.findById(subscription.planId);
+          if (!plan) {
+            console.log(`Plan with ID ${subscription.planId} not found`);
+            return res.status(404).send('Plan not found');
+          }
+    
+          const category = plan.categories.id(subscription.categoryId);
+          if (!category) {
+            console.log(`Category with ID ${subscription.categoryId} not found in plan`);
+            return res.status(404).send('Category not found');
+          }
+    
+          // Update expiry based on duration
+          let newExpiryDate = subscription.expiryDate ? new Date(subscription.expiryDate) : new Date();
+          if (category.duration === 'monthly') {
+            newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
+          } else if (category.duration === 'yearly') {
+            newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+          }
+    
+          subscription.expiryDate = newExpiryDate;
+          subscription.status = 'active';
+          subscription.reference = reference; // update payment reference
+    
+          await subscription.save();
+          console.log(`Updated subscription expiry for user ${user._id} to ${newExpiryDate}`);
         }
     
-        // Update subscription expiry based on plan duration
-        const plan = await PlanModel.findById(subscription.planId);
-        let newExpiryDate = new Date(subscription.expiryDate);
+        return res.status(200).send('Subscription processed');
+      } catch (error) {
+        console.error('Error processing subscription.charge.success webhook:', error);
+        return res.status(500).send('Internal Server Error');
+      }
+
+
+
+
+
+
+        // const data = event.data;
+        // const paystackSubscriptionId = data.subscription.subscription_code;
+        // const reference = data.reference;
+        // const amount = data.amount / 100;
     
-        if (plan.duration === 'monthly') {
-          newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
-        } else if (plan.duration === 'yearly') {
-          newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
-        }
+        // // Find subscription by Paystack subscription ID
+        // const subscription = await SubscriptionModel.findOne({ paystackSubscriptionId });
     
-        subscription.expiryDate = newExpiryDate;
-        subscription.status = 'active';
-        subscription.reference = reference; // last payment reference
-        await subscription.save();
+        // if (!subscription) {
+        //   return res.status(404).send('Subscription not found');
+        // }
     
-        // Optionally notify user or log success
-        console.log(`Subscription renewed for user ${subscription.user} until ${newExpiryDate}`);
+        // // Update subscription expiry based on plan duration
+        // const plan = await PlanModel.findById(subscription.planId);
+        // let newExpiryDate = new Date(subscription.expiryDate);
     
-        return res.sendStatus(200);
+        // if (plan.duration === 'monthly') {
+        //   newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
+        // } else if (plan.duration === 'yearly') {
+        //   newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+        // }
+    
+        // subscription.expiryDate = newExpiryDate;
+        // subscription.status = 'active';
+        // subscription.reference = reference; // last payment reference
+        // await subscription.save();
+    
+        // // Optionally notify user or log success
+        // console.log(`Subscription renewed for user ${subscription.user} until ${newExpiryDate}`);
+    
+        // return res.sendStatus(200);
       }
     
     // if (event.event === "transfer.success" || event.event === "transfer.failed") {
