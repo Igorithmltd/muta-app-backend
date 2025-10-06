@@ -207,7 +207,7 @@ class UserService extends BaseService {
   async likeMessage(req) {
     try {
       const userId = req.user.id; // assuming you have auth middleware
-    const { messageId } = req.params;
+    const { id: messageId } = req.params;
     console.log("Message ID to like/unlike:", messageId);
     if (!mongoose.Types.ObjectId.isValid(messageId)) {
       return BaseService.sendFailedResponse({ error: "Invalid message ID" });
