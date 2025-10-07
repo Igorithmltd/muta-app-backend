@@ -38,13 +38,17 @@ const webhookFunction = async (req, res) => {
       const userEmail = data.customer.email;
       const amount = data.amount / 100; // kobo to naira
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode;
+      console.log('called 1')
 
       const user = await UserModel.findOne({ email: userEmail });
+      console.log('called 2')
       if (!user) {
         return res.status(404).send("User not found");
       }
+      console.log('called 3')
 
       if (event.data.authorization && event.data.authorization.reusable) {
+      console.log('called 4')
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
           : null;
@@ -54,6 +58,7 @@ const webhookFunction = async (req, res) => {
         const planCode = event.data.plan ? event.data.plan.plan_code : null;
 
         // create subscription via Paystack API
+      console.log('called 5')
         const resp = await axios.post(
           "https://api.paystack.co/subscription",
           {
