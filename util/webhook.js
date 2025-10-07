@@ -258,85 +258,11 @@ const webhookFunction = async (req, res) => {
       }
     }
 
-    // if (event.event === "transfer.success" || event.event === "transfer.failed") {
-    //   const data = event.data;
-    //   const transferCode = data.transfer_code;
-    //   const status = event.event === "transfer.success" ? "success" : "failed";
-
-    // }
-
     return res.sendStatus(200);
   } catch (err) {
-    console.error("❌ Error processing webhook:");
+    console.error("❌ Error processing webhook:", err.message);
     return res.status(500).send("Internal Server Error");
   }
 };
 
 module.exports = webhookFunction;
-
-// const TransactionModel = require("../models/transaction.model.js");
-// const UserModel = require("../models/user.model.js");
-// const NotificationModel = require("../models/notification.model.js");
-// const crypto = require("crypto");
-
-// const webhookFunction = async (req, res) => {
-//   const rawBody = req.body;
-//   const secret = process.env.PAYSTACK_SECRET_KEY;
-//   const signature = req.headers["x-paystack-signature"];
-
-//   const hash = crypto
-//     .createHmac("sha512", secret)
-//     .update(rawBody)
-//     .digest("hex");
-
-//   if (hash !== signature) {
-//     console.log("Invalid signature");
-//     return res.status(401).send("Unauthorized: Invalid signature");
-//   }
-
-//   try {
-//     const event = JSON.parse(req.body.toString("utf8"));
-
-//     if (event.event === "charge.success") {
-//       const { data } = event;
-//       const transactionId = data.id;
-//       const reference = data.reference;
-//       const userEmail = data.customer.email;
-//       const amount = data.amount / 100;
-
-//       const user = await UserModel.findOne({ email: userEmail });
-//       if (!user) {
-//         return res.status(401).send("Unauthorized: User not found");
-//       }
-
-//       // Update the user's balance
-//       user.balance += amount;
-//       await user.save();
-
-//       // Save the transaction
-//       const transaction = new TransactionModel({
-//         userId: user._id,
-//         amount,
-//         transaction: reference,
-//         status: "success",
-//         type: "wallet",
-//         trxref: transactionId,
-//       });
-
-//       await transaction.save();
-
-//       await NotificationModel.create({
-//         userId: user._id,
-//         title: "Fund Wallet",
-//         message: `You have successfully funded your wallet with ₦${amount}`,
-//       });
-//     }
-
-//     return res.status(200).send("Webhook received");
-//   } catch (err) {
-//     console.error("❌ Error processing webhook:", err);
-//     return res.status(500).send("Internal Server Error");
-//   }
-// };
-
-// module.exports = webhookFunction;
