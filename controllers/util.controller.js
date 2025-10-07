@@ -1,3 +1,4 @@
+const PaystackService = require("../services/paystack.service");
 const UtilService = require("../services/util.service");
 const { sendMail } = require("../util/emailService");
 const  BaseController = require("./base");
@@ -19,6 +20,14 @@ class UtilController extends BaseController{
             return BaseController.sendFailedResponse(res, singleFileUpload.data)
         }
         return BaseController.sendSuccessResponse(res, singleFileUpload.data)
+    }
+    async initializePayment(req, res){
+        const paystackService = new PaystackService()
+        const initializePayment = await paystackService.initializePayment(req)
+        if(!initializePayment.success){
+            return BaseController.sendFailedResponse(res, initializePayment.data)
+        }
+        return BaseController.sendSuccessResponse(res, initializePayment.data)
     }
     async uploadSingleVideo(req, res){
         const utilService = new UtilService()

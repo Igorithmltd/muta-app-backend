@@ -16,7 +16,7 @@ class PaystackService extends BaseService {
     });
   }
 
-  async initialisePayment(req) {
+  async initializePayment(req) {
     try {
       const post = req.body;
       const userId = req.user.id;

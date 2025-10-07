@@ -40,7 +40,7 @@ const webhookFunction = async (req, res) => {
       const reference = data.reference;
       const userEmail = data.customer.email;
       const amount = data.amount / 100; // kobo to naira
-      const paystackSubscriptionCode = metadata.paystackSubscriptionCode;
+      const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
 
       const user = await UserModel.findOne({ email: userEmail });
       if (!user) {
