@@ -25,7 +25,8 @@ class PaystackService extends BaseService {
         email: "string|required",
         amount: "integer|required",
         planId: "string|required",
-        categoryId: "string|required"
+        categoryId: "string|required",
+        paystackSubscriptionCode: "string|required"
       };
 
       const validateMessage = {
@@ -39,14 +40,14 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email, amount, planId, categoryId } = post; // amount in kobo
+      const { email, amount, planId, categoryId, paystackSubscriptionCode } = post; // amount in kobo
 
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
-          metadata: { userId, planId, categoryId }, // VERY helpful for mapping webhooks -> user
+          metadata: { userId, planId, categoryId, paystackSubscriptionCode }, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
