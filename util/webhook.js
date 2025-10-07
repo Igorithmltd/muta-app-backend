@@ -12,7 +12,6 @@ const axios = require("axios");
 const webhookFunction = async (req, res) => {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   const signature = req.headers["x-paystack-signature"];
-  const userService = new UserService();
 
   // ✅ Ensure raw body for signature verification (middleware must provide rawBody)
   const hash = crypto
@@ -26,8 +25,13 @@ const webhookFunction = async (req, res) => {
   }
 
   try {
-    const event = JSON.parse(req.body.toString());
+    const event = req.body;
+    // const event = JSON.parse(req.body.toString());
     // const event = req.body;
+    if (!event || !event.event || !event.data) {
+      console.warn("Received malformed or test webhook:", event);
+      return res.sendStatus(200); // Accept it silently so Paystack doesn't retry
+    }
 
     if (event.event === "charge.success") {
       const { data } = event;
@@ -92,7 +96,7 @@ const webhookFunction = async (req, res) => {
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");
-            return res.status(400).send("Plan or category info missing");
+            return res.status(200).send("Plan or category info missing");
           }
           console.log("called 4");
 
@@ -197,7 +201,7 @@ const webhookFunction = async (req, res) => {
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");
-            return res.status(400).send("Plan or category info missing");
+            return res.status(200).send("Plan or category info missing");
           }
 
           subscription = new SubscriptionModel({
