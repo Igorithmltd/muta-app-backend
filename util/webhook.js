@@ -105,9 +105,9 @@ const webhookFunction = async (req, res) => {
             status: "active",
             startDate: new Date(),
           });
+          console.log("called 5", { subscription });
+          return res.status(200).send("Subscription processed");
         }
-        console.log("called 5", { subscription });
-        return res.status(200).send("Subscription processed");
 
         // Find the plan
         // const plan = await PlanModel.findById(subscription.planId);
