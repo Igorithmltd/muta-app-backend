@@ -40,14 +40,11 @@ const webhookFunction = async (req, res) => {
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode;
 
       const user = await UserModel.findOne({ email: userEmail });
-      console.log('called 2', {user, userEmail})
       if (!user) {
         return res.status(404).send("User not found");
       }
-      console.log('called 3')
 
       if (event.data.authorization && event.data.authorization.reusable) {
-      console.log('called 4')
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
           : null;
@@ -57,7 +54,6 @@ const webhookFunction = async (req, res) => {
         const planCode = event.data.plan ? event.data.plan.plan_code : null;
 
         // create subscription via Paystack API
-      console.log('called 5')
         const resp = await axios.post(
           "https://api.paystack.co/subscription",
           {
@@ -72,7 +68,7 @@ const webhookFunction = async (req, res) => {
             },
           }
         );
-        console.log("Subscription response:", resp.data);
+
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
@@ -88,8 +84,8 @@ const webhookFunction = async (req, res) => {
           // You may want to decide how to get planId and categoryId here
           // For example, from the webhook metadata or another reliable source
           // For this example, let's assume you can get it from webhook metadata:
-          const planId = data.metadata?.planId;
-          const categoryId = data.metadata?.categoryId;
+          const planId = data.metadata?.planId || "68e429a9f2aaa57f0aeffbc5";
+          const categoryId = data.metadata?.categoryId || "64f8d9b5e4b0f3a1c9d12345";
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");

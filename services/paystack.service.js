@@ -24,7 +24,8 @@ class PaystackService extends BaseService {
       const validateRule = {
         email: "string|required",
         amount: "string|required",
-        planId: "string|required"
+        planId: "string|required",
+        categoryId: "string|required"
       };
 
       const validateMessage = {
@@ -45,7 +46,7 @@ class PaystackService extends BaseService {
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
-          metadata: { userId, planId }, // VERY helpful for mapping webhooks -> user
+          metadata: { userId, planId, categoryId }, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
