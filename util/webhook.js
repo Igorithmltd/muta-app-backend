@@ -41,6 +41,7 @@ const webhookFunction = async (req, res) => {
       const userEmail = data.customer.email;
       const amount = data.amount / 100; // kobo to naira
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
+      console.log('start 1', {paystackSubscriptionCode})
 
       const user = await UserModel.findOne({ email: userEmail });
       if (!user) {
@@ -61,6 +62,8 @@ const webhookFunction = async (req, res) => {
           paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
+      console.log('start 2', {existingSubscription})
+
 
         if(existingSubscription){
           console.log("User already has an active subscription. Skipping creation.");
@@ -83,6 +86,8 @@ const webhookFunction = async (req, res) => {
             },
           }
         );
+        console.log('start 3', {resp: resp.data})
+
 
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
@@ -94,9 +99,10 @@ const webhookFunction = async (req, res) => {
           // You may want to decide how to get planId and categoryId here
           // For example, from the webhook metadata or another reliable source
           // For this example, let's assume you can get it from webhook metadata:
-          const planId = data.metadata?.planId || "68e429a9f2aaa57f0aeffbc5";
-          const categoryId =
-            data.metadata?.categoryId || "64f8d9b5e4b0f3a1c9d12345";
+          const planId = data.metadata?.planId || "";
+          const categoryId = data.metadata?.categoryId || "";
+          console.log('start 4', {categoryId, planId})
+          
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");
