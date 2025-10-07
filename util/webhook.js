@@ -22,7 +22,6 @@ const webhookFunction = async (req, res) => {
     .digest("hex");
 
   if (hash !== signature) {
-    console.log("❌ Invalid Paystack signature");
     return res.status(401).send("Unauthorized: Invalid signature");
   }
 
@@ -70,6 +69,7 @@ const webhookFunction = async (req, res) => {
             },
           }
         );
+        console.log("Subscription response:", resp.data);
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
@@ -78,6 +78,7 @@ const webhookFunction = async (req, res) => {
           paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
+        console.log("Local Subscription response:", subscription);
 
         if (!subscription) {
           // No active subscription found - create a new subscription record
