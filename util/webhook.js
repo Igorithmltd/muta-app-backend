@@ -61,7 +61,6 @@ const webhookFunction = async (req, res) => {
           // paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
-      console.log('start 2', {existingSubscription})
 
 
         if(existingSubscription){
@@ -71,6 +70,8 @@ const webhookFunction = async (req, res) => {
 
         // create subscription via Paystack API
         // const startDateUnix = Math.floor(Date.now() / 1000);
+
+
         const resp = await axios.post(
           "https://api.paystack.co/subscription",
           {
@@ -85,7 +86,6 @@ const webhookFunction = async (req, res) => {
             },
           }
         );
-        console.log('start 3', {resp: resp.data})
 
 
         if (!resp.data.status) {
@@ -100,7 +100,6 @@ const webhookFunction = async (req, res) => {
           // For this example, let's assume you can get it from webhook metadata:
           const planId = data.metadata?.planId || "";
           const categoryId = data.metadata?.categoryId || "";
-          console.log('start 4', {categoryId, planId})
           
 
           if (!planId || !categoryId) {

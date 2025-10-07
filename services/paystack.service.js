@@ -26,7 +26,7 @@ class PaystackService extends BaseService {
         amount: "integer|required",
         planId: "string|required",
         categoryId: "string|required",
-        paystackSubscriptionCode: "string|required"
+        paystackSubscriptionCode: "string|required",
       };
 
       const validateMessage = {
@@ -40,7 +40,27 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email, amount, planId, categoryId, paystackSubscriptionCode } = post; // amount in kobo
+      const { email, amount, planId, categoryId, paystackSubscriptionCode } = post;
+
+      const lookupCustomer = await axios.get(
+        `https://api.paystack.co/customer/${email}`,
+        {
+          headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+        }
+      );
+      const customerCode = lookupCustomer.data.data.customer_code || email;
+
+
+      const isUserSubscribed = await axios.get(
+        `https://api.paystack.co/subscription?customer=${customerCode}&plan=${paystackSubscriptionCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          },
+        }
+      );
+
+      console.log(isUserSubscribed.data);
 
       const response = await this.axiosInstance.post(
         "/transaction/initialize",

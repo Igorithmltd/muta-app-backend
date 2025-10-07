@@ -116,7 +116,11 @@ router.post(ROUTE_VIDEO_UPLOAD_SINGLE, auth, video_uploader.single('file'), (req
  *               categoryId:
  *                 type: string
  *                 example: "64ab13ffd09a7f34b1d5a9d9"
- *                 description: The plan category ID (if applicable)
+ *                 description: The plan category id
+ *               paystackSubscriptionCode:
+ *                 type: string
+ *                 example: "PLN_d09ab1d5a9d9"
+ *                 description: The paystack plan id
  *     responses:
  *       200:
  *         description: Payment initialized successfully
