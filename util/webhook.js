@@ -30,7 +30,6 @@ const webhookFunction = async (req, res) => {
     // const event = req.body;
 
     if (event.event === "charge.success") {
-
       const { data } = event;
       const metadata = data.metadata || {};
       const transactionId = data.id;
@@ -80,23 +79,22 @@ const webhookFunction = async (req, res) => {
         });
         console.log("Local Subscription response:", existingSubscription);
 
-        console.log('called 1', {status: resp.data.status, data: resp.data.data})
         if (!existingSubscription) {
-        console.log('called 2')
+          console.log("called 2");
           // No active subscription found - create a new subscription record
           // You may want to decide how to get planId and categoryId here
           // For example, from the webhook metadata or another reliable source
           // For this example, let's assume you can get it from webhook metadata:
           const planId = data.metadata?.planId || "68e429a9f2aaa57f0aeffbc5";
-          const categoryId = data.metadata?.categoryId || "64f8d9b5e4b0f3a1c9d12345";
-        console.log('called 3')
+          const categoryId =
+            data.metadata?.categoryId || "64f8d9b5e4b0f3a1c9d12345";
+          console.log("called 3", { planId, categoryId });
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");
             return res.status(400).send("Plan or category info missing");
           }
-        console.log('called 4')
-
+          console.log("called 4");
 
           const subscription = new SubscriptionModel({
             user: user._id,
@@ -108,7 +106,8 @@ const webhookFunction = async (req, res) => {
             startDate: new Date(),
           });
         }
-        console.log('called 5')
+        console.log("called 5", { subscription });
+        return res.status(200).send("Subscription processed");
 
         // Find the plan
         // const plan = await PlanModel.findById(subscription.planId);
@@ -258,9 +257,7 @@ const webhookFunction = async (req, res) => {
 
         return res.status(200).send("Subscription processed");
       } catch (error) {
-        console.error(
-          "Error processing subscription.charge.success webhook:"
-        );
+        console.error("Error processing subscription.charge.success webhook:");
         return res.status(500).send("Internal Server Error");
       }
     }
