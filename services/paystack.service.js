@@ -23,7 +23,7 @@ class PaystackService extends BaseService {
 
       const validateRule = {
         email: "string|required",
-        amount: "string|required",
+        amount: "integer|required",
         planId: "string|required",
         categoryId: "string|required"
       };
@@ -39,7 +39,7 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email, amount, planId } = post; // amount in kobo
+      const { email, amount, planId, categoryId } = post; // amount in kobo
 
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
@@ -53,7 +53,7 @@ class PaystackService extends BaseService {
 
       return BaseService.sendSuccessResponse({ message: response.data });
     } catch (error) {
-      console.error("Add to cart error:", error);
+      console.error("Initialize payment failed:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });

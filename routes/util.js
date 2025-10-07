@@ -172,7 +172,7 @@ router.post(ROUTE_VIDEO_UPLOAD_SINGLE, auth, video_uploader.single('file'), (req
  *                   type: string
  *                   example: "An internal server error occurred. Please try again later."
  */
-router.post(ROUTE_INITIALIZE_PAYMENT, auth, video_uploader.single('file'), (req, res)=>{
+router.post(ROUTE_INITIALIZE_PAYMENT, auth, (req, res)=>{
     const utilController = new UtilController()
     return utilController.initializePayment(req, res)
 })
