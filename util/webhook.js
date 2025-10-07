@@ -26,7 +26,7 @@ const webhookFunction = async (req, res) => {
 
   try {
     // const event = req.body;
-    const event = JSON.parse(req.body.toString('utf8'));
+    const event = JSON.parse(req.body.toString());
 
     if (!event || !event.event || !event.data) {
       console.warn("Received malformed or test webhook:", event);
