@@ -252,8 +252,7 @@ const webhookFunction = async (req, res) => {
         return res.status(200).send("Subscription processed");
       } catch (error) {
         console.error(
-          "Error processing subscription.charge.success webhook:",
-          error
+          "Error processing subscription.charge.success webhook:"
         );
         return res.status(500).send("Internal Server Error");
       }
@@ -268,7 +267,7 @@ const webhookFunction = async (req, res) => {
 
     return res.sendStatus(200);
   } catch (err) {
-    console.error("❌ Error processing webhook:", err);
+    console.error("❌ Error processing webhook:");
     return res.status(500).send("Internal Server Error");
   }
 };
