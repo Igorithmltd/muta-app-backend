@@ -54,13 +54,14 @@ const webhookFunction = async (req, res) => {
         const planCode = event.data.plan ? event.data.plan.plan_code : null;
 
         // create subscription via Paystack API
+        // const startDateUnix = Math.floor(Date.now() / 1000);
         const resp = await axios.post(
           "https://api.paystack.co/subscription",
           {
             customer: customerCode,
             plan: planCode,
             authorization: authorizationCode,
-            start_date: new Date().toISOString(), // optional; omit to start immediately
+            // start_date: new Date().toISOString(), // optional; omit to start immediately
           },
           {
             headers: {
@@ -79,18 +80,23 @@ const webhookFunction = async (req, res) => {
         });
         console.log("Local Subscription response:", existingSubscription);
 
+        console.log('called 1', resp.data.status, resp.data.data)
         if (!existingSubscription) {
+        console.log('called 2')
           // No active subscription found - create a new subscription record
           // You may want to decide how to get planId and categoryId here
           // For example, from the webhook metadata or another reliable source
           // For this example, let's assume you can get it from webhook metadata:
           const planId = data.metadata?.planId || "68e429a9f2aaa57f0aeffbc5";
           const categoryId = data.metadata?.categoryId || "64f8d9b5e4b0f3a1c9d12345";
+        console.log('called 3')
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");
             return res.status(400).send("Plan or category info missing");
           }
+        console.log('called 4')
+
 
           const subscription = new SubscriptionModel({
             user: user._id,
@@ -102,6 +108,7 @@ const webhookFunction = async (req, res) => {
             startDate: new Date(),
           });
         }
+        console.log('called 5')
 
         // Find the plan
         // const plan = await PlanModel.findById(subscription.planId);
