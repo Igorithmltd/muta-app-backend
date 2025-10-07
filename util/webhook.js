@@ -54,14 +54,14 @@ const webhookFunction = async (req, res) => {
         const customerCode = event.data.customer
           ? event.data.customer.customer_code
           : null;
-        const planCode = event.data.plan ? event.data.plan.plan_code : null;
+        // const planCode = event.data.plan ? event.data.plan.plan_code : null;
 
         let existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
           // paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
-      console.log('start 2', {existingSubscription, event: event.data})
+      console.log('start 2', {existingSubscription})
 
 
         if(existingSubscription){
@@ -75,7 +75,7 @@ const webhookFunction = async (req, res) => {
           "https://api.paystack.co/subscription",
           {
             customer: customerCode,
-            plan: planCode,
+            plan: paystackSubscriptionCode,
             authorization: authorizationCode,
             // start_date: new Date().toISOString(), // optional; omit to start immediately
           },
