@@ -30,7 +30,6 @@ const webhookFunction = async (req, res) => {
     // const event = req.body;
 
     if (event.event === "charge.success") {
-      console.log("charge.success called....", event);
 
       const { data } = event;
       const metadata = data.metadata || {};
