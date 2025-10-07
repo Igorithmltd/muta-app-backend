@@ -59,7 +59,7 @@ const webhookFunction = async (req, res) => {
 
         let existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
-          paystackSubscriptionId: paystackSubscriptionCode,
+          // paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
       console.log('start 2', {existingSubscription})
