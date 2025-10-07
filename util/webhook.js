@@ -72,14 +72,14 @@ const webhookFunction = async (req, res) => {
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
-        let subscription = await SubscriptionModel.findOne({
+        let existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
           paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
-        console.log("Local Subscription response:", subscription);
+        console.log("Local Subscription response:", existingSubscription);
 
-        if (!subscription) {
+        if (!existingSubscription) {
           // No active subscription found - create a new subscription record
           // You may want to decide how to get planId and categoryId here
           // For example, from the webhook metadata or another reliable source
@@ -92,7 +92,7 @@ const webhookFunction = async (req, res) => {
             return res.status(400).send("Plan or category info missing");
           }
 
-          subscription = new SubscriptionModel({
+          const subscription = new SubscriptionModel({
             user: user._id,
             planId: planId,
             categoryId: categoryId,
