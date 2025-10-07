@@ -30,6 +30,7 @@ const webhookFunction = async (req, res) => {
     // const event = req.body;
 
     if (event.event === "charge.success") {
+      console.log('charge.success called....', event)
       const { data } = event;
       const metadata = data.metadata || {};
       const transactionId = data.id;
@@ -161,7 +162,7 @@ const webhookFunction = async (req, res) => {
         // console.log(`Subscription renewed for user ${subscription.user} until ${newExpiryDate}`);
     
         // return res.sendStatus(200);
-      }
+     }
     
     // if (event.event === "transfer.success" || event.event === "transfer.failed") {
     //   const data = event.data;
