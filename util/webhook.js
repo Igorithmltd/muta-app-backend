@@ -56,6 +56,17 @@ const webhookFunction = async (req, res) => {
           : null;
         const planCode = event.data.plan ? event.data.plan.plan_code : null;
 
+        let existingSubscription = await SubscriptionModel.findOne({
+          user: user._id,
+          paystackSubscriptionId: paystackSubscriptionCode,
+          status: "active",
+        });
+
+        if(existingSubscription){
+          console.log("User already has an active subscription. Skipping creation.");
+          return res.status(200).send("Subscription already active");
+        }
+
         // create subscription via Paystack API
         // const startDateUnix = Math.floor(Date.now() / 1000);
         const resp = await axios.post(
@@ -76,15 +87,9 @@ const webhookFunction = async (req, res) => {
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
-        let existingSubscription = await SubscriptionModel.findOne({
-          user: user._id,
-          paystackSubscriptionId: paystackSubscriptionCode,
-          status: "active",
-        });
-        console.log("Local Subscription response:", existingSubscription);
+       
 
-        if (!existingSubscription) {
-          console.log("called 2");
+        // if (!existingSubscription) {
           // No active subscription found - create a new subscription record
           // You may want to decide how to get planId and categoryId here
           // For example, from the webhook metadata or another reliable source
@@ -92,13 +97,11 @@ const webhookFunction = async (req, res) => {
           const planId = data.metadata?.planId || "68e429a9f2aaa57f0aeffbc5";
           const categoryId =
             data.metadata?.categoryId || "64f8d9b5e4b0f3a1c9d12345";
-          console.log("called 3", { planId, categoryId });
 
           if (!planId || !categoryId) {
             console.log("PlanId or CategoryId missing from webhook metadata");
             return res.status(200).send("Plan or category info missing");
           }
-          console.log("called 4");
 
           const subscription = new SubscriptionModel({
             user: user._id,
@@ -110,9 +113,8 @@ const webhookFunction = async (req, res) => {
             startDate: new Date(),
           });
           await subscription.save();
-          console.log("called 5", { subscription });
           return res.status(200).send("Subscription processed");
-        }
+        // }
 
         // Find the plan
         // const plan = await PlanModel.findById(subscription.planId);
