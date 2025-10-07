@@ -109,6 +109,7 @@ const webhookFunction = async (req, res) => {
             status: "active",
             startDate: new Date(),
           });
+          await subscription.save();
           console.log("called 5", { subscription });
           return res.status(200).send("Subscription processed");
         }
