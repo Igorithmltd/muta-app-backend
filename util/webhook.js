@@ -38,10 +38,9 @@ const webhookFunction = async (req, res) => {
       const userEmail = data.customer.email;
       const amount = data.amount / 100; // kobo to naira
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode;
-      console.log('called 1')
 
       const user = await UserModel.findOne({ email: userEmail });
-      console.log('called 2')
+      console.log('called 2', {user, userEmail})
       if (!user) {
         return res.status(404).send("User not found");
       }
