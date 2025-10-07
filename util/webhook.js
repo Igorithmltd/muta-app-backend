@@ -85,46 +85,9 @@ const webhookFunction = async (req, res) => {
         let subscription = await SubscriptionModel.findOne({ paystackSubscriptionId: paystackSubscriptionCode });
     
         if (!subscription) {
-          // No subscription found, create one based on Paystack subscription info
-    
-          // Find the plan and category that matches this paystackSubscriptionCode
-          // Plans store paystackSubscriptionId inside categories, so we can query:
-          // const plan = await PlanModel.findOne({ 'categories.paystackSubscriptionId': paystackSubscriptionCode });
-          // if (!plan) {
-          //   console.log(`Plan for paystackSubscriptionId ${paystackSubscriptionCode} not found`);
-          //   return res.status(404).send('Plan not found');
-          // }
-    
-          // // Find category matching the paystackSubscriptionCode
-          // const category = plan.categories.find(cat => cat.paystackSubscriptionId === paystackSubscriptionCode);
-    
-          // if (!category) {
-          //   console.log(`Category with paystackSubscriptionId ${paystackSubscriptionCode} not found in plan`);
-          //   return res.status(404).send('Category not found');
-          // }
-    
-          // // Calculate expiry date based on category duration
-          // let expiryDate = new Date();
-          // if (category.duration === 'monthly') {
-          //   expiryDate.setMonth(expiryDate.getMonth() + 1);
-          // } else if (category.duration === 'yearly') {
-          //   expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-          // }
-    
-          // subscription = new SubscriptionModel({
-          //   user: user._id,
-          //   planId: plan._id,
-          //   categoryId: category._id,
-          //   paystackSubscriptionId: paystackSubscriptionCode,
-          //   reference,
-          //   status: 'active',
-          //   startDate: new Date(),
-          //   expiryDate,
-          // });
-    
-          // await subscription.save();
-          // console.log(`Created new subscription for user ${user._id}`);
+          
           console.log('subscription not found')
+          return res.status(500).send('Subscription not found');
         } else {
           // Subscription exists, update expiry and status
     
