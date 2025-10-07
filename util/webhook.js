@@ -80,7 +80,7 @@ const webhookFunction = async (req, res) => {
         });
         console.log("Local Subscription response:", existingSubscription);
 
-        console.log('called 1', resp.data.status, resp.data.data)
+        console.log('called 1', {status: resp.data.status, data: resp.data.data})
         if (!existingSubscription) {
         console.log('called 2')
           // No active subscription found - create a new subscription record
