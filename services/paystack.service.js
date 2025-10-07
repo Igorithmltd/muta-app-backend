@@ -52,7 +52,9 @@ class PaystackService extends BaseService {
 
 
       const isUserSubscribed = await axios.get(
-        `https://api.paystack.co/subscription?customer=${customerCode}&plan=${paystackSubscriptionCode}`,
+        `https://api.paystack.co/subscription`,
+        // `https://api.paystack.co/subscription?customer=${customerCode}`,
+        // `https://api.paystack.co/subscription?customer=${customerCode}&plan=${paystackSubscriptionCode}`,
         {
           headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
@@ -60,7 +62,20 @@ class PaystackService extends BaseService {
         }
       );
 
-      console.log(isUserSubscribed.data);
+      let existingSubscription = await SubscriptionModel.findOne({
+        user: user._id,
+        // paystackSubscriptionId: paystackSubscriptionCode,
+        status: "active",
+      });
+
+
+      if(existingSubscription){
+        return BaseService.sendFailedResponse({error: "Subscription already active"});
+      }
+
+    //   if(isUserSubscribed?.status && isUserSubscribed?.data.length > 0){
+    //     return BaseService.sendFailedResponse({error: 'You are already subscribed to this plan'})
+    //   }
 
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
