@@ -65,8 +65,7 @@ const webhookFunction = async (req, res) => {
     }
 
     if (event.event === 'subscription.charge.success') {
-
-
+      console.log('subscription called....')
       try {
         const data = event.data;
         const paystackSubscriptionCode = data.subscription.subscription_code;
