@@ -169,6 +169,7 @@ class UserService extends BaseService {
   async searchMessage(req) {
     try {
       const { roomId, keyword } = req.query;
+      const userId = req.user.id
       if (!roomId) {
         return BaseService.sendFailedResponse({ error: "roomId is required" });
       }
