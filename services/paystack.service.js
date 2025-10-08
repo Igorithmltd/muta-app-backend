@@ -1,4 +1,5 @@
 const SubscriptionModel = require("../models/subscription.model");
+const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 const axios = require("axios");
@@ -38,6 +39,11 @@ class PaystackService extends BaseService {
 
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
       const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId } = post;
