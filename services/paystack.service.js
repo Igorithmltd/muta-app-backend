@@ -1,5 +1,6 @@
 const CartModel = require("../models/cart.model");
 const ProductModel = require("../models/product.model");
+const SubscriptionModel = require("../models/subscription.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 const axios = require("axios");
