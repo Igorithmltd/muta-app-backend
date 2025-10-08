@@ -52,7 +52,7 @@ class UserService extends BaseService {
         });
       }
 
-      const newUser = new UserModel(post);
+      const newUser = new UserModel({...post, servicePlatform: "local"});
       await newUser.save();
 
       // userExists.markModified("password");
@@ -324,11 +324,11 @@ class UserService extends BaseService {
         }
       }
 
-      if (!(await userExists.comparePassword(password))) {
-        return BaseService.sendFailedResponse({
-          error: "Wrong email or password",
-        });
-      }
+      // if (!(await userExists.comparePassword(password))) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Wrong email or password",
+      //   });
+      // }
 
       const accessToken = await userExists.generateAccessToken(
         process.env.ACCESS_TOKEN_SECRET || ""

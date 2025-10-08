@@ -61,7 +61,7 @@ const UserSchema = new mongoose.Schema(
     },
     servicePlatform: {
       type: String,
-      default: "local",
+      // default: "local",
       enum: ["local", "google"],
     },
     status: {
