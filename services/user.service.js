@@ -131,7 +131,9 @@ class UserService extends BaseService {
       const lastName = family_name || name?.split(" ").slice(1).join(" ") || "";
 
       // Check if user exists in DB, otherwise create (pseudo code)
-      const userWithSub = await UserModel.findOne({ googleId, email });
+      const userWithSub = await UserModel.findOne({
+        $or: [{ googleId }, { email }],
+      });
 
       if (userWithSub) {
         const accessToken = await userWithSub.generateAccessToken(
@@ -155,7 +157,7 @@ class UserService extends BaseService {
         email,
         image: { imageUrl: picture, publicId: "" },
         isVerified: true,
-        servicePlatform: 'google',
+        servicePlatform: "google",
         userType: post.userType,
       };
 
@@ -309,8 +311,6 @@ class UserService extends BaseService {
           error: `Please login using the ${userExists.servicePlatform} platform`,
         });
       }
-
-      
 
       if (!(await userExists.comparePassword(password))) {
         return BaseService.sendFailedResponse({
@@ -1042,29 +1042,28 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: "User not found" });
     }
 
-    const weight = user.weight.value
-    const height = user.height.value
+    const weight = user.weight.value;
+    const height = user.height.value;
 
     if (empty(weight) || empty(height)) {
       return BaseService.sendFailedResponse({
         error: "Please log your weight and height",
       });
     }
-    const weightTips = getWeightImprovementTipsByWeight(weight, height)
+    const weightTips = getWeightImprovementTipsByWeight(weight, height);
     return BaseService.sendSuccessResponse({ message: weightTips });
   }
   async getUserWeightLoss(req) {
     const userId = req.user.id;
-    const user = await UserModel.findById(userId)
-    if (!user){
+    const user = await UserModel.findById(userId);
+    if (!user) {
       return BaseService.sendFailedResponse({ error: "User not found" });
-    };
-  
-    
+    }
+
     let weightLossDiff = user.weightLoss || 0;
-  
-    return BaseService.sendSuccessResponse({message: weightLossDiff });
-  }  
+
+    return BaseService.sendSuccessResponse({ message: weightLossDiff });
+  }
   async adminDashboardStat() {
     try {
       const response = {};
@@ -1147,31 +1146,31 @@ class UserService extends BaseService {
   async logUserWeight(req, res) {
     try {
       const userId = req.user.id;
-  
+
       const { value, unit } = req.body;
-  
+
       const validateRule = {
         value: "numeric|required|min:1",
         unit: "string|in:kg,lbs",
       };
-  
+
       const validateResult = validateData(req.body, validateRule, {
         required: ":attribute is required.",
         "in.unit": "Weight unit must be either 'kg' or 'lbs'.",
       });
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found." });
       }
-  
+
       const oldWeight = user.weight?.value ? Number(user.weight.value) : null;
       const oldUnit = user.weight?.unit || "kg";
-  
+
       // Convert old weight to new unit if different (optional, assuming kg and lbs conversion)
       let oldWeightInNewUnit = oldWeight;
       if (oldWeight !== null && oldUnit !== unit) {
@@ -1181,30 +1180,30 @@ class UserService extends BaseService {
           oldWeightInNewUnit = oldWeight * 2.20462;
         }
       }
-  
+
       const newWeightValue = Number(value);
-  
+
       // Calculate weight loss
       let weightLossDiff = 0;
       if (oldWeightInNewUnit !== null && oldWeightInNewUnit > newWeightValue) {
         weightLossDiff = oldWeightInNewUnit - newWeightValue;
       }
-  
+
       // Update user's weightLoss field (accumulate)
       user.weightLoss = (user.weightLoss || 0) + weightLossDiff;
-  
+
       // Update user's weight
       user.weight = {
         value: newWeightValue,
         unit: unit || "kg",
       };
-  
+
       await user.save();
-  
+
       // Prepare notification message
       let notificationTitle = "Weight Update";
       let notificationDescription;
-  
+
       if (oldWeightInNewUnit === null) {
         notificationDescription = `Your weight of ${value} ${unit} has been recorded.`;
       } else {
@@ -1221,7 +1220,7 @@ class UserService extends BaseService {
           notificationDescription = `Your weight remains the same at ${value} ${unit}. Keep maintaining it!`;
         }
       }
-  
+
       // Create notification for the user
       await NotificationModel.create({
         userId,
@@ -1230,7 +1229,7 @@ class UserService extends BaseService {
         time: new Date(),
         type: "weight",
       });
-  
+
       if (user.deviceToken) {
         sendPushNotification({
           deviceToken: user.deviceToken,
@@ -1238,7 +1237,7 @@ class UserService extends BaseService {
           body: notificationDescription,
         });
       }
-  
+
       return BaseService.sendSuccessResponse({
         message: "Weight updated successfully",
       });
@@ -1246,7 +1245,7 @@ class UserService extends BaseService {
       console.error(err);
       return BaseService.sendFailedResponse("Internal server error");
     }
-  }  
+  }
   async logUserHeight(req, res) {
     try {
       const userId = req.user.id;
@@ -1412,7 +1411,6 @@ class UserService extends BaseService {
   }
   async getAllVerfiedCoach(req) {
     try {
-
       const query = {
         userType: "coach",
         // isVerifiedCoach: true
@@ -1423,7 +1421,6 @@ class UserService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: coaches || [],
       });
-      
     } catch (error) {
       console.log(error, "the admin error");
       return BaseService.sendFailedResponse({ error });
@@ -1460,27 +1457,35 @@ class UserService extends BaseService {
     categoryDuration, // new param to specify which category (monthly/yearly) the subscription is for
     reference,
     isGift,
-    recipientEmail
+    recipientEmail,
   }) {
     const user = await UserModel.findById(userId);
-    if (!user) BaseService.sendFailedResponse({error: "User not found"});
-  
+    if (!user) BaseService.sendFailedResponse({ error: "User not found" });
+
     const coach = await UserModel.findOne({ _id: coachId, userType: "coach" });
-    if (!coach) BaseService.sendFailedResponse({error: "Coach not found"});
-  
+    if (!coach) BaseService.sendFailedResponse({ error: "Coach not found" });
+
     const plan = await PlanModel.findById(planId);
-    if (!plan) BaseService.sendFailedResponse({error: "Plan not found"});
-  
+    if (!plan) BaseService.sendFailedResponse({ error: "Plan not found" });
+
     // Find the category object matching the requested duration
-    const category = plan.categories.find(cat => cat.duration === categoryDuration);
-    if (!category) BaseService.sendFailedResponse({error: `Plan category '${categoryDuration}' not found`});
-  
+    const category = plan.categories.find(
+      (cat) => cat.duration === categoryDuration
+    );
+    if (!category)
+      BaseService.sendFailedResponse({
+        error: `Plan category '${categoryDuration}' not found`,
+      });
+
     if (isGift) {
-      if (!recipientEmail) BaseService.sendFailedResponse({error: "Recipient email is required"});
-  
+      if (!recipientEmail)
+        BaseService.sendFailedResponse({
+          error: "Recipient email is required",
+        });
+
       const couponCode =
         "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
-  
+
       await CouponModel.create({
         code: couponCode,
         coachId,
@@ -1490,17 +1495,17 @@ class UserService extends BaseService {
         used: false,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
-  
+
       await sendEmail({
         from: "Muta App <no-reply@fitnessapp.com>",
         subject: `You've received a gift subscription!`,
         to: recipientEmail,
         html: `<p>You have received a ${category.duration} premium subscription from ${user.firstName}. Your coupon code is <b>${couponCode}</b>.</p>`,
       });
-  
+
       return BaseService.sendSuccessResponse({ message: "Gift coupon sent" });
     }
-  
+
     // Direct subscription
     let expiryDate = new Date();
     if (category.duration === "monthly") {
@@ -1508,10 +1513,10 @@ class UserService extends BaseService {
     } else if (["yearly", "annually"].includes(category.duration)) {
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     }
-  
+
     await SubscriptionModel.create({
       planId: plan._id,
-      categoryId: category._id,  // store which category this subscription is for
+      categoryId: category._id, // store which category this subscription is for
       reference,
       status: "active",
       startDate: new Date(),
@@ -1520,78 +1525,95 @@ class UserService extends BaseService {
       paystackSubscriptionId: plan.paystackSubscriptionId,
       features: category.features,
     });
-  
+
     await sendEmail({
       from: "Muta App <no-reply@fitnessapp.com>",
       subject: `Subscription successful!`,
       to: user.email,
       html: `<p>You have successfully subscribed to a ${category.duration} premium plan with coach ${coach.firstName}.</p>`,
     });
-  
+
     return BaseService.sendSuccessResponse({ message: "Subscription created" });
   }
   async subscribeUserToPlan(req) {
     try {
-      
       const userId = req.user.id;
-    
+
       const validateRule = {
         planId: "string|required",
         categoryDuration: "string|required|in:monthly,yearly",
         paystackPlanCode: "string|required",
       };
-    
+
       const validateMessage = {
         required: ":attribute is required",
-        "in.categoryDuration": "categoryDuration must be one of 'monthly', 'yearly'",
+        "in.categoryDuration":
+          "categoryDuration must be one of 'monthly', 'yearly'",
       };
-    
-      const validateResult = validateData(req.body, validateRule, validateMessage);
+
+      const validateResult = validateData(
+        req.body,
+        validateRule,
+        validateMessage
+      );
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-    
+
       const { planId, categoryDuration, paystackPlanCode } = req.body;
-    
+
       const user = await UserModel.findById(userId);
-      if (!user) return BaseService.sendFailedResponse({ error: "User not found" });
-    
+      if (!user)
+        return BaseService.sendFailedResponse({ error: "User not found" });
+
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
         status: "active",
       });
-    
+
       const plan = await PlanModel.findById(planId);
       if (!plan) {
         return BaseService.sendFailedResponse({ error: "Plan not found" });
       }
-    
-      const category = plan.categories.find(cat => cat.duration === categoryDuration);
+
+      const category = plan.categories.find(
+        (cat) => cat.duration === categoryDuration
+      );
       if (!category) {
-        return BaseService.sendFailedResponse({ error: `Plan category '${categoryDuration}' not found` });
+        return BaseService.sendFailedResponse({
+          error: `Plan category '${categoryDuration}' not found`,
+        });
       }
-    
+
       if (
         existingSub &&
         existingSub.planId.toString() === planId.toString() &&
         existingSub.categoryId.toString() === category._id.toString()
       ) {
-        return BaseService.sendSuccessResponse({ message: "Already subscribed", subscription: existingSub });
+        return BaseService.sendSuccessResponse({
+          message: "Already subscribed",
+          subscription: existingSub,
+        });
       }
-    
+
       // Assuming createPaystackSubscription throws on error
-      const paystackSub = await createPaystackSubscription(user.email, paystackPlanCode);
-      if(paystackSub.success === false){
-        return BaseService.sendFailedResponse({error: 'Something went wrong creating a subscription with Paystack'})
+      const paystackSub = await createPaystackSubscription(
+        user.email,
+        paystackPlanCode
+      );
+      if (paystackSub.success === false) {
+        return BaseService.sendFailedResponse({
+          error: "Something went wrong creating a subscription with Paystack",
+        });
       }
-    
+
       let expiryDate = new Date();
       if (category.duration === "monthly") {
         expiryDate.setMonth(expiryDate.getMonth() + 1);
       } else if (category.duration === "yearly") {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-    
+
       const newSub = await SubscriptionModel.create({
         user: userId,
         planId: planId,
@@ -1602,28 +1624,37 @@ class UserService extends BaseService {
         expiryDate,
         paystackSubscriptionId: category.paystackSubscriptionId,
       });
-    
-      return BaseService.sendSuccessResponse({ message: "Subscription created", subscription: newSub });
+
+      return BaseService.sendSuccessResponse({
+        message: "Subscription created",
+        subscription: newSub,
+      });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
-  
+
   async createPaystackSubscription(userEmail, planPaystackCode) {
     try {
-      const response = await axios.post('https://api.paystack.co/subscription', {
-        customer: userEmail,
-        plan: planPaystackCode, // Paystack plan code created in Paystack dashboard
-      }, {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json',
+      const response = await axios.post(
+        "https://api.paystack.co/subscription",
+        {
+          customer: userEmail,
+          plan: planPaystackCode, // Paystack plan code created in Paystack dashboard
         },
-      });
-    
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       return BaseService.sendsuccessResponse({ message: response.data.data });
     } catch (error) {
-      return BaseService.sendFailedResponse({ error: 'Failed to create Paystack subscription' });
+      return BaseService.sendFailedResponse({
+        error: "Failed to create Paystack subscription",
+      });
     }
   }
 
@@ -1642,26 +1673,30 @@ class UserService extends BaseService {
     );
     return response.data;
   }
-  
+
   async upgradeOrDowngradeSubscription(userId, newPlanId, newPaystackPlanCode) {
     const existingSub = await SubscriptionModel.findOne({
       user: userId,
       status: "active",
     });
-  
+
     // If user has active subscription and it's different from new plan
     if (existingSub && existingSub.plan.toString() !== newPlanId.toString()) {
       // Cancel old subscription in Paystack
       await cancelPaystackSubscription(existingSub.reference);
-  
+
       // Mark old subscription as expired
       existingSub.status = "expired";
       existingSub.expiryDate = new Date();
       await existingSub.save();
     }
-  
+
     // Create new subscription
-    const newSub = await subscribeUserToPlan(userId, newPlanId, newPaystackPlanCode);
+    const newSub = await subscribeUserToPlan(
+      userId,
+      newPlanId,
+      newPaystackPlanCode
+    );
     return newSub;
   }
 
@@ -1704,7 +1739,7 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: "Subscription state retrieved successfully",
-        subscription: userSubscriptionPlan
+        subscription: userSubscriptionPlan,
       });
     } catch (error) {
       console.error("Subscription error:", error);
@@ -1715,38 +1750,38 @@ class UserService extends BaseService {
     try {
       const { couponCode } = req.body;
       const userId = req.user._id;
-  
+
       // Fetch user
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-  
+
       // Find coupon
       const coupon = await CouponModel.findOne({ code: couponCode });
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-  
+
       // Validate coupon expiration
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
-  
+
       // Validate coupon usage
       if (coupon.used) {
         return BaseService.sendFailedResponse({
           error: "Coupon has already been used",
         });
       }
-  
+
       // Validate recipient
       if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
       }
-  
+
       // Check if user already has an active subscription
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
@@ -1758,7 +1793,7 @@ class UserService extends BaseService {
           error: "User already has an active subscription",
         });
       }
-  
+
       // Load plan from coupon
       const plan = await PlanModel.findById(coupon.planId);
       if (!plan) {
@@ -1766,17 +1801,19 @@ class UserService extends BaseService {
           error: "Associated plan not found",
         });
       }
-  
+
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
       const categoryDuration = coupon.categoryDuration; // e.g., "monthly" or "yearly"
-      const category = plan.categories.find(cat => cat.duration === categoryDuration);
-  
+      const category = plan.categories.find(
+        (cat) => cat.duration === categoryDuration
+      );
+
       if (!category) {
         return BaseService.sendFailedResponse({
           error: `Plan category '${categoryDuration}' not found`,
         });
       }
-  
+
       // Calculate expiry date based on category duration
       let expiryDate = new Date();
       if (category.duration === "monthly") {
@@ -1784,7 +1821,7 @@ class UserService extends BaseService {
       } else if (["yearly", "annually"].includes(category.duration)) {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-  
+
       // Create subscription
       const subscription = await SubscriptionModel.create({
         user: userId,
@@ -1795,13 +1832,13 @@ class UserService extends BaseService {
         expiryDate,
         paystackSubscriptionId: plan.paystackSubscriptionId,
       });
-  
+
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
       // coupon.usedAt = new Date();
       await coupon.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
         subscription: {
@@ -1821,7 +1858,7 @@ class UserService extends BaseService {
   async createPlan(req, res) {
     try {
       const post = req.body;
-  
+
       // Basic validation rules for new plan structure
       const validateRule = {
         name: "string|required",
@@ -1829,7 +1866,7 @@ class UserService extends BaseService {
         categories: "array|required",
         isActive: "boolean", // optional
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         "string.name": "Please provide a valid :attribute.",
@@ -1837,13 +1874,13 @@ class UserService extends BaseService {
         "array.categories": ":attribute must be an array",
         "boolean.isActive": ":attribute must be a boolean",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       // Validate each category inside categories array
       for (const [index, category] of post.categories.entries()) {
         if (
@@ -1876,24 +1913,24 @@ class UserService extends BaseService {
           delete category._id;
         }
       }
-  
+
       const { name, description, categories, isActive = true } = post;
-  
+
       const plan = new PlanModel({
         name,
         description,
         categories,
         isActive,
       });
-  
+
       await plan.save();
-  
+
       return BaseService.sendSuccessResponse({ message: plan });
     } catch (error) {
       console.error("Create plan error:", error);
       return BaseService.sendFailedResponse({ error: "Failed to create plan" });
     }
-  }  
+  }
   async getPlans(req, res) {
     try {
       const plans = await PlanModel.find();
@@ -2169,13 +2206,13 @@ class UserService extends BaseService {
     try {
       const { notificationids } = req.body;
 
-      if(!Array.isArray(notificationids)){
+      if (!Array.isArray(notificationids)) {
         return BaseService.sendFailedResponse({
           error: "notificationids must be an array of IDs",
         });
       }
 
-      if(notificationids.length < 1){
+      if (notificationids.length < 1) {
         return BaseService.sendFailedResponse({
           error: "notificationids array cannot be empty",
         });
@@ -2187,9 +2224,10 @@ class UserService extends BaseService {
       );
 
       return BaseService.sendSuccessResponse({
-        message: `${notificationids.length == 1 ? 'Notification' : 'Notifications'} marked as read successfully`,
+        message: `${
+          notificationids.length == 1 ? "Notification" : "Notifications"
+        } marked as read successfully`,
       });
-
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: "Failed to fetch sleep hours",
@@ -2203,7 +2241,7 @@ class UserService extends BaseService {
         { userId: req.user.id, isRead: false }, // only unread notifications for that user
         { $set: { isRead: true } }
       );
-  
+
       return BaseService.sendSuccessResponse({
         message: "All notifications marked as read successfully",
       });
@@ -2213,18 +2251,18 @@ class UserService extends BaseService {
       });
     }
   }
-  
+
   async deleteNotifications(req) {
     try {
       const { notificationids } = req.body;
 
-      if(!Array.isArray(notificationids)){
+      if (!Array.isArray(notificationids)) {
         return BaseService.sendFailedResponse({
           error: "notificationids must be an array of IDs",
         });
       }
 
-      if(notificationids.length < 1){
+      if (notificationids.length < 1) {
         return BaseService.sendFailedResponse({
           error: "notificationids array cannot be empty",
         });
@@ -2233,7 +2271,9 @@ class UserService extends BaseService {
       await NotificationModel.deleteMany({ _id: { $in: notificationids } });
 
       return BaseService.sendSuccessResponse({
-        message: `${notificationids.length == 1 ? 'Notification' : 'Notifications'} deleted successfully`,
+        message: `${
+          notificationids.length == 1 ? "Notification" : "Notifications"
+        } deleted successfully`,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
@@ -2243,11 +2283,10 @@ class UserService extends BaseService {
   }
   async deleteAllNotifications(req) {
     try {
-
       await NotificationModel.deleteMany({});
 
       return BaseService.sendSuccessResponse({
-        message: 'Notifications deleted successfully',
+        message: "Notifications deleted successfully",
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
