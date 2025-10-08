@@ -283,6 +283,9 @@ class WorkoutplanService extends BaseService {
     const joinedWorkoutplan = await WorkoutPlanActionModel.findOne({
       userId,
       workoutPlanId: post.workoutplanId,
+    }).populate({
+      path: "workoutPlanId",
+      populate: { path: "category" },
     });
 
     if (joinedWorkoutplan) {
