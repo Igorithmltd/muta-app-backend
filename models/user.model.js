@@ -57,13 +57,7 @@ const UserSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isVerifiedCoach: {
       type: Boolean,
-      default: false,
-      validate: {
-        validator: function (val) {
-          return this.userType === "coach" || val === undefined;
-        },
-        message: "Only users with role 'coach' can have isVerifiedCoach",
-      },
+      default: false
     },
     servicePlatform: {
       type: String,

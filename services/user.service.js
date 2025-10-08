@@ -15,7 +15,6 @@ const { EXPIRES_AT } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
 const DietModel = require("../models/diet.model");
 const WorkoutPlanModel = require("../models/workoutPlan.model");
-const { default: mongoose } = require("mongoose");
 const PlanModel = require("../models/plan.model");
 const CouponModel = require("../models/coupon.model");
 const SleepEntryModel = require("../models/sleep-entry.model");
