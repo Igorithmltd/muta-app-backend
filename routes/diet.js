@@ -51,16 +51,16 @@ const {
  *                 properties:
  *                   imageUrl:
  *                     type: string
- *                     example: "image_url"
+ *                     example: "https://res.cloudinary.com/your-cloud/image/upload/v123456789/sample.jpg"
  *                   publicId:
  *                     type: string
- *                     example: "public_id"
+ *                     example: "sample_public_id"
  *               title:
  *                 type: string
- *                 example: "third diet"
+ *                 example: "Third Diet"
  *               description:
  *                 type: string
- *                 example: "third diet description"
+ *                 example: "This is a balanced diet plan for weight loss"
  *               category:
  *                 type: object
  *                 required:
@@ -71,52 +71,79 @@ const {
  *                     example: "6863d1d9f94e880960616e38"
  *               calories:
  *                 type: integer
- *                 example: 54
+ *                 example: 1200
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["here", "there"]
+ *                 example: ["weight loss", "low carb", "high protein"]
+ *               recommended:
+ *                 type: string
+ *                 enum: [YES, NO]
+ *                 example: "YES"
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive]
+ *                 default: "active"
+ *                 example: "active"
  *               duration:
  *                 type: integer
- *                 example: 5
+ *                 example: 7
  *               dailyMealBreakdown:
  *                 type: array
  *                 items:
  *                   type: object
  *                   required:
- *                     - breakfastTitle
- *                     - crabs
- *                     - protein
- *                     - fats
- *                     - calories
- *                     - recommendedTime
- *                     - missedBy
+ *                     - dayLabel
+ *                     - meals
  *                   properties:
- *                     breakfastTitle:
+ *                     dayLabel:
  *                       type: string
- *                       example: "breakfastTitle"
- *                     mealType:
- *                       type: string
- *                       example: "breakfast"
- *                     crabs:
- *                       type: integer
- *                       example: 44
- *                     protein:
- *                       type: integer
- *                       example: 55
- *                     fats:
- *                       type: integer
- *                       example: 122
- *                     calories:
- *                       type: integer
- *                       example: 433
- *                     recommendedTime:
- *                       type: string
- *                       example: "09:00:00"
- *                     missedBy:
- *                       type: string
- *                       example: "16:00:00"
+ *                       example: "Day 1"
+ *                     meals:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         required:
+ *                           - mealTitle
+ *                           - crabs
+ *                           - protein
+ *                           - fats
+ *                           - calories
+ *                           - recommendedTime
+ *                           - missedBy
+ *                           - mealType
+ *                         properties:
+ *                           mealTitle:
+ *                             type: string
+ *                             example: "Breakfast"
+ *                           mealType:
+ *                             type: string
+ *                             enum: [breakfast, lunch, dinner, snack]
+ *                             example: "breakfast"
+ *                           crabs:
+ *                             type: integer
+ *                             example: 30
+ *                           protein:
+ *                             type: integer
+ *                             example: 50
+ *                           fats:
+ *                             type: integer
+ *                             example: 10
+ *                           calories:
+ *                             type: integer
+ *                             example: 500
+ *                           recommendedTime:
+ *                             type: string
+ *                             example: "07:30:00"
+ *                           missedBy:
+ *                             type: string
+ *                             example: "10:00:00"
+ *                           status:
+ *                             type: string
+ *                             enum: [completed, in-progress, missed, not-started]
+ *                             default: "in-progress"
+ *                             example: "in-progress"
  *     responses:
  *       201:
  *         description: Diet created successfully

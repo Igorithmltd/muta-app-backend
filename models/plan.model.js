@@ -1,22 +1,5 @@
 const mongoose = require("mongoose");
 
-// const PlanCategorySchema = new mongoose.Schema({
-//   duration: {
-//     type: String,
-//     required: true,
-//     enum: ["monthly", "yearly"],
-//   },
-//   price: {
-//     type: Number,
-//     required: true,
-//     min: 0,
-//   },
-//   features: {
-//     type: [String],
-//     default: [],
-//   },
-// }, { _id: false }); // no separate _id for subdocs if you want
-
 const PlanSchema = new mongoose.Schema(
   {
     name: {
@@ -40,13 +23,13 @@ const PlanSchema = new mongoose.Schema(
           required: true,
           min: 0,
         },
-        features: {
-          type: [String],
-          default: [],
-        },
         paystackSubscriptionId: { type: String },
       },
     ],
+    features: {
+      type: [String],
+      default: [],
+    },
     isActive: {
       type: Boolean,
       default: true,

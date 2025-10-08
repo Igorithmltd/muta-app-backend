@@ -81,6 +81,7 @@ const router = require("express").Router();
  *                 type: string
  *                 enum: [beginner, intermediate, advanced]
  *                 example: "beginner"
+ *                 default: "beginner"
  *               recommended:
  *                 type: string
  *                 enum: [YES, NO]
@@ -157,12 +158,12 @@ const router = require("express").Router();
  *                                 value:
  *                                   type: string
  *                                   example: "chest"
- *                                 degree:
+ *                                 impact:
  *                                   type: string
  *                                   example: "high"
  *                           status:
  *                             type: string
- *                             enum: [completed, in-progress]
+ *                             enum: [completed, in-progress, not-started]
  *                             example: "in-progress"
  *     responses:
  *       201:
