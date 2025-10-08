@@ -113,6 +113,10 @@ router.post(ROUTE_VIDEO_UPLOAD_SINGLE, auth, video_uploader.single('file'), (req
  *                 type: string
  *                 example: "64ab12fcd09a7f34b1d5a9c2"
  *                 description: Internal ID of the selected plan
+ *               coachId:
+ *                 type: string
+ *                 example: "64ab12fcd09a7f34b1d5a9c2"
+ *                 description: Internal ID of the selected coach
  *               categoryId:
  *                 type: string
  *                 example: "64ab13ffd09a7f34b1d5a9d9"

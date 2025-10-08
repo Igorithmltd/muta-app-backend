@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const SubscriptionSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    coachId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     planId: { type: mongoose.Schema.Types.ObjectId, ref: "Plan", required: true },
     categoryId: { type: mongoose.Schema.Types.ObjectId, required: true }, // New field
     reference: { type: String, required: true },

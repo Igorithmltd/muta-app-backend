@@ -41,6 +41,7 @@ const webhookFunction = async (req, res) => {
       const userEmail = data.customer.email;
       const amount = data.amount / 100; // kobo to naira
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
+      const coachId = metadata.coachId || null;
 
       const user = await UserModel.findOne({ email: userEmail });
       if (!user) {
@@ -111,6 +112,7 @@ const webhookFunction = async (req, res) => {
             user: user._id,
             planId: planId,
             categoryId: categoryId,
+            coachId: coachId,
             paystackSubscriptionId: paystackSubscriptionCode,
             reference: reference,
             status: "active",

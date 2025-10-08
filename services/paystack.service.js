@@ -25,6 +25,7 @@ class PaystackService extends BaseService {
         email: "string|required",
         amount: "integer|required",
         planId: "string|required",
+        coachId: "string|required",
         categoryId: "string|required",
         paystackSubscriptionCode: "string|required",
       };
@@ -40,27 +41,27 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email, amount, planId, categoryId, paystackSubscriptionCode } = post;
+      const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId } = post;
 
-      const lookupCustomer = await axios.get(
-        `https://api.paystack.co/customer/${email}`,
-        {
-          headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
-        }
-      );
-      const customerCode = lookupCustomer.data.data.customer_code || email;
+      // const lookupCustomer = await axios.get(
+      //   `https://api.paystack.co/customer/${email}`,
+      //   {
+      //     headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+      //   }
+      // );
+      // const customerCode = lookupCustomer.data.data.customer_code || email;
 
 
-      const isUserSubscribed = await axios.get(
-        `https://api.paystack.co/subscription`,
-        // `https://api.paystack.co/subscription?customer=${customerCode}`,
-        // `https://api.paystack.co/subscription?customer=${customerCode}&plan=${paystackSubscriptionCode}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          },
-        }
-      );
+      // const isUserSubscribed = await axios.get(
+      //   `https://api.paystack.co/subscription`,
+      //   // `https://api.paystack.co/subscription?customer=${customerCode}`,
+      //   // `https://api.paystack.co/subscription?customer=${customerCode}&plan=${paystackSubscriptionCode}`,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      //     },
+      //   }
+      // );
 
       let existingSubscription = await SubscriptionModel.findOne({
         user: user._id,
@@ -82,7 +83,7 @@ class PaystackService extends BaseService {
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
-          metadata: { userId, planId, categoryId, paystackSubscriptionCode }, // VERY helpful for mapping webhooks -> user
+          metadata: { userId, planId, categoryId, paystackSubscriptionCode, coachId }, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
