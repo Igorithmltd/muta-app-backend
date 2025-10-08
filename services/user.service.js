@@ -300,16 +300,28 @@ class UserService extends BaseService {
         );
       }
 
-      if (userExists.servicePlatform !== "local") {
-        return BaseService.sendFailedResponse({
-          error: `Please login using the ${userExists.servicePlatform} platform`,
-        });
+      if (userExists.servicePlatform === "google") {
+        // If the user signed up via Google, prevent local login attempt
+        if (password) {
+          return BaseService.sendFailedResponse({
+            error: "This account was created using Google. Please log in using Google.",
+          });
+        }
       }
 
-      if (!userExists.password) {
-        return BaseService.sendFailedResponse({
-          error: `Please login using the ${userExists.servicePlatform} platform`,
-        });
+      if (userExists.servicePlatform === "local") {
+        if (!userExists.password) {
+          return BaseService.sendFailedResponse({
+            error: "Account created via a different platform. Please use the appropriate platform to log in.",
+          });
+        }
+  
+        // Check if the provided password matches the stored password
+        if (!(await userExists.comparePassword(password))) {
+          return BaseService.sendFailedResponse({
+            error: "Wrong email or password",
+          });
+        }
       }
 
       if (!(await userExists.comparePassword(password))) {
