@@ -5,7 +5,6 @@ const WorkoutPlanModel = require("../models/workoutPlan.model");
 const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
-const moment = require("moment");
 const { sendPushNotification } = require("./firebase.service");
 const UserModel = require("../models/user.model");
 
@@ -136,20 +135,66 @@ class WorkoutplanService extends BaseService {
   }
   async getWorkoutplans(req) {
     try {
-      const type = req.query.type || "";
-      const filter = type ? { type } : {};
-
-      const workoutplans = await WorkoutPlanModel.find(filter)
-        .sort({
-          createdAt: -1,
+      const { title } = req.query; // Destructure title if it's in the query params
+      const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
+      const limit = parseInt(req.query.limit, 10) || 10; // Default to limit 10 if not provided
+      const skip = (page - 1) * limit; // Calculate skip based on current page and limit
+  
+      // Create a filter for title if it's provided in the query params
+      const filter = title ? { title: new RegExp(title, "i") } : {}; // "i" makes it case-insensitive
+  
+      // Fetch workout plans and total count in parallel
+      const [workoutPlans, totalCount] = await Promise.all([
+        WorkoutPlanModel.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("category") // Populate category information
+          .lean(), // Use lean() to return plain JavaScript objects
+        WorkoutPlanModel.countDocuments(filter), // Get the total count of documents that match the filter
+      ]);
+  
+      // Enrich each workout plan with user count and ratings
+      const enrichedWorkoutPlans = await Promise.all(
+        workoutPlans.map(async (plan) => {
+          // Get the user count for each workout plan (assumes there's a related collection like "WorkoutPlanActionModel")
+          const usersOnPlanCount = await WorkoutPlanActionModel.countDocuments({
+            workoutPlanId: plan._id,
+          });
+  
+          // Get the total ratings count for the workout plan
+          const numberOfRatings = plan.totalRatings || (plan.ratings ? plan.ratings.length : 0);
+  
+          return {
+            ...plan,
+            usersOnPlanCount, // Add user count information
+            numberOfRatings,  // Add ratings information
+          };
         })
-        .populate("category");
-      return BaseService.sendSuccessResponse({ message: workoutplans });
+      );
+  
+      // Calculate total pages for pagination
+      const totalPages = Math.ceil(totalCount / limit);
+  
+      return BaseService.sendSuccessResponse({
+        message: "Workout plans fetched successfully.",
+        data: {
+          workoutPlans: enrichedWorkoutPlans, // Array of enriched workout plans
+          pagination: {
+            totalCount,     // Total number of workout plans
+            totalPages,     // Total pages available
+            currentPage: page,  // Current page
+            pageSize: limit,   // Items per page (limit)
+          },
+        },
+      });
     } catch (error) {
       console.log(error, "the error");
-      return BaseService.sendFailedResponse(this.server_error_message);
+      return BaseService.sendFailedResponse({
+        error: "An error occurred while fetching workout plans.",
+      });
     }
-  }
+  }  
   async getWorkoutplan(req) {
     try {
       const workoutplanId = req.params.id;

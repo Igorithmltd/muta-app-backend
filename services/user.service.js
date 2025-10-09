@@ -743,7 +743,7 @@ class UserService extends BaseService {
     try {
       const post = req.body;
       const userId = req.user.id;
-      const userType = req.user;
+      const userType = req.user.userType;
 
       let validateRule = {
         firstName: "string|required",

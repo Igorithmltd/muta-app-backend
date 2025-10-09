@@ -193,12 +193,34 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  * @swagger
  * /workoutplan/get-all-workoutplans:
  *   get:
- *     summary: Get all workout plans
+ *     summary: Get all workout plans with pagination
  *     tags:
  *       - Workoutplan
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         description: The page number for pagination
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - name: limit
+ *         in: query
+ *         description: The number of items per page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *       - name: title
+ *         in: query
+ *         description: The title filter for the workout plans (optional)
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "Strength Plan"
  *     responses:
  *       200:
- *         description: List of workout plans returned successfully
+ *         description: List of workout plans with pagination
  *         content:
  *           application/json:
  *             schema:
@@ -210,14 +232,14 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                 data:
  *                   type: object
  *                   properties:
- *                     message:
+ *                     workoutPlans:
  *                       type: array
  *                       items:
  *                         type: object
  *                         properties:
  *                           _id:
  *                             type: string
- *                             example: "6863ece6b0d40e2dd2eabe12"
+ *                             example: "60e69df3f1e0f91b3c35fdc1"
  *                           title:
  *                             type: string
  *                             example: "Beginner Strength Plan"
@@ -233,10 +255,10 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                             properties:
  *                               imageUrl:
  *                                 type: string
- *                                 example: "https://example.com/image.jpg"
+ *                                 example: "http://image.url"
  *                               publicId:
  *                                 type: string
- *                                 example: "abc123imageId"
+ *                                 example: "image_public_id"
  *                           category:
  *                             type: string
  *                             example: "64bfc13b4e7ba2349d3c9999"
@@ -257,9 +279,14 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                             type: string
  *                             enum: [YES, NO]
  *                             example: "YES"
+ *                           averageRating:
+ *                             type: number
+ *                             example: 4.3
+ *                           totalRatings:
+ *                             type: number
+ *                             example: 18
  *                           planRounds:
  *                             type: array
- *                             description: An array of workout day rounds
  *                             items:
  *                               type: object
  *                               properties:
@@ -270,7 +297,7 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                                     properties:
  *                                       title:
  *                                         type: string
- *                                         example: "Push Ups"
+ *                                         example: "Day 1 - Full Body"
  *                                       duration:
  *                                         type: number
  *                                         example: 45
@@ -279,54 +306,45 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                                         example: 3
  *                                       animation:
  *                                         type: string
- *                                         example: "https://example.com/pushup.gif"
+ *                                         example: "exercise-animation-url"
  *                                       reps:
  *                                         type: number
- *                                         example: 12
+ *                                         example: 10
  *                                       restBetweenSet:
  *                                         type: number
- *                                         example: 30
+ *                                         example: 60
  *                                       instruction:
  *                                         type: string
- *                                         example: "Keep your back straight during the movement."
+ *                                         example: "Perform exercises as instructed."
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: "https://youtube.com/example"
  *                                       workoutExerciseType:
  *                                         type: string
  *                                         enum: [time, set-reps]
- *                                         example: "set-reps"
- *                                       commonMistakesToAvoid:
- *                                         type: array
- *                                         items:
- *                                           type: string
- *                                         example: ["Don't flare your elbows", "Keep core tight"]
- *                                       breathingTips:
- *                                         type: array
- *                                         items:
- *                                           type: string
- *                                         example: ["Inhale on the way down", "Exhale on push"]
- *                                       youtubeLink:
- *                                         type: string
- *                                         example: "https://youtube.com/watch?v=pushup123"
- *                                       focusArea:
- *                                         type: array
- *                                         items:
- *                                           type: object
- *                                           properties:
- *                                             value:
- *                                               type: string
- *                                               example: "chest"
- *                                             degree:
- *                                               type: string
- *                                               example: "high"
+ *                                         example: "time"
  *                                       status:
  *                                         type: string
- *                                         enum: [completed, in-progress]
+ *                                         enum: [completed, in-progress, not-started]
  *                                         example: "in-progress"
- *                           averageRating:
- *                             type: number
- *                             example: 4.3
- *                           totalRatings:
- *                             type: number
- *                             example: 18
+ *                           ratings:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 userId:
+ *                                   type: string
+ *                                   example: "60c72b2f9b1b8b5e6c93c921"
+ *                                 rating:
+ *                                   type: number
+ *                                   example: 4
+ *                                 review:
+ *                                   type: string
+ *                                   example: "Great workout plan!"
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                                   example: "2025-07-01T14:12:55.020Z"
  *                           createdAt:
  *                             type: string
  *                             format: date-time
@@ -335,9 +353,21 @@ router.post(ROUTE_CREATE_WORKOUTPLAN, adminAuth, (req, res) => {
  *                             type: string
  *                             format: date-time
  *                             example: "2025-07-01T14:12:55.020Z"
- *                           __v:
- *                             type: integer
- *                             example: 0
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         totalCount:
+ *                           type: integer
+ *                           example: 100
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 10
+ *                         currentPage:
+ *                           type: integer
+ *                           example: 1
+ *                         pageSize:
+ *                           type: integer
+ *                           example: 10
  *       400:
  *         description: Invalid query parameter
  *       500:
