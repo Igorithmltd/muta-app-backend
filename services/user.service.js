@@ -263,8 +263,8 @@ class UserService extends BaseService {
       });
 
       return BaseService.sendSuccessResponse({
-        message: "OTP verified successfullly",
-        accessToken,
+        message: accessToken,
+        user: userExists,
         refreshToken,
       });
     } catch (error) {
