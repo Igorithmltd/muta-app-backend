@@ -4,6 +4,7 @@ const UserService = require("../services/user.service.js");
 const PlanModel = require("../models/plan.model.js");
 const SubscriptionModel = require("../models/subscription.model.js");
 const axios = require("axios");
+const ChatRoomModel = require("../models/chatModel.js");
 // const WalletModel = require("../models/wallet.model.js");
 // const TransactionModel = require("../models/transaction.model.js");
 // const NotificationModel = require("../models/notification.model.js");
@@ -108,6 +109,11 @@ const webhookFunction = async (req, res) => {
             return res.status(200).send("Plan or category info missing");
           }
 
+          const newChat = await ChatRoomModel.create({
+            type: "private",
+            participants: [user._id, coachId]
+          })
+          
           const subscription = new SubscriptionModel({
             user: user._id,
             planId: planId,
@@ -178,102 +184,106 @@ const webhookFunction = async (req, res) => {
       }
     }
 
-    if (event.event === "subscription.charge.success") {
-      try {
-        const data = event.data;
-        const paystackSubscriptionCode = data.subscription.subscription_code;
-        const reference = data.reference;
-        const userEmail = data.customer.email;
-        const amount = data.amount / 100;
-
-        // Find user by email
-        const user = await UserModel.findOne({ email: userEmail });
-        if (!user) {
-          console.log(`User with email ${userEmail} not found`);
-          return res.status(404).send("User not found");
-        }
-
-        // Find active subscription by user and paystackSubscriptionId
-        let subscription = await SubscriptionModel.findOne({
-          user: user._id,
-          paystackSubscriptionId: paystackSubscriptionCode,
-          status: "active",
-        });
-
-        if (!subscription) {
-          // No active subscription found - create a new subscription record
-          // You may want to decide how to get planId and categoryId here
-          // For example, from the webhook metadata or another reliable source
-          // For this example, let's assume you can get it from webhook metadata:
-          const planId = data.metadata?.planId;
-          const categoryId = data.metadata?.categoryId;
-
-          if (!planId || !categoryId) {
-            console.log("PlanId or CategoryId missing from webhook metadata");
-            return res.status(200).send("Plan or category info missing");
-          }
-
-          subscription = new SubscriptionModel({
-            user: user._id,
-            planId: planId,
-            categoryId: categoryId,
-            paystackSubscriptionId: paystackSubscriptionCode,
-            reference: reference,
-            status: "active",
-            startDate: new Date(),
-          });
-        }
-
-        // Find the plan
-        const plan = await PlanModel.findById(subscription.planId);
-        if (!plan) {
-          console.log(`Plan with ID ${subscription.planId} not found`);
-          return res.status(404).send("Plan not found");
-        }
-
-        // Find category in plan.categories by subscription.categoryId
-        const category = plan.categories.id(subscription.categoryId);
-        if (!category) {
-          console.log(
-            `Category with ID ${subscription.categoryId} not found in plan`
-          );
-          return res.status(404).send("Category not found");
-        }
-
-        // Calculate new expiry date based on duration
-        let currentExpiry =
-          subscription.expiryDate && subscription.expiryDate > new Date()
-            ? subscription.expiryDate
-            : new Date();
-
-        let newExpiryDate = new Date(currentExpiry);
-        if (category.duration === "monthly") {
-          newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
-        } else if (category.duration === "yearly") {
-          newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
-        }
-
-        // Update subscription fields
-        subscription.expiryDate = newExpiryDate;
-        subscription.status = "active";
-        subscription.reference = reference;
-        if (!subscription.startDate) {
-          subscription.startDate = new Date();
-        }
-        subscription.paystackSubscriptionId = paystackSubscriptionCode;
-
-        await subscription.save();
-
-        console.log(
-          `Updated subscription for user ${user._id}. New expiry: ${newExpiryDate}`
-        );
-
-        return res.status(200).send("Subscription processed");
-      } catch (error) {
-        console.error("Error processing subscription.charge.success webhook:");
-        return res.status(500).send("Internal Server Error");
-      }
+    if(event.event === "subscription.charge.success"){
+      console.log('finally subscribed************************')
     }
+
+    // if (event.event === "subscription.charge.success") {
+    //   try {
+    //     const data = event.data;
+    //     const paystackSubscriptionCode = data.subscription.subscription_code;
+    //     const reference = data.reference;
+    //     const userEmail = data.customer.email;
+    //     const amount = data.amount / 100;
+
+    //     // Find user by email
+    //     const user = await UserModel.findOne({ email: userEmail });
+    //     if (!user) {
+    //       console.log(`User with email ${userEmail} not found`);
+    //       return res.status(404).send("User not found");
+    //     }
+
+    //     // Find active subscription by user and paystackSubscriptionId
+    //     let subscription = await SubscriptionModel.findOne({
+    //       user: user._id,
+    //       paystackSubscriptionId: paystackSubscriptionCode,
+    //       status: "active",
+    //     });
+
+    //     if (!subscription) {
+    //       // No active subscription found - create a new subscription record
+    //       // You may want to decide how to get planId and categoryId here
+    //       // For example, from the webhook metadata or another reliable source
+    //       // For this example, let's assume you can get it from webhook metadata:
+    //       const planId = data.metadata?.planId;
+    //       const categoryId = data.metadata?.categoryId;
+
+    //       if (!planId || !categoryId) {
+    //         console.log("PlanId or CategoryId missing from webhook metadata");
+    //         return res.status(200).send("Plan or category info missing");
+    //       }
+
+    //       subscription = new SubscriptionModel({
+    //         user: user._id,
+    //         planId: planId,
+    //         categoryId: categoryId,
+    //         paystackSubscriptionId: paystackSubscriptionCode,
+    //         reference: reference,
+    //         status: "active",
+    //         startDate: new Date(),
+    //       });
+    //     }
+
+    //     // Find the plan
+    //     const plan = await PlanModel.findById(subscription.planId);
+    //     if (!plan) {
+    //       console.log(`Plan with ID ${subscription.planId} not found`);
+    //       return res.status(404).send("Plan not found");
+    //     }
+
+    //     // Find category in plan.categories by subscription.categoryId
+    //     const category = plan.categories.id(subscription.categoryId);
+    //     if (!category) {
+    //       console.log(
+    //         `Category with ID ${subscription.categoryId} not found in plan`
+    //       );
+    //       return res.status(404).send("Category not found");
+    //     }
+
+    //     // Calculate new expiry date based on duration
+    //     let currentExpiry =
+    //       subscription.expiryDate && subscription.expiryDate > new Date()
+    //         ? subscription.expiryDate
+    //         : new Date();
+
+    //     let newExpiryDate = new Date(currentExpiry);
+    //     if (category.duration === "monthly") {
+    //       newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
+    //     } else if (category.duration === "yearly") {
+    //       newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+    //     }
+
+    //     // Update subscription fields
+    //     subscription.expiryDate = newExpiryDate;
+    //     subscription.status = "active";
+    //     subscription.reference = reference;
+    //     if (!subscription.startDate) {
+    //       subscription.startDate = new Date();
+    //     }
+    //     subscription.paystackSubscriptionId = paystackSubscriptionCode;
+
+    //     await subscription.save();
+
+    //     console.log(
+    //       `Updated subscription for user ${user._id}. New expiry: ${newExpiryDate}`
+    //     );
+
+    //     return res.status(200).send("Subscription processed");
+    //   } catch (error) {
+    //     console.error("Error processing subscription.charge.success webhook:");
+    //     return res.status(500).send("Internal Server Error");
+    //   }
+    // }
 
     return res.sendStatus(200);
   } catch (err) {
