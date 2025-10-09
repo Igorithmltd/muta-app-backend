@@ -63,7 +63,6 @@ const webhookFunction = async (req, res) => {
           // paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
-        console.log("Attempt to pay1")
 
 
 
@@ -77,7 +76,6 @@ const webhookFunction = async (req, res) => {
         // const startDateUnix = Math.floor(Date.now() / 1000);
         
         
-        console.log("Attempt to pay2")
         const resp = await axios.post(
           "https://api.paystack.co/subscription",
           {
@@ -92,7 +90,7 @@ const webhookFunction = async (req, res) => {
             },
           }
         );
-        console.log("Attempt to pay3")
+        console.log("Attempt to pay3", resp.data)
 
 
         if (!resp.data.status) {
