@@ -333,12 +333,14 @@ class WorkoutplanService extends BaseService {
       populate: { path: "category" },
     });
 
-    if (joinedWorkoutplan) {
+    if (!joinedWorkoutplan.status.includes(["completed", "in-progress"])) {
       return BaseService.sendSuccessResponse({
         message: "You have already joined this Workout plan",
         workoutPlanAction: joinedWorkoutplan,
       });
     }
+
+    await WorkoutPlanActionModel.findByIdAndDelete(joinedWorkoutplan._id);
 
     // Helper to format date strings like "Jul 23"
    
