@@ -50,6 +50,7 @@ const webhookFunction = async (req, res) => {
       }
 
       if (event.data.authorization && event.data.authorization.reusable) {
+        console.log("Attempt to pay")
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
           : null;
@@ -113,7 +114,7 @@ const webhookFunction = async (req, res) => {
             type: "private",
             participants: [user._id, coachId]
           })
-          
+
           const subscription = new SubscriptionModel({
             user: user._id,
             planId: planId,
@@ -125,57 +126,8 @@ const webhookFunction = async (req, res) => {
             startDate: new Date(),
           });
           await subscription.save();
+          console.log(`Created new subscription for user ${user._id}`);
           return res.status(200).send("Subscription processed");
-        // }
-
-        // Find the plan
-        // const plan = await PlanModel.findById(subscription.planId);
-        // if (!plan) {
-        //   console.log(`Plan with ID ${subscription.planId} not found`);
-        //   return res.status(404).send("Plan not found");
-        // }
-
-        // // Find category in plan.categories by subscription.categoryId
-        // const category = plan.categories.id(subscription.categoryId);
-        // if (!category) {
-        //   console.log(
-        //     `Category with ID ${subscription.categoryId} not found in plan`
-        //   );
-        //   return res.status(404).send("Category not found");
-        // }
-
-        // // Calculate new expiry date based on duration
-        // let currentExpiry =
-        //   subscription.expiryDate && subscription.expiryDate > new Date()
-        //     ? subscription.expiryDate
-        //     : new Date();
-
-        // let newExpiryDate = new Date(currentExpiry);
-        // if (category.duration === "monthly") {
-        //   newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
-        // } else if (category.duration === "yearly") {
-        //   newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
-        // }
-
-        // // Update subscription fields
-        // subscription.expiryDate = newExpiryDate;
-        // subscription.status = "active";
-        // subscription.reference = reference;
-        // if (!subscription.startDate) {
-        //   subscription.startDate = new Date();
-        // }
-        // subscription.paystackSubscriptionId = paystackSubscriptionCode;
-
-        // await subscription.save();
-
-        // console.log(
-        //   `Updated subscription for user ${user._id}. New expiry: ${newExpiryDate}`
-        // );
-
-        // return res.status(200).send("Subscription processed");
-
-        // persist resp.data.data to your DB: subscription_code, status, next_payment_date, etc
-        // update user's account (grant premium access)
       } else {
         // authorization not reusable — ask user to re-enter or use a different flow
         console.warn(
