@@ -60,7 +60,7 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const expiresAt = EXPIRES_AT;
+      const expiresAt = new Date(Date.now + EXPIRES_AT);
 
       newUser.otp = otp;
       newUser.otpExpiresAt = expiresAt;
@@ -502,7 +502,7 @@ class UserService extends BaseService {
       }
       const otp = generateOTP();
 
-      const expiresAt = EXPIRES_AT;
+      const expiresAt = new Date(Date.now + EXPIRES_AT);
 
       userExists.otp = otp;
       userExists.otpExpiresAt = expiresAt;
@@ -561,7 +561,7 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const expiresAt = EXPIRES_AT;
+      const expiresAt = new Date(Date.now + EXPIRES_AT);
 
       newPost.otp = otp;
       newPost.otpExpiresAt = expiresAt;
