@@ -243,6 +243,13 @@ class UserService extends BaseService {
       userExists.otpExpiresAt = null;
       await userExists.save();
 
+      const accessToken = await userExists.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET || ""
+      );
+      const refreshToken = await userExists.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET || ""
+      );
+
       // Send OTP email
       const emailHtml = `
           <h1>Your email has been verified</h1>
@@ -257,6 +264,8 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: "OTP verified successfullly",
+        accessToken,
+        refreshToken,
       });
     } catch (error) {
       console.log(error);
@@ -581,6 +590,7 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: "Registration Successful. Please verify your email",
+        token: ""
       });
     } catch (error) {
       console.log(error, "the error");
