@@ -50,7 +50,6 @@ const webhookFunction = async (req, res) => {
       }
 
       if (event.data.authorization && event.data.authorization.reusable) {
-        console.log("Attempt to pay")
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
           : null;
@@ -64,17 +63,21 @@ const webhookFunction = async (req, res) => {
           // paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
+        console.log("Attempt to pay1")
+
 
 
         if(existingSubscription){
           console.log("User already has an active subscription. Skipping creation.");
           return res.status(200).send("Subscription already active");
         }
-
+        
+        
         // create subscription via Paystack API
         // const startDateUnix = Math.floor(Date.now() / 1000);
-
-
+        
+        
+        console.log("Attempt to pay2")
         const resp = await axios.post(
           "https://api.paystack.co/subscription",
           {
@@ -89,11 +92,13 @@ const webhookFunction = async (req, res) => {
             },
           }
         );
+        console.log("Attempt to pay3")
 
 
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
+        console.log("Attempt to pay4")
        
 
         // if (!existingSubscription) {
@@ -109,11 +114,13 @@ const webhookFunction = async (req, res) => {
             console.log("PlanId or CategoryId missing from webhook metadata");
             return res.status(200).send("Plan or category info missing");
           }
+        console.log("Attempt to pay5")
 
           const newChat = await ChatRoomModel.create({
             type: "private",
             participants: [user._id, coachId]
           })
+        console.log("Attempt to pay6")
 
           const subscription = new SubscriptionModel({
             user: user._id,
