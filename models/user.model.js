@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema(
       default: 0,
     },
     weight: {
-      value: { type: String },
+      value: { type: Number },
       unit: { type: String, enum: ["kg", "lbs"], default: "kg" },
     },
     bmi: { type: Number },
