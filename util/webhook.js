@@ -75,22 +75,27 @@ const webhookFunction = async (req, res) => {
         // create subscription via Paystack API
         // const startDateUnix = Math.floor(Date.now() / 1000);
         
-        console.log("Attempt to pay2", { customer: customerCode, plan: paystackSubscriptionCode, authorization: authorizationCode })
-        const resp = await axios.post(
-          "https://api.paystack.co/subscription",
-          {
-            customer: customerCode,
-            plan: paystackSubscriptionCode,
-            authorization: authorizationCode,
-            // start_date: new Date().toISOString(), // optional; omit to start immediately
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+
+        try {
+          
+          const resp = await axios.post(
+            "https://api.paystack.co/subscription",
+            {
+              customer: customerCode,
+              plan: paystackSubscriptionCode,
+              authorization: authorizationCode,
+              // start_date: new Date().toISOString(), // optional; omit to start immediately
             },
-          }
-        );
-        console.log("Attempt to pay3", resp.data)
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+              },
+            }
+          );
+          console.log("Attempt to pay3", resp.data)
+        } catch (error) {
+          console.log("Error creating Paystack subscription:", error.response?.data || error.message);
+        }
 
 
         if (!resp.data.status) {
