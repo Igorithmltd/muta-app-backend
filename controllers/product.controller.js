@@ -84,6 +84,14 @@ class ProductController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deleteProductCategory.data)
     }
+    async getFavorites(req, res){
+        const productService = new ProductService()
+        const getFavorites = await productService.getFavorites(req)
+        if(!getFavorites.success){
+            return BaseController.sendFailedResponse(res, getFavorites.data)
+        }
+        return BaseController.sendSuccessResponse(res, getFavorites.data)
+    }
     async addProductToFavorites(req, res){
         const productService = new ProductService()
         const addProductToFavorites = await productService.addProductToFavorites(req)

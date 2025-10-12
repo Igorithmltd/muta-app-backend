@@ -1,7 +1,7 @@
 const ProductController = require('../controllers/product.controller')
 const auth = require('../middlewares/auth')
 const adminAuth = require('../middlewares/adminAuth')
-const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, ROUTE_REVIEW_PRODUCT, ROUTE_GET_PRODUCT_REVIEWS } = require('../util/page-route')
+const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, ROUTE_REVIEW_PRODUCT, ROUTE_GET_PRODUCT_REVIEWS, ROUTE_GET_FAVORITES } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -212,9 +212,16 @@ router.get(ROUTE_GET_PRODUCT+"/:id", auth, (req, res)=>{
  * @swagger
  * /products/get-all-products:
  *   get:
- *     summary: Get all products
+ *     summary: Get all products or products filtered by category
  *     tags:
  *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Category ID to filter products by
  *     responses:
  *       200:
  *         description: Products fetched successfully
@@ -550,6 +557,72 @@ router.delete(ROUTE_DELETE_PRODUCT_CATEGORY+"/:id", adminAuth, (req, res)=>{
     return productController.deleteProduct(req, res)
 })
 
+/**
+ * @swagger
+ * /products/get-favorites:
+ *   get:
+ *     summary: Get all favorite products of the authenticated user
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []      # Assuming you use bearer token auth
+ *     responses:
+ *       200:
+ *         description: Favorite products fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userId:
+ *                   type: string
+ *                   description: ID of the user
+ *                   example: 615d7f92b6e17c1a9f7c4b3d
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: Product ID
+ *                         example: 615d7f92b6e17c1a9f7c4b4a
+ *                       title:
+ *                         type: string
+ *                         description: Title of the product
+ *                         example: Sneaker 5
+ *                       price:
+ *                         type: number
+ *                         description: Price of the product
+ *                         example: 4000
+ *                       category:
+ *                         type: string
+ *                         description: Category of the product
+ *                         example: 686265149ba9c6ad79f60bfe
+ *                       description:
+ *                         type: string
+ *                         description: Description of the product
+ *                         example: Best sneakers in Anambra
+ *                       images:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             imageUrl:
+ *                               type: string
+ *                               example: https://cloudinary/muta-app/48858483.jpg
+ *                             publicId:
+ *                               type: string
+ *                               example: dlmgki54ifu
+ *       404:
+ *         description: Favorite products not found
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_FAVORITES, auth, (req, res)=>{
+    const productController = new ProductController()
+    return productController.getFavorites(req, res)
+})
 
 /**
  * @swagger

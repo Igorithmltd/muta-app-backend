@@ -263,6 +263,24 @@ class ProductService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async getFavorites(req) {
+    try {
+      const userId = req.user.id;
+  
+      // Find or create the user's favorite record
+      let favorites = await FavoriteProductModel.find({ userId })
+      .populate('product');
+  
+      return BaseService.sendSuccessResponse({
+        message: favorites,
+      });
+    } catch (error) {
+      console.error("Add to favorites error:", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
   async addProductToFavorites(req) {
     try {
       const userId = req.user.id;

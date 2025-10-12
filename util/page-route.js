@@ -137,6 +137,7 @@ exports.ROUTE_ADD_PRODUCT_TO_FAVORITE = '/add-product-to-favorite'
 exports.ROUTE_REMOVE_PRODUCT_FROM_FAVORITE = '/remove-product-from-favorite'
 exports.ROUTE_REVIEW_PRODUCT = '/review-product'
 exports.ROUTE_GET_PRODUCT_REVIEWS = '/get-product-reviews'
+exports.ROUTE_GET_FAVORITES = '/get-favorites'
 
 //product categories
 exports.ROUTE_CREATE_PRODUCT_CATEGORY = '/create-product-category'
