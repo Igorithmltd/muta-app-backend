@@ -11,9 +11,8 @@ class CartService extends BaseService {
   
       const validateRule = {
         productId: "string|required",
+        variationId: "string|required",
         quantity: "integer|required|min:1",
-        color: "string|required",
-        size: "string|required",
       };
   
       const validateMessage = {
@@ -27,17 +26,15 @@ class CartService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
   
-      const { productId, quantity, color, size } = post;
+      const { productId, variationId, quantity } = post;
   
       const product = await ProductModel.findById(productId);
       if (!product) {
         return BaseService.sendFailedResponse({ error: "Product not found" });
       }
   
-      // ✅ Find matching variation
-      const variation = product.variations.find(
-        (v) => v.color === color && v.size === size
-      );
+      // ✅ Find variation by _id
+      const variation = product.variations.id(variationId);
   
       if (!variation) {
         return BaseService.sendFailedResponse({
@@ -60,20 +57,18 @@ class CartService extends BaseService {
           items: [
             {
               product: productId,
+              variation,
               quantity,
-              color,
-              size,
-              price: variation.price || product.price,
+              // price: variation.price || product.price,
             },
           ],
         });
       } else {
-        // Check if the same variation already exists in the cart
+        // Check if the same product + variation already exists in the cart
         const itemIndex = cart.items.findIndex(
           (item) =>
             item.product.toString() === productId &&
-            item.color === color &&
-            item.size === size
+            item.variationId?.toString() === variationId
         );
   
         if (itemIndex > -1) {
@@ -91,10 +86,9 @@ class CartService extends BaseService {
           // Add new item
           cart.items.push({
             product: productId,
+            variation,
             quantity,
-            color,
-            size,
-            price: variation.price || product.price,
+            // price: variation.price || product.price,
           });
         }
       }
@@ -116,6 +110,7 @@ class CartService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: "Product added to cart successfully",
       });
+
     } catch (error) {
       console.error("Add to cart error:", error);
       return BaseService.sendFailedResponse({
@@ -130,8 +125,7 @@ class CartService extends BaseService {
   
       const validateRule = {
         productId: "string|required",
-        color: "string|required",
-        size: "string|required",
+        variationId: "string|required",
       };
   
       const validateMessage = {
@@ -144,7 +138,7 @@ class CartService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
   
-      const { productId, color, size } = post;
+      const { productId, variationId } = post;
   
       let cart = await CartModel.findOne({ user: userId });
       if (!cart) {
@@ -153,11 +147,11 @@ class CartService extends BaseService {
   
       const prevCount = cart.items.length;
   
+      // ✅ Remove item by productId and variationId
       cart.items = cart.items.filter(
         (item) =>
           item.product.toString() !== productId ||
-          item.color !== color ||
-          item.size !== size
+          item.variation?._id?.toString() !== variationId
       );
   
       if (cart.items.length === prevCount) {
@@ -166,16 +160,13 @@ class CartService extends BaseService {
         });
       }
   
-      // Recalculate totals
+      // ✅ Recalculate totals
       let totalItems = 0;
       let totalPrice = 0;
   
       for (const item of cart.items) {
         const p = await ProductModel.findById(item.product);
-        const variation = p?.variations.find(
-          (v) => v.color === item.color && v.size === item.size
-        );
-  
+        const variation = p?.variations.id(item.variation._id);
         const itemPrice = variation?.price || p?.price || 0;
   
         totalItems += item.quantity;
@@ -204,9 +195,8 @@ class CartService extends BaseService {
   
       const validateRule = {
         productId: "string|required",
+        variationId: "string|required",
         quantity: "integer|required|min:1",
-        color: "string|required",
-        size: "string|required",
       };
   
       const validateMessage = {
@@ -220,38 +210,49 @@ class CartService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
   
-      const { productId, quantity, color, size } = post;
+      const { productId, variationId, quantity } = post;
   
-      let cart = await CartModel.findOne({ user: userId });
+      const cart = await CartModel.findOne({ user: userId });
       if (!cart) {
         return BaseService.sendFailedResponse({ error: "Cart not found" });
       }
   
-      // Find item index with matching product + color + size
+      // ✅ Find item index with matching product and variationId
       const itemIndex = cart.items.findIndex(
         (item) =>
           item.product.toString() === productId &&
-          item.color === color &&
-          item.size === size
+          item.variation._id?.toString() === variationId
       );
   
       if (itemIndex === -1) {
         return BaseService.sendFailedResponse({ error: "Product variation not in cart" });
       }
   
-      // Update quantity for the matched variation
+      // ✅ Check if requested quantity exceeds variation stock
+      const product = await ProductModel.findById(productId);
+      const variation = product?.variations.id(variationId);
+  
+      if (!variation) {
+        return BaseService.sendFailedResponse({ error: "Variation not found" });
+      }
+  
+      if (variation.stock < quantity) {
+        return BaseService.sendFailedResponse({
+          error: `Only ${variation.stock} in stock for selected variation`,
+        });
+      }
+  
+      // ✅ Update quantity
       cart.items[itemIndex].quantity = quantity;
   
-      // Recalculate totals using variation price if available
+      // ✅ Recalculate totals
       let totalItems = 0;
       let totalPrice = 0;
   
       for (const item of cart.items) {
         const p = await ProductModel.findById(item.product);
-        const variation = p?.variations.find(
-          (v) => v.color === item.color && v.size === item.size
-        );
-        const itemPrice = variation?.price || p?.price || 0;
+        const v = p?.variations.id(item.variation._id);
+        const itemPrice = v?.price || p?.price || 0;
   
         totalItems += item.quantity;
         totalPrice += itemPrice * item.quantity;

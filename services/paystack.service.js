@@ -68,6 +68,10 @@ class PaystackService extends BaseService {
       //   }
       // );
 
+      const existingPaystackSubscription = await this.checkIfCustomerHasSubscription(email, paystackSubscriptionCode);
+
+      return console.log({existingPaystackSubscription});
+
       let existingSubscription = await SubscriptionModel.findOne({
         user: user._id,
         // paystackSubscriptionId: paystackSubscriptionCode,
@@ -99,6 +103,30 @@ class PaystackService extends BaseService {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
+    }
+  }
+  async checkIfCustomerHasSubscription(customerCode, planCode) {
+    try {
+      const response = await axios.get(
+        `https://api.paystack.co/subscription`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          },
+          params: {
+            customer: customerCode,  // Pass customerCode to filter subscriptions
+          },
+        }
+      );
+  
+      console.log({response})
+      // Check if the customer already has a subscription to the given plan
+      const existingSubscription = response.data.data.find(sub => sub.plan.code === planCode);
+  
+      return existingSubscription ? true : false;
+    } catch (error) {
+      console.error("Error checking subscription status:", error);
+      return false; // If there's an error, assume no active subscription
     }
   }
 }

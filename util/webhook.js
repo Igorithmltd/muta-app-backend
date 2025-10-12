@@ -76,9 +76,10 @@ const webhookFunction = async (req, res) => {
         // const startDateUnix = Math.floor(Date.now() / 1000);
         
 
+        let resp
         try {
           
-          const resp = await axios.post(
+          resp = await axios.post(
             "https://api.paystack.co/subscription",
             {
               customer: customerCode,

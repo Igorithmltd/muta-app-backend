@@ -22,8 +22,7 @@ const router = require('express').Router();
  *             required:
  *               - productId
  *               - quantity
- *               - color
- *               - size
+ *               - variationId
  *             properties:
  *               productId:
  *                 type: string
@@ -34,14 +33,10 @@ const router = require('express').Router();
  *                 minimum: 1
  *                 description: Quantity of the product to add
  *                 example: 2
- *               color:
+ *               variationId:
  *                 type: string
- *                 description: Color of the product variation
- *                 example: "Red"
- *               size:
- *                 type: string
- *                 description: Size of the product variation
- *                 example: "45"
+ *                 description: ID of the variation to add
+ *                 example: 665fa28b4a1c3f1a32044ea9
  *     responses:
  *       200:
  *         description: Product added to cart successfully
@@ -87,21 +82,16 @@ router.post(ROUTE_ADD_TO_CART, auth, async (req, res) => {
  *             type: object
  *             required:
  *               - productId
- *               - color
- *               - size
+ *               - varationId
  *             properties:
  *               productId:
  *                 type: string
  *                 description: ID of the product to remove
  *                 example: 665fa28b4a1c3f1a32044ea9
- *               color:
+ *             variationId:
  *                 type: string
- *                 description: Color of the product variation
- *                 example: "Red"
- *               size:
- *                 type: string
- *                 description: Size of the product variation
- *                 example: "45"
+ *                 description: ID of the variation to add
+ *                 example: 665fa28b4a1c3f1a32044ea9
  *     responses:
  *       200:
  *         description: Product variation removed from cart successfully
@@ -148,8 +138,7 @@ router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
  *             required:
  *               - productId
  *               - quantity
- *               - color
- *               - size
+ *               - variationId
  *             properties:
  *               productId:
  *                 type: string
@@ -159,14 +148,10 @@ router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
  *                 type: integer
  *                 description: New quantity (minimum 1)
  *                 example: 3
- *               color:
+ *               productId:
  *                 type: string
- *                 description: Color variation of the product
- *                 example: "red"
- *               size:
- *                 type: string
- *                 description: Size variation of the product
- *                 example: "45"
+ *                 description: ID of the variation to add
+ *                 example: 665fa28b4a1c3f1a32044ea9
  *     responses:
  *       200:
  *         description: Cart updated successfully
