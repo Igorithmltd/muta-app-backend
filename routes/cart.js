@@ -88,7 +88,7 @@ router.post(ROUTE_ADD_TO_CART, auth, async (req, res) => {
  *                 type: string
  *                 description: ID of the product to remove
  *                 example: 665fa28b4a1c3f1a32044ea9
- *             variationId:
+ *               variationId:
  *                 type: string
  *                 description: ID of the variation to add
  *                 example: 665fa28b4a1c3f1a32044ea9
@@ -148,7 +148,7 @@ router.put(ROUTE_REMOVE_FROM_CART, auth, async (req, res) => {
  *                 type: integer
  *                 description: New quantity (minimum 1)
  *                 example: 3
- *               productId:
+ *               variationId:
  *                 type: string
  *                 description: ID of the variation to add
  *                 example: 665fa28b4a1c3f1a32044ea9
