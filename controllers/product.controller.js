@@ -19,6 +19,14 @@ class ProductController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getProduct.data)
     }
+    async searchProductByTitle(req, res){
+        const productService = new ProductService()
+        const searchProductByTitle = await productService.searchProductByTitle(req)
+        if(!searchProductByTitle.success){
+            return BaseController.sendFailedResponse(res, searchProductByTitle.data)
+        }
+        return BaseController.sendSuccessResponse(res, searchProductByTitle.data)
+    }
     async getAllProducts(req, res){
         const productService = new ProductService()
         const getAllProducts = await productService.getAllProducts(req)

@@ -173,6 +173,56 @@ class ProductService extends BaseService {
       return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async searchProductByTitle(req) {
+    try {
+      const { title } = req.query;
+      const userId = req.user?.id;
+  
+      if (!title) {
+        return BaseService.sendFailedResponse({
+          error: "Product title is required",
+        });
+      }
+  
+      const products = await ProductModel.find({
+        title: { $regex: new RegExp(title, 'i') }, // case-insensitive search
+      }).populate('category');
+  
+      if (!products || products.length === 0) {
+        return BaseService.sendFailedResponse({
+          error: "No products found with the given title",
+        });
+      }
+  
+      let productsWithFavoriteFlag = [];
+  
+      if (userId) {
+        const favorites = await FavoriteProductModel.find({
+          userId,
+          product: { $in: products.map((p) => p._id) },
+        });
+  
+        const favoriteProductIds = new Set(favorites.map((f) => f.product.toString()));
+  
+        productsWithFavoriteFlag = products.map((product) => ({
+          ...product.toObject(),
+          isFavorite: favoriteProductIds.has(product._id.toString()),
+        }));
+      } else {
+        productsWithFavoriteFlag = products.map((product) => ({
+          ...product.toObject(),
+          isFavorite: false,
+        }));
+      }
+  
+      return BaseService.sendSuccessResponse({
+        message: productsWithFavoriteFlag,
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }  
   async deleteProduct(req) {
     try {
       const { id } = req.params;

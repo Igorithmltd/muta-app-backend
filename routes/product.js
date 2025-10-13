@@ -1,7 +1,7 @@
 const ProductController = require('../controllers/product.controller')
 const auth = require('../middlewares/auth')
 const adminAuth = require('../middlewares/adminAuth')
-const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, ROUTE_REVIEW_PRODUCT, ROUTE_GET_PRODUCT_REVIEWS, ROUTE_GET_FAVORITES } = require('../util/page-route')
+const { ROUTE_CREATE_PRODUCT, ROUTE_GET_PRODUCT, ROUTE_GET_ALL_PRODUCTS, ROUTE_UPDATE_PRODUCT, ROUTE_DELETE_PRODUCT, ROUTE_CREATE_PRODUCT_CATEGORY, ROUTE_GET_PRODUCT_CATEGORY, ROUTE_GET_ALL_PRODUCT_CATEGORIES, ROUTE_UPDATE_PRODUCT_CATEGORY, ROUTE_DELETE_PRODUCT_CATEGORY, ROUTE_ADD_PRODUCT_TO_FAVORITE, ROUTE_REMOVE_PRODUCT_FROM_FAVORITE, ROUTE_REVIEW_PRODUCT, ROUTE_GET_PRODUCT_REVIEWS, ROUTE_GET_FAVORITES, ROUTE_SEARCH_PRODUCT_BY_TITLE } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -210,6 +210,88 @@ router.post(ROUTE_CREATE_PRODUCT, adminAuth, (req, res)=>{
 router.get(ROUTE_GET_PRODUCT+"/:id", auth, (req, res)=>{
     const productController = new ProductController()
     return productController.getProduct(req, res)
+})
+
+/**
+ * @swagger
+ * /products/search-product-title:
+ *   get:
+ *     summary: Search for products by title
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Title of the product to search for (partial match, case-insensitive)
+ *         example: "Sneaker"
+ *     responses:
+ *       200:
+ *         description: Products fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                     description: Title of the product
+ *                     example: Sneaker 5
+ *                   price:
+ *                     type: number
+ *                     description: Price of the product
+ *                     example: 4000
+ *                   category:
+ *                     type: string
+ *                     description: Category of the product
+ *                     example: 686265149ba9c6ad79f60bfe
+ *                   color:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                       example: "#fffbee"
+ *                   size:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                       example: "54"
+ *                   keyFeatures:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                       example: "lightweight, durable"
+ *                   description:
+ *                     type: string
+ *                     example: Best sneakers in Anambra
+ *                   stock:
+ *                     type: number
+ *                     example: 101
+ *                   isFavorite:
+ *                     type: boolean
+ *                     example: true
+ *                   images:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         imageUrl:
+ *                           type: string
+ *                           example: https://cloudinary/muta-app/48858483.jpg
+ *                         publicId:
+ *                           type: string
+ *                           example: dlmgki54ifu
+ *       404:
+ *         description: No products found with the given title
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_SEARCH_PRODUCT_BY_TITLE, auth, (req, res)=>{
+    const productController = new ProductController()
+    return productController.searchProductByTitle(req, res)
 })
 
 /**
