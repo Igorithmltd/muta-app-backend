@@ -43,6 +43,7 @@ const {
   ROUTE_DELETE_ALL_NOTIFICATION,
   ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ,
   ROUTE_GET_VERIFIED_COACHES,
+  ROUTE_UPDATE_USER,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -259,6 +260,113 @@ router.put(ROUTE_PROFILE_IMAGE_UPLOAD, [auth], (req, res) => {
 router.put(ROUTE_COMPLETE_ONBOARDING, [auth], (req, res) => {
   const userController = new UserController();
   return userController.completeOnboarding(req, res);
+});
+
+/**
+ * @swagger
+ * /users/update-user:
+ *   put:
+ *     summary: Update user profile information
+ *     tags:
+ *       - Users
+ *     description: Allows an authenticated user to update their profile details such as name, gender, age, fitness level, location, etc.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 description: First name of the user
+ *                 example: Sarah
+ *               lastName:
+ *                 type: string
+ *                 description: Last name of the user
+ *                 example: James
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 description: Gender of the user
+ *                 example: female
+ *               age:
+ *                 type: integer
+ *                 description: Age of the user
+ *                 example: 28
+ *               focusArea:
+ *                 type: array
+ *                 description: Optional list of fitness focus areas
+ *                 items:
+ *                   type: string
+ *                 example: ["weight loss", "muscle gain"]
+ *               specialty:
+ *                 type: array
+ *                 description: Optional list of specialty areas (for coaches)
+ *                 items:
+ *                   type: string
+ *                 example: ["yoga", "HIIT"]
+ *               fitnessLevel:
+ *                 type: string
+ *                 enum: [beginner, intermediate, advanced]
+ *                 description: Optional fitness level
+ *                 example: intermediate
+ *               weight:
+ *                 type: object
+ *                 description: Optional weight of the user
+ *                 properties:
+ *                   value:
+ *                     type: number
+ *                     example: 72.5
+ *                   unit:
+ *                     type: string
+ *                     enum: [kg, lbs]
+ *                     example: kg
+ *               height:
+ *                 type: object
+ *                 description: Optional height of the user
+ *                 properties:
+ *                   value:
+ *                     type: number
+ *                     example: 180
+ *                   unit:
+ *                     type: string
+ *                     enum: [cm, ft]
+ *                     example: cm
+ *               location:
+ *                 type: string
+ *                 description: Optional location of the user
+ *                 example: "Awka, NG"
+ *               yearsOfExperience:
+ *                 type: integer
+ *                 description: Optional years of experience (for coaches)
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: User profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User profile updated successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request, such as missing or invalid fields
+ *       401:
+ *         description: Unauthorized, user not authenticated
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPDATE_USER, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.updateUserProfile(req, res);
 });
 /**
  * @swagger

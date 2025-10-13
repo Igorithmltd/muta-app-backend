@@ -847,6 +847,26 @@ class UserService extends BaseService {
       });
     }
   }
+  async updateUserProfile(req) {
+    try {
+      const post = req.body;
+      const userId = req.user.id;
+  
+      const updatedUser = await UserModel.findByIdAndUpdate(userId, post, {
+        new: true,
+      });
+  
+      return BaseService.sendSuccessResponse({
+        message: "User profile updated successfully",
+        data: updatedUser,
+      });
+    } catch (err) {
+      console.error(err);
+      return BaseService.sendFailedResponse({
+        error: "Something went wrong. Please try again later.",
+      });
+    }
+  }  
   async profileImageUpload(req) {
     try {
       let post = req.body;

@@ -222,7 +222,7 @@ class ProductService extends BaseService {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }  
+  }
   async deleteProduct(req) {
     try {
       const { id } = req.params;

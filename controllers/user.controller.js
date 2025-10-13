@@ -90,6 +90,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, refreshToken.data)
     }
+    async updateUserProfile(req, res){
+        const userService = new UserService()
+        const updateUserProfile = await userService.updateUserProfile(req, res)
+        if(!updateUserProfile.success){
+            return BaseController.sendFailedResponse(res, updateUserProfile.data)
+        }
+        return BaseController.sendSuccessResponse(res, updateUserProfile.data)
+    }
     async completeOnboarding(req, res){
         const userService = new UserService()
         const completeOnboarding = await userService.completeOnboarding(req, res)
