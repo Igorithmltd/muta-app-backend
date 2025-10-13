@@ -333,14 +333,16 @@ class WorkoutplanService extends BaseService {
       populate: { path: "category" },
     });
 
-    if (!joinedWorkoutplan.status.includes(["completed", "in-progress"])) {
-      return BaseService.sendSuccessResponse({
-        message: "You have already joined this Workout plan",
-        workoutPlanAction: joinedWorkoutplan,
-      });
+    if (joinedWorkoutplan) {
+      if (!joinedWorkoutplan.status.includes(["completed", "in-progress"])) {
+        return BaseService.sendSuccessResponse({
+          message: "You have already joined this Workout plan",
+          workoutPlanAction: joinedWorkoutplan,
+        });
+      }
+      await WorkoutPlanActionModel.findByIdAndDelete(joinedWorkoutplan._id);
     }
 
-    await WorkoutPlanActionModel.findByIdAndDelete(joinedWorkoutplan._id);
 
     // Helper to format date strings like "Jul 23"
    
@@ -414,7 +416,8 @@ class WorkoutplanService extends BaseService {
       createdAt: new Date(),
       type: "streak",
     });
-    if (user.deviceToken) {
+
+    if (user && user.deviceToken) {
       await sendPushNotification({
         title: "You just joined a new workout plan",
         body: `You have to rememeber that consistency is the key. Well done!`,
