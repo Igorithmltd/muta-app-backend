@@ -52,7 +52,7 @@ class UserService extends BaseService {
         });
       }
 
-      const newUser = new UserModel({...post, servicePlatform: "local"});
+      const newUser = new UserModel({ ...post, servicePlatform: "local" });
       await newUser.save();
 
       // userExists.markModified("password");
@@ -313,7 +313,8 @@ class UserService extends BaseService {
         // If the user signed up via Google, prevent local login attempt
         if (password) {
           return BaseService.sendFailedResponse({
-            error: "This account was created using Google. Please log in using Google.",
+            error:
+              "This account was created using Google. Please log in using Google.",
           });
         }
       }
@@ -321,10 +322,11 @@ class UserService extends BaseService {
       if (userExists.servicePlatform === "local") {
         if (!userExists.password) {
           return BaseService.sendFailedResponse({
-            error: "Account created via a different platform. Please use the appropriate platform to log in.",
+            error:
+              "Account created via a different platform. Please use the appropriate platform to log in.",
           });
         }
-  
+
         // Check if the provided password matches the stored password
         if (!(await userExists.comparePassword(password))) {
           return BaseService.sendFailedResponse({
@@ -590,7 +592,7 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: "Registration Successful. Please verify your email",
-        token: ""
+        token: "",
       });
     } catch (error) {
       console.log(error, "the error");
@@ -1382,55 +1384,55 @@ class UserService extends BaseService {
       });
     }
   }
-  async changePassword(req) {
-    try {
-      const userId = req.user.id;
-      const { oldPassword, newPassword } = req.body;
+  // async changePassword(req) {
+  //   try {
+  //     const userId = req.user.id;
+  //     const { oldPassword, newPassword } = req.body;
 
-      // Validate input
-      if (!oldPassword || !newPassword) {
-        return BaseService.sendFailedResponse({
-          error: "All fields are required.",
-        });
-      }
+  //     // Validate input
+  //     if (!oldPassword || !newPassword) {
+  //       return BaseService.sendFailedResponse({
+  //         error: "All fields are required.",
+  //       });
+  //     }
 
-      if (newPassword !== confirmPassword) {
-        return BaseService.sendFailedResponse({
-          error: "New password and confirmation do not match.",
-        });
-      }
+  //     if (newPassword !== confirmPassword) {
+  //       return BaseService.sendFailedResponse({
+  //         error: "New password and confirmation do not match.",
+  //       });
+  //     }
 
-      const user = await UserModel.findById(userId);
+  //     const user = await UserModel.findById(userId);
 
-      if (!user) {
-        return BaseService.sendFailedResponse({ error: "User not found." });
-      }
+  //     if (!user) {
+  //       return BaseService.sendFailedResponse({ error: "User not found." });
+  //     }
 
-      if (!user.password) {
-        return BaseService.sendFailedResponse({
-          error: "No password set for this user.",
-        });
-      }
+  //     if (!user.password) {
+  //       return BaseService.sendFailedResponse({
+  //         error: "No password set for this user.",
+  //       });
+  //     }
 
-      const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch) {
-        return BaseService.sendFailedResponse({
-          error: "Old password is incorrect.",
-        });
-      }
+  //     const isMatch = await bcrypt.compare(oldPassword, user.password);
+  //     if (!isMatch) {
+  //       return BaseService.sendFailedResponse({
+  //         error: "Old password is incorrect.",
+  //       });
+  //     }
 
-      user.password = newPassword;
+  //     user.password = newPassword;
 
-      await user.save();
+  //     await user.save();
 
-      return BaseService.sendSuccessResponse({
-        message: "Password changed successfully.",
-      });
-    } catch (error) {
-      console.log(error, "the admin error");
-      return BaseService.sendFailedResponse({ error });
-    }
-  }
+  //     return BaseService.sendSuccessResponse({
+  //       message: "Password changed successfully.",
+  //     });
+  //   } catch (error) {
+  //     console.log(error, "the admin error");
+  //     return BaseService.sendFailedResponse({ error });
+  //   }
+  // }
   async getAllVerfiedCoach(req) {
     try {
       const query = {
