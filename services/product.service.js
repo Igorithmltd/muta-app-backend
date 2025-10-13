@@ -70,13 +70,34 @@ class ProductService extends BaseService {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }  
+  }
   async getAllProducts(req) {
     try {
+      const userId = req.user?.id;
+  
       const filter = req.query.category ? { category: req.query.category } : {};
-      const allProducts = await ProductModel.find(filter)
-      .populate('category');
-      return BaseService.sendSuccessResponse({ message: allProducts });
+      const allProducts = await ProductModel.find(filter).populate('category');
+  
+      let favoriteProductIds = [];
+  
+      if (userId) {
+        // Find the user's favorite product IDs
+        const favorite = await FavoriteProductModel.findOne({ userId }).select('product');
+        if (favorite && favorite.product) {
+          favoriteProductIds = favorite.product.map(p => p.toString());
+        }
+      }
+  
+      // Attach `isFavorite` field to each product
+      const productsWithFavoriteFlag = allProducts.map(product => {
+        const isFavorite = favoriteProductIds.includes(product._id.toString());
+        return {
+          ...product.toObject(),
+          isFavorite,
+        };
+      });
+  
+      return BaseService.sendSuccessResponse({ message: productsWithFavoriteFlag });
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
@@ -118,19 +139,38 @@ class ProductService extends BaseService {
   async getProduct(req) {
     try {
       const { id } = req.params;
-
-      const product = await ProductModel.findById(id)
-      .populate('category');
+      const userId = req.user?.id;
+  
+      const product = await ProductModel.findById(id).populate('category');
+  
       if (!product) {
         return BaseService.sendFailedResponse({
           error: "Product not found",
         });
       }
-
-      return BaseService.sendSuccessResponse({ message: product });
+  
+      let isFavorite = false;
+  
+      if (userId) {
+        const favorite = await FavoriteProductModel.findOne({
+          userId,
+          product: id, // check if this product is in the array
+        });
+  
+        if (favorite) {
+          isFavorite = true;
+        }
+      }
+  
+      const productWithFavoriteFlag = {
+        ...product.toObject(),
+        isFavorite,
+      };
+  
+      return BaseService.sendSuccessResponse({ message: productWithFavoriteFlag });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
   async deleteProduct(req) {

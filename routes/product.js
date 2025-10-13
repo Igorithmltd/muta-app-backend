@@ -187,6 +187,10 @@ router.post(ROUTE_CREATE_PRODUCT, adminAuth, (req, res)=>{
  *                   type: number
  *                   description: Stock of the product
  *                   example: 101
+ *                 isFavorite:
+ *                   type: boolean
+ *                   description: Checks if the user liked the product
+ *                   example: true
  *                 images:
  *                   type: array
  *                   items:
@@ -270,6 +274,10 @@ router.get(ROUTE_GET_PRODUCT+"/:id", auth, (req, res)=>{
  *                     type: number
  *                     description: Stock quantity of the product
  *                     example: 101
+ *                   isFavorite:
+ *                     type: boolean
+ *                     description: A boolean if the user liked the product
+ *                     example: true
  *                   images:
  *                     type: array
  *                     items:
