@@ -49,6 +49,7 @@ class CartService extends BaseService {
       }
   
       let cart = await CartModel.findOne({ user: userId });
+
   
       if (!cart) {
         // Create new cart
@@ -59,7 +60,7 @@ class CartService extends BaseService {
               product: productId,
               variation,
               quantity,
-              // price: variation.price || product.price,
+              price: variation.price || product.price,
             },
           ],
         });
@@ -88,7 +89,7 @@ class CartService extends BaseService {
             product: productId,
             variation,
             quantity,
-            // price: variation.price || product.price,
+            price: variation.price || product.price,
           });
         }
       }
@@ -141,6 +142,7 @@ class CartService extends BaseService {
       const { productId, variationId } = post;
   
       let cart = await CartModel.findOne({ user: userId });
+
       if (!cart) {
         return BaseService.sendFailedResponse({ error: "Cart not found" });
       }
