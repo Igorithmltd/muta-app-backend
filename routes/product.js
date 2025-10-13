@@ -476,7 +476,7 @@ router.get(ROUTE_GET_PRODUCT_CATEGORY+"/:id", auth, (req, res)=>{
  */
 router.get(ROUTE_GET_ALL_PRODUCT_CATEGORIES, auth, (req, res)=>{
     const productController = new ProductController()
-    return productController.getAllProducts(req, res)
+    return productController.getAllProductCategories(req, res)
 })
 
 /**
