@@ -15,7 +15,7 @@ const variationSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
   title: { type: String, required: true, unique: true },
   price: { type: Number, required: true }, // Base price
-  category: { type: String, required: true },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: "ProductCategory" },
   description: { type: String, required: true },
   keyFeatures: [{ type: String, required: true }],
 
