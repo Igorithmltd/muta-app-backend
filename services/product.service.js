@@ -74,7 +74,8 @@ class ProductService extends BaseService {
   async getAllProducts(req) {
     try {
       const filter = req.query.category ? { category: req.query.category } : {};
-      const allProducts = await ProductModel.find(filter);
+      const allProducts = await ProductModel.find(filter)
+      .populate('category');
       return BaseService.sendSuccessResponse({ message: allProducts });
     } catch (error) {
       return BaseService.sendFailedResponse({
@@ -118,7 +119,8 @@ class ProductService extends BaseService {
     try {
       const { id } = req.params;
 
-      const product = await ProductModel.findById(id);
+      const product = await ProductModel.findById(id)
+      .populate('category');
       if (!product) {
         return BaseService.sendFailedResponse({
           error: "Product not found",
