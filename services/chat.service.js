@@ -82,6 +82,7 @@ class UserService extends BaseService {
       const chats = await ChatRoomModel.find({ participants: userId, type: 'private' }).populate(
         "participants"
       );
+
       return BaseService.sendSuccessResponse({ message: chats });
     } catch (error) {
       return BaseService.sendFailedResponse({error: error.message})
