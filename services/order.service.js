@@ -11,14 +11,14 @@ class OrderService extends BaseService {
       const post = req.body;
   
       const validateRule = {
-        paymentMethod: "string|required",
-        shippingAddress: "object|required",
-        "shippingAddress.address": "string|required",
-        "shippingAddress.fullName": "string|required",
-        "shippingAddress.phoneNumber": "string|required",
-        "shippingAddress.city": "string|required",
-        "shippingAddress.deliveryNote": "string|required",
-        "shippingAddress.region": "string|required",
+        paymentMethod: "string|required"
+        // shippingAddress: "object|required",
+        // "shippingAddress.address": "string|required",
+        // "shippingAddress.fullName": "string|required",
+        // "shippingAddress.phoneNumber": "string|required",
+        // "shippingAddress.city": "string|required",
+        // "shippingAddress.deliveryNote": "string|required",
+        // "shippingAddress.region": "string|required",
       };
   
       const validateMessage = {

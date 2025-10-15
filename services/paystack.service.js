@@ -70,7 +70,7 @@ class PaystackService extends BaseService {
 
       const existingPaystackSubscription = await this.checkIfCustomerHasSubscription(email, paystackSubscriptionCode);
 
-      return console.log({existingPaystackSubscription});
+      console.log({existingPaystackSubscription});
 
       let existingSubscription = await SubscriptionModel.findOne({
         user: user._id,
@@ -119,7 +119,7 @@ class PaystackService extends BaseService {
         }
       );
   
-      console.log({response})
+
       // Check if the customer already has a subscription to the given plan
       const existingSubscription = response.data.data.find(sub => sub.plan.code === planCode);
   
