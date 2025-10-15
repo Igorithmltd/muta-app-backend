@@ -44,14 +44,14 @@ const webhookFunction = async (req, res) => {
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
       const coachId = metadata.coachId || null;
 
-      console.log('called 1')
+
       const user = await UserModel.findOne({ email: userEmail });
       if (!user) {
         return res.status(404).send("User not found");
       }
-      console.log('called 2')
+
       if (event.data.authorization && event.data.authorization.reusable) {
-      console.log('called 3')
+
 
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
@@ -73,7 +73,6 @@ const webhookFunction = async (req, res) => {
           console.log("User already has an active subscription. Skipping creation.");
           return res.status(200).send("Subscription already active");
         }
-      console.log('called 4')
         
         
         // create subscription via Paystack API
