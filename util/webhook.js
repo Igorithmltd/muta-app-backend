@@ -44,12 +44,15 @@ const webhookFunction = async (req, res) => {
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
       const coachId = metadata.coachId || null;
 
+      console.log('called 1')
       const user = await UserModel.findOne({ email: userEmail });
       if (!user) {
         return res.status(404).send("User not found");
       }
-
+      console.log('called 2')
       if (event.data.authorization && event.data.authorization.reusable) {
+      console.log('called 3')
+
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
           : null;
@@ -70,6 +73,7 @@ const webhookFunction = async (req, res) => {
           console.log("User already has an active subscription. Skipping creation.");
           return res.status(200).send("Subscription already active");
         }
+      console.log('called 4')
         
         
         // create subscription via Paystack API
@@ -93,7 +97,7 @@ const webhookFunction = async (req, res) => {
               },
             }
           );
-          console.log("Attempt to pay3", resp.data)
+      console.log('called 5', resp.data)
         } catch (error) {
           console.log("Error creating Paystack subscription:", error.response?.data || error.message);
         }
@@ -102,7 +106,7 @@ const webhookFunction = async (req, res) => {
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
-        console.log("Attempt to pay4")
+      console.log('called 6')
        
 
         // if (!existingSubscription) {
@@ -118,13 +122,13 @@ const webhookFunction = async (req, res) => {
             console.log("PlanId or CategoryId missing from webhook metadata");
             return res.status(200).send("Plan or category info missing");
           }
-        console.log("Attempt to pay5")
+      console.log('called 7')
 
           const newChat = await ChatRoomModel.create({
             type: "private",
             participants: [user._id, coachId]
           })
-        console.log("Attempt to pay6")
+      console.log('called 8')
 
           const subscription = new SubscriptionModel({
             user: user._id,

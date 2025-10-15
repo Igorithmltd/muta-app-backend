@@ -249,4 +249,9 @@ class UserService extends BaseService {
   }
 }
 
+/*
+points:
+- 
+ */
+
 module.exports = UserService;
