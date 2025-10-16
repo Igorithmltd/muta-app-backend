@@ -1,6 +1,7 @@
 const CallLogModel = require("../models/call-log.model");
 const BaseService = require("./base");
 const AgoraToken = require('agora-token')
+const { v4: uuidv4 } = require("uuid");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder
 class CallLogService extends BaseService {
   async initiateCall(req) {
@@ -9,7 +10,7 @@ class CallLogService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        sessionId: "string|required",
+        // sessionId: "string|required",
         callType: "string|required",
         receiverId: "string|required",
         // callerId: "string|required",
@@ -26,7 +27,8 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { callerId, receiverId, callType, sessionId } = post;
+      const { receiverId, callType } = post;
+      const sessionId = uuidv4();
 
       const callLog = new CallLogModel({
         callerId: userId,
