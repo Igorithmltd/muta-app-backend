@@ -211,6 +211,44 @@ router.post(ROUTE_GET_USER_CALL_LOGS+"/:id", [auth], (req, res)=>{
     return callController.getUserCallLogs(req, res)
 })
 
+/**
+ * @swagger
+ * /calls/get-agora-token/{id}:
+ *   get:
+ *     summary: Generate Agora RTC token
+ *     tags: [Calls]
+ *     parameters:
+ *       - in: query
+ *         name: channel
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Channel name for which the token is generated
+ *     responses:
+ *       200:
+ *         description: Agora token generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: The generated Agora RTC token
+ *                   example: "006xxxaea7a...=="  # example token
+ *       400:
+ *         description: Missing or invalid channel name
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Channel name is required
+ *       500:
+ *         description: Server error while generating the token
+ */
 router.get(ROUTE_GET_AGORA_TOKEN+"/:id", [auth], (req, res)=>{
     const callController = new CallController()
     return callController.getAgoraToken(req, res)

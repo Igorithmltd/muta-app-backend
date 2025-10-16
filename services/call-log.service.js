@@ -229,7 +229,7 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: "Channel name is required" });
       }
 
-      const uid = 0; // auto assign UID
+      const uid = uuidv4(); // auto assign UID
       const RtcRole = {
         ROLE_PUBLISHER: 1,
         ROLE_SUBSCRIBER: 2,
