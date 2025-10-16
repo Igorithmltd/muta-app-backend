@@ -22,18 +22,12 @@ const router = require('express').Router()
  *               - callType
  *               - sessionId
  *             properties:
- *               callerId:
- *                 type: string
- *                 description: Caller user ID
  *               receiverId:
  *                 type: string
  *                 description: Receiver user ID
  *               callType:
  *                 type: string
  *                 enum: [audio, video]
- *               sessionId:
- *                 type: string
- *                 description: Unique call session ID from Agora/Twilio
  *     responses:
  *       201:
  *         description: Call initiated and logged
