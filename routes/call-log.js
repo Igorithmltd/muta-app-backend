@@ -213,7 +213,7 @@ router.post(ROUTE_GET_USER_CALL_LOGS+"/:id", [auth], (req, res)=>{
 
 /**
  * @swagger
- * /calls/get-agora-token/{id}:
+ * /calls/get-agora-token:
  *   get:
  *     summary: Generate Agora RTC token
  *     tags: [Calls]
@@ -249,7 +249,7 @@ router.post(ROUTE_GET_USER_CALL_LOGS+"/:id", [auth], (req, res)=>{
  *       500:
  *         description: Server error while generating the token
  */
-router.get(ROUTE_GET_AGORA_TOKEN+"/:id", [auth], (req, res)=>{
+router.get(ROUTE_GET_AGORA_TOKEN, [auth], (req, res)=>{
     const callController = new CallController()
     return callController.getAgoraToken(req, res)
 })
