@@ -2,6 +2,9 @@ const CallLogModel = require("../models/call-log.model");
 const BaseService = require("./base");
 const AgoraToken = require('agora-token')
 const { v4: uuidv4 } = require("uuid");
+const { sendPushNotification } = require("./firebase.service");
+const UserModel = require("../models/user.model");
+const validateData = require("../util/validate");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder
 class CallLogService extends BaseService {
   async initiateCall(req) {
@@ -30,6 +33,22 @@ class CallLogService extends BaseService {
       const { receiverId, callType } = post;
       const sessionId = uuidv4();
 
+      const receiver = await UserModel.findById(receiverId);
+      const user = await UserModel.findById(userId);
+
+      if (!user){
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      if (!receiver){
+        return BaseService.sendFailedResponse({ error: "Receiver not found" });
+      }
+      const receiverDeviceToken = receiver.deviceToken;
+
+      if(!receiverDeviceToken){
+        return BaseService.sendFailedResponse({ error: "Receiver cannot be reached at the moment" });
+      }
+
       const callLog = new CallLogModel({
         callerId: userId,
         receiverId,
@@ -39,16 +58,57 @@ class CallLogService extends BaseService {
         startTime: new Date(),
       });
 
-      await callLog.save();
-
-      // Optionally: Emit socket event to receiver
-      // io.to(receiverId).emit("incoming_call", callLog);
-
       const agoraToken = this.getAgoraToken({channelName: sessionId})
 
+      // {
+      //   callId: <String>,
+      //   channelId: <String> // for agora,
+      //   token: <String> // token from agora to authenticate the user
+      //   caller : {
+      //     userId: <String>
+      //     firstName: <String>
+      //     lastName: <String>
+      //     image: <String>
+      //   }
+      //   receiver : {
+      //     userId: <String>
+      //     firstName: <String>
+      //     lastName: <String>
+      //     image: <String>
+      //   }
+      //   callType: <"audio" | "video">,
+      //   callStatus <"incoming" | "outgoing" | "missed" | "declined"
+      // }
       const callObject = {
-        ...callLog.toObject(),
+        callId: callLog._id,
+        channelId: sessionId,
+        token: agoraToken,
+        caller: {
+          userId: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          image: user.image,
+        },
+        receiver: {
+          userId: receiver._id,
+          firstName: receiver.firstName,
+          lastName: receiver.lastName,
+          image: receiver.image,
+        },
+        callType,
+        callStatus: "outgoing",
       }
+
+
+      // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
+      sendPushNotification({
+        deviceToken: receiverDeviceToken,
+        // topic: `user_${receiverId}`,
+        title: "Incoming Call",
+        body: `You have an incoming ${callType} call`,
+        data: {...callObject, callStatus: "incoming" },
+      })
+      await callLog.save();
 
       return BaseService.sendSuccessResponse({ message: callObject });
     } catch (error) {
