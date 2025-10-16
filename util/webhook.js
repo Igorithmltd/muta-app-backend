@@ -5,6 +5,7 @@ const PlanModel = require("../models/plan.model.js");
 const SubscriptionModel = require("../models/subscription.model.js");
 const axios = require("axios");
 const ChatRoomModel = require("../models/chatModel.js");
+const orderModel = require("../models/order.model.js");
 // const WalletModel = require("../models/wallet.model.js");
 // const TransactionModel = require("../models/transaction.model.js");
 // const NotificationModel = require("../models/notification.model.js");
@@ -37,10 +38,10 @@ const webhookFunction = async (req, res) => {
     if (event.event === "charge.success") {
       const { data } = event;
       const metadata = data.metadata || {};
-      const transactionId = data.id;
+      // const transactionId = data.id;
       const reference = data.reference;
       const userEmail = data.customer.email;
-      const amount = data.amount / 100; // kobo to naira
+      // const amount = data.amount / 100; // kobo to naira
       const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
       const coachId = metadata.coachId || null;
 
@@ -49,6 +50,34 @@ const webhookFunction = async (req, res) => {
       if (!user) {
         return res.status(404).send("User not found");
       }
+      if (metadata.type === "order") {
+        const orderId = metadata.orderId;
+      
+        if (!orderId) {
+          return res.status(400).send("Order ID missing in metadata.");
+        }
+      
+        const order = await orderModel.findById(orderId);
+        if (!order) {
+          return res.status(404).send("Order not found.");
+        }
+      
+        if (order.paymentStatus === "success") {
+          return res.status(200).send("Order already paid.");
+        }
+      
+        order.paymentStatus = "success"; // or "processing" if you have steps after payment
+        // order.orderStatus = "success";
+        order.paymentReference = data.reference;
+        order.paymentDate = new Date();
+        order.paymentMethod = "paystack"; // optional
+        await order.save();
+      
+        // You can trigger email, delivery, etc. here if needed
+        console.log(`Order ${order._id} marked as paid.`);
+      
+        return res.status(200).send("Order payment processed.");
+      }      
 
       if (event.data.authorization && event.data.authorization.reusable) {
 
