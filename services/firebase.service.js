@@ -1,5 +1,5 @@
 const admin = require("firebase-admin");
-const serviceAccount = require("../firebaser.json");
+const serviceAccount = require("../firebase.json");
 
 const servAll = {
   "type": "service_account",
@@ -15,24 +15,29 @@ const servAll = {
   "universe_domain": "googleapis.comer"
 }
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(servAll),
-//   // credential: admin.credential.cert(serviceAccount),
-// });
+
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 
-const sendPushNotification = async ({ deviceToken, topic, title, body }) => {
+const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
     try {
       const message = {
         notification: {
           title,
           body,
         },
+        data: data,
         ...(deviceToken && { token: deviceToken }),
         ...(topic && { topic }),
       };
   
-      // const response = await admin.messaging().send(message);
+      const response = await admin.messaging().send(message);
       // console.log("✅ Push Notification Sent:", response);
       console.log("✅ Push Notification Sent:", {message});
       return response;
