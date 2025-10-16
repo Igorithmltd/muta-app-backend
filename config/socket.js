@@ -138,7 +138,7 @@ function setupSocket(httpServer) {
       console.log("sendMessage event received:", data);
       const messageId = data?.message.id
       const roomId = data?.roomId || null
-      const message = await MessageModel.findbyId(messageId)
+      const message = await MessageModel.findById(messageId)
       if(!message){
         return socket.emit("error", { message: "Could not mark messages as read" });
       }
