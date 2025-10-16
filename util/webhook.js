@@ -60,6 +60,8 @@ const webhookFunction = async (req, res) => {
           ? event.data.customer.customer_code
           : null;
         // const planCode = event.data.plan ? event.data.plan.plan_code : null;
+        user.customerCode = customerCode;
+        await user.save()
 
         let existingSubscription = await SubscriptionModel.findOne({
           user: user._id,

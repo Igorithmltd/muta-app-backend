@@ -53,6 +53,7 @@ const UserSchema = new mongoose.Schema(
     },
     isRegistrationComplete: { type: Boolean, default: false },
     otp: { type: String },
+    customerCode: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
     isVerifiedCoach: {

@@ -67,8 +67,13 @@ class PaystackService extends BaseService {
       //     },
       //   }
       // );
+      const customerCode = user.customerCode || null;
 
-      const existingPaystackSubscription = await this.checkIfCustomerHasSubscription(email, paystackSubscriptionCode);
+      if(!customerCode){
+        return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
+      }
+
+      const existingPaystackSubscription = await this.checkIfCustomerHasSubscription(customerCode, paystackSubscriptionCode);
 
       console.log({existingPaystackSubscription});
 
@@ -107,15 +112,16 @@ class PaystackService extends BaseService {
   }
   async checkIfCustomerHasSubscription(customerCode, planCode) {
     try {
+      console.log({planCode, customerCode})
       const response = await axios.get(
-        `https://api.paystack.co/subscription`,
+        `https://api.paystack.co/subscription?customer=${customerCode}`,
         {
           headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
           },
-          params: {
-            customer: customerCode,  // Pass customerCode to filter subscriptions
-          },
+          // params: {
+          //   customer: customerCode,  // Pass customerCode to filter subscriptions
+          // },
         }
       );
   
