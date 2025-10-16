@@ -98,6 +98,7 @@ class OrderService extends BaseService {
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
+      console.log({payment: paymentData.data})
 
       await CartModel.findOneAndUpdate({ user: userId }, { items: [] });
 

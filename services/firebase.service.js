@@ -40,7 +40,7 @@ const sendPushNotification = async ({ deviceToken, topic, title, body }) => {
       console.error("❌ Error Sending Notification:", error);
       throw error;
     }
-  };
+};
   
   
   module.exports = {

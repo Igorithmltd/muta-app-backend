@@ -75,8 +75,6 @@ class PaystackService extends BaseService {
 
       const existingPaystackSubscription = await this.checkIfCustomerHasSubscription(customerCode, paystackSubscriptionCode);
 
-      console.log({existingPaystackSubscription});
-
       let existingSubscription = await SubscriptionModel.findOne({
         user: user._id,
         // paystackSubscriptionId: paystackSubscriptionCode,

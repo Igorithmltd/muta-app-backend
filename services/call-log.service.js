@@ -44,7 +44,13 @@ class CallLogService extends BaseService {
       // Optionally: Emit socket event to receiver
       // io.to(receiverId).emit("incoming_call", callLog);
 
-      return BaseService.sendSuccessResponse({ message: callLog });
+      const agoraToken = this.getAgoraToken({channelName: sessionId})
+
+      const callObject = {
+        ...callLog.toObject(),
+      }
+
+      return BaseService.sendSuccessResponse({ message: callObject });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
@@ -219,11 +225,12 @@ class CallLogService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
-  async getAgoraToken(req) {
+  // async getAgoraToken(req) {
+  async getAgoraToken({channelName}) {
     try {
       const appID = process.env.AGORA_APP_ID;
       const appCertificate = process.env.AGORA_APP_CERTIFICATE;
-      const channelName = req.query.channel;
+      // const channelName = req.query.channel;
 
       if (!channelName) {
         return BaseService.sendFailedResponse({ error: "Channel name is required" });
@@ -248,8 +255,9 @@ class CallLogService extends BaseService {
         privilegeExpiredTs
       );
 
-
-      return BaseService.sendSuccessResponse({ message: token });
+      
+      return token;
+      // return BaseService.sendSuccessResponse({ message: token });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
