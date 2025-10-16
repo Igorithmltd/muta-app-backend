@@ -59,6 +59,7 @@ function setupSocket(httpServer) {
     // 2. Join all rooms the user is a part of
     const userRooms = await ChatRoomModel.find({ participants: userId });
     userRooms.forEach(async (room) => {
+      console.log('join all rooms', {room})
 
       const unreadMessages = await MessageModel.find({
         roomId: room._id,
@@ -77,6 +78,7 @@ function setupSocket(httpServer) {
 
     // =================== JOIN ROOM ===================
     socket.on("joinRoom", (roomId) => {
+      console.log('join room', {roomId})
       socket.join(roomId);
       console.log(`User ${userId} joined room ${roomId}`);
       io.to(roomId).emit("userJoined", {

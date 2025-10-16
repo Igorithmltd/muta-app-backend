@@ -122,6 +122,7 @@ class PaystackService extends BaseService {
 
       // Check if the customer already has a subscription to the given plan
       const existingSubscription = response.data.data.find(sub => sub.plan.code === planCode);
+      console.log({existingSubscription: response.data})
   
       return existingSubscription ? true : false;
     } catch (error) {
