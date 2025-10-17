@@ -6,6 +6,7 @@ const SubscriptionModel = require("../models/subscription.model.js");
 const axios = require("axios");
 const ChatRoomModel = require("../models/chatModel.js");
 const orderModel = require("../models/order.model.js");
+const PaymentModel = require("../models/payment.model.js");
 // const WalletModel = require("../models/wallet.model.js");
 // const TransactionModel = require("../models/transaction.model.js");
 // const NotificationModel = require("../models/notification.model.js");
@@ -42,9 +43,9 @@ const webhookFunction = async (req, res) => {
       const reference = data.reference;
       const userEmail = data.customer.email;
       // const amount = data.amount / 100; // kobo to naira
-      const paystackSubscriptionCode = metadata.paystackSubscriptionCode || null;
+      const paystackSubscriptionCode =
+        metadata.paystackSubscriptionCode || null;
       const coachId = metadata.coachId || null;
-
 
       const user = await UserModel.findOne({ email: userEmail });
       if (!user) {
@@ -52,36 +53,49 @@ const webhookFunction = async (req, res) => {
       }
       if (metadata.type === "order") {
         const orderId = metadata.orderId;
-      
+
         if (!orderId) {
           return res.status(400).send("Order ID missing in metadata.");
         }
-      
+
         const order = await orderModel.findById(orderId);
         if (!order) {
           return res.status(404).send("Order not found.");
         }
-      
+
         if (order.paymentStatus === "success") {
           return res.status(200).send("Order already paid.");
         }
-      
+
+        await PaymentModel.create({
+          user: user._id,
+          amount: data.amount / 100, // Paystack amount is in kobo
+          reference: data.reference,
+          status: "success",
+          type: "order",
+          metadata,
+          channel: data.channel,
+          paidAt: new Date(data.paid_at),
+        });
+
         order.paymentStatus = "success"; // or "processing" if you have steps after payment
         // order.orderStatus = "success";
         order.paymentReference = data.reference;
         order.paymentDate = new Date();
         order.paymentMethod = "paystack"; // optional
         await order.save();
-      
+
         // You can trigger email, delivery, etc. here if needed
         console.log(`Order ${order._id} marked as paid.`);
-      
+
         return res.status(200).send("Order payment processed.");
-      }      
+      }
 
-      if (metadata.type == "subscription" && event.data.authorization && event.data.authorization.reusable) {
-
-
+      if (
+        metadata.type == "subscription" &&
+        event.data.authorization &&
+        event.data.authorization.reusable
+      ) {
         const authorizationCode = event.data.authorization
           ? event.data.authorization.authorization_code
           : null;
@@ -90,7 +104,7 @@ const webhookFunction = async (req, res) => {
           : null;
         // const planCode = event.data.plan ? event.data.plan.plan_code : null;
         user.customerCode = customerCode;
-        await user.save()
+        await user.save();
 
         let existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
@@ -98,21 +112,18 @@ const webhookFunction = async (req, res) => {
           status: "active",
         });
 
-
-
-        if(existingSubscription){
-          console.log("User already has an active subscription. Skipping creation.");
+        if (existingSubscription) {
+          console.log(
+            "User already has an active subscription. Skipping creation."
+          );
           return res.status(200).send("Subscription already active");
         }
-        
-        
+
         // create subscription via Paystack API
         // const startDateUnix = Math.floor(Date.now() / 1000);
-        
 
-        let resp
+        let resp;
         try {
-          
           resp = await axios.post(
             "https://api.paystack.co/subscription",
             {
@@ -127,52 +138,63 @@ const webhookFunction = async (req, res) => {
               },
             }
           );
-      console.log('called 5', resp.data)
+          console.log("called 5", resp.data);
         } catch (error) {
-          console.log("Error creating Paystack subscription:", error.response?.data || error.message);
+          console.log(
+            "Error creating Paystack subscription:",
+            error.response?.data || error.message
+          );
         }
-
 
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
-      console.log('called 6')
-       
+        console.log("called 6");
 
         // if (!existingSubscription) {
-          // No active subscription found - create a new subscription record
-          // You may want to decide how to get planId and categoryId here
-          // For example, from the webhook metadata or another reliable source
-          // For this example, let's assume you can get it from webhook metadata:
-          const planId = data.metadata?.planId || "";
-          const categoryId = data.metadata?.categoryId || "";
-          
+        // No active subscription found - create a new subscription record
+        // You may want to decide how to get planId and categoryId here
+        // For example, from the webhook metadata or another reliable source
+        // For this example, let's assume you can get it from webhook metadata:
+        const planId = data.metadata?.planId || "";
+        const categoryId = data.metadata?.categoryId || "";
 
-          if (!planId || !categoryId) {
-            console.log("PlanId or CategoryId missing from webhook metadata");
-            return res.status(200).send("Plan or category info missing");
-          }
-      console.log('called 7')
+        if (!planId || !categoryId) {
+          console.log("PlanId or CategoryId missing from webhook metadata");
+          return res.status(200).send("Plan or category info missing");
+        }
+        console.log("called 7");
 
-          const newChat = await ChatRoomModel.create({
-            type: "private",
-            participants: [user._id, coachId]
-          })
-      console.log('called 8')
+        const newChat = await ChatRoomModel.create({
+          type: "private",
+          participants: [user._id, coachId],
+        });
+        console.log("called 8");
 
-          const subscription = new SubscriptionModel({
-            user: user._id,
-            planId: planId,
-            categoryId: categoryId,
-            coachId: coachId,
-            paystackSubscriptionId: paystackSubscriptionCode,
-            reference: reference,
-            status: "active",
-            startDate: new Date(),
-          });
-          await subscription.save();
-          console.log(`Created new subscription for user ${user._id}`);
-          return res.status(200).send("Subscription processed");
+        await PaymentModel.create({
+          user: user._id,
+          amount: data.amount / 100,
+          reference: data.reference,
+          status: "success",
+          type: "subscription",
+          metadata,
+          channel: data.channel,
+          paidAt: new Date(data.paid_at),
+        });
+
+        const subscription = new SubscriptionModel({
+          user: user._id,
+          planId: planId,
+          categoryId: categoryId,
+          coachId: coachId,
+          paystackSubscriptionId: paystackSubscriptionCode,
+          reference: reference,
+          status: "active",
+          startDate: new Date(),
+        });
+        await subscription.save();
+        console.log(`Created new subscription for user ${user._id}`);
+        return res.status(200).send("Subscription processed");
       } else {
         // authorization not reusable — ask user to re-enter or use a different flow
         console.warn(
@@ -181,8 +203,8 @@ const webhookFunction = async (req, res) => {
       }
     }
 
-    if(event.event === "subscription.charge.success"){
-      console.log('finally subscribed************************')
+    if (event.event === "subscription.charge.success") {
+      console.log("finally subscribed************************");
     }
 
     // if (event.event === "subscription.charge.success") {
