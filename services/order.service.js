@@ -23,14 +23,7 @@ class OrderService extends BaseService {
       const post = req.body;
 
       const validateRule = {
-        paymentMethod: "string|required",
-        // shippingAddress: "object|required",
-        // "shippingAddress.address": "string|required",
-        // "shippingAddress.fullName": "string|required",
-        // "shippingAddress.phoneNumber": "string|required",
-        // "shippingAddress.city": "string|required",
-        // "shippingAddress.deliveryNote": "string|required",
-        // "shippingAddress.region": "string|required",
+        paymentMethod: "string|required"
       };
 
       const validateMessage = {
@@ -90,7 +83,7 @@ class OrderService extends BaseService {
         "/transaction/initialize",
         {
           email: user.email,
-          totalAmount: totalAmount * 100, // e.g. 4500000 for ₦45,000.00
+          amount: totalAmount * 100, // e.g. 4500000 for ₦45,000.00
           metadata: {
             type: "order",
             orderId: newOrder._id,
@@ -98,7 +91,6 @@ class OrderService extends BaseService {
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
-      console.log({payment: paymentData.data})
 
       await CartModel.findOneAndUpdate({ user: userId }, { items: [] });
 
