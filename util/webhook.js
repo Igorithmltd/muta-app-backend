@@ -79,7 +79,7 @@ const webhookFunction = async (req, res) => {
         return res.status(200).send("Order payment processed.");
       }      
 
-      if (event.data.authorization && event.data.authorization.reusable) {
+      if (metadata.type == "subscription" && event.data.authorization && event.data.authorization.reusable) {
 
 
         const authorizationCode = event.data.authorization
