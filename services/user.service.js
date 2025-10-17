@@ -1956,9 +1956,8 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "No active subscription found" });
       }
 
-      const paystackSubscriptionId = subscription.paystackSubscriptionId
-      console.log(subscription)
-      const token = ""
+      const paystackSubscriptionId = subscription.subscriptionCode
+      const token = subscription.paystackAuthorizationToken
       
       if(!paystackSubscriptionId){
         return BaseService.sendFailedResponse({ error: "No Paystack subscription id found" });
@@ -1967,7 +1966,6 @@ class UserService extends BaseService {
       const paystackService = new PaystackService()
       const cancelPaystackSubscription = await paystackService.disableSubscription(paystackSubscriptionId, token)
 
-      return console.log({cancelPaystackSubscription})
 
       subscription.status = "cancelled";
       await subscription.save();
