@@ -125,6 +125,14 @@ router.post(ROUTE_VIDEO_UPLOAD_SINGLE, auth, video_uploader.single('file'), (req
  *                 type: string
  *                 example: "PLN_d09ab1d5a9d9"
  *                 description: The paystack plan id
+ *               isGift:
+ *                 type: boolean
+ *                 example: true
+ *                 description: Whether it is a gift or not
+ *               recipientEmail:
+ *                 type: string
+ *                 example: "abc@gmail.com"
+ *                 description: email of the recipient of the subscription
  *     responses:
  *       200:
  *         description: Payment initialized successfully

@@ -22,6 +22,7 @@ const WaterEntryModel = require("../models/water-entry.model");
 const NotificationModel = require("../models/notification.model");
 const SubscriptionModel = require("../models/subscription.model");
 const { sendPushNotification } = require("./firebase.service");
+const PaystackService = require("./paystack.service");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -1794,38 +1795,40 @@ class UserService extends BaseService {
     try {
       const { couponCode } = req.body;
       const userId = req.user._id;
-
+  
       // Fetch user
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-
+  
       // Find coupon
       const coupon = await CouponModel.findOne({ code: couponCode });
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-
+      const customerCode = coupon.customerCode
+      const authorizationCode = coupon.authorizationCode
+  
       // Validate coupon expiration
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
-
+  
       // Validate coupon usage
       if (coupon.used) {
         return BaseService.sendFailedResponse({
           error: "Coupon has already been used",
         });
       }
-
+  
       // Validate recipient
       if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
       }
-
+  
       // Check if user already has an active subscription
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
@@ -1837,7 +1840,7 @@ class UserService extends BaseService {
           error: "User already has an active subscription",
         });
       }
-
+  
       // Load plan from coupon
       const plan = await PlanModel.findById(coupon.planId);
       if (!plan) {
@@ -1845,19 +1848,58 @@ class UserService extends BaseService {
           error: "Associated plan not found",
         });
       }
-
+  
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
       const categoryDuration = coupon.categoryDuration; // e.g., "monthly" or "yearly"
       const category = plan.categories.find(
         (cat) => cat.duration === categoryDuration
       );
-
+  
       if (!category) {
         return BaseService.sendFailedResponse({
           error: `Plan category '${categoryDuration}' not found`,
         });
       }
-
+  
+      // Validate authorizationCode and customerCode presence
+      if (!authorizationCode || !customerCode) {
+        return BaseService.sendFailedResponse({
+          error: "Authorization and customer codes are required to redeem subscription",
+        });
+      }
+  
+      // Create Paystack subscription
+      let resp;
+      try {
+        resp = await axios.post(
+          "https://api.paystack.co/subscription",
+          {
+            customer: customerCode,
+            plan: category.paystackSubscriptionId, // use category's subscription plan id
+            authorization: authorizationCode,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            },
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Error creating Paystack subscription:",
+          error.response?.data || error.message
+        );
+        return BaseService.sendFailedResponse({
+          error: "Failed to create subscription with payment provider",
+        });
+      }
+  
+      if (!resp.data.status) {
+        return BaseService.sendFailedResponse({
+          error: "Paystack subscription creation failed",
+        });
+      }
+  
       // Calculate expiry date based on category duration
       let expiryDate = new Date();
       if (category.duration === "monthly") {
@@ -1865,8 +1907,8 @@ class UserService extends BaseService {
       } else if (["yearly", "annually"].includes(category.duration)) {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-
-      // Create subscription
+  
+      // Create subscription in your DB
       const subscription = await SubscriptionModel.create({
         user: userId,
         planId: plan._id,
@@ -1874,15 +1916,15 @@ class UserService extends BaseService {
         status: "active",
         startDate: new Date(),
         expiryDate,
-        paystackSubscriptionId: plan.paystackSubscriptionId,
+        paystackSubscriptionId: resp.data.data.subscription_code,
       });
-
+  
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
-      // coupon.usedAt = new Date();
+      coupon.usedAt = new Date();
       await coupon.save();
-
+  
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
         subscription: {
@@ -1892,11 +1934,48 @@ class UserService extends BaseService {
           startDate: subscription.startDate,
           expiryDate: subscription.expiryDate,
           status: subscription.status,
+          paystackSubscriptionId: subscription.paystackSubscriptionId,
         },
       });
     } catch (error) {
       console.error("Redeem coupon error:", error);
       return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
+  
+  async cancelPlan(req, res) {
+    try {
+      const userId = req.user.id
+
+      const subscription = await SubscriptionModel.findOne({
+        user: userId,
+        status: "active",
+      });
+
+      if(!subscription) {
+        return BaseService.sendFailedResponse({ error: "No active subscription found" });
+      }
+
+      const paystackSubscriptionId = subscription.paystackSubscriptionId
+      console.log(subscription)
+      const token = ""
+      
+      if(!paystackSubscriptionId){
+        return BaseService.sendFailedResponse({ error: "No Paystack subscription id found" });
+      }
+
+      const paystackService = new PaystackService()
+      const cancelPaystackSubscription = await paystackService.disableSubscription(paystackSubscriptionId, token)
+
+      return console.log({cancelPaystackSubscription})
+
+      subscription.status = "cancelled";
+      await subscription.save();
+
+      return BaseService.sendSuccessResponse({ message: "Subscription plan cancelled" });
+    } catch (error) {
+      console.error("Create plan error:");
+      return BaseService.sendFailedResponse({ error: "Failed to cancel plan" });
     }
   }
   async createPlan(req, res) {

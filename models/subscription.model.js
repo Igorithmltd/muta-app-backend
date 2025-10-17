@@ -15,6 +15,8 @@ const SubscriptionSchema = new mongoose.Schema(
     startDate: { type: Date, default: Date.now },
     expiryDate: { type: Date },
     paystackSubscriptionId: { type: String },
+    subscriptionCode: { type: String, default: null },
+    paystackAuthorizationToken: { type: String, default: null },
   },
   { timestamps: true }
 );

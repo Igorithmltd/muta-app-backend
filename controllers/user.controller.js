@@ -266,6 +266,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, createPlan.data)
     }
+    async cancelPlan(req, res){
+        const userService = new UserService()
+        const cancelPlan = await userService.cancelPlan(req)
+        if(!cancelPlan.success){
+            return BaseController.sendFailedResponse(res, cancelPlan.data)
+        }
+        return BaseController.sendSuccessResponse(res, cancelPlan.data)
+    }
     async getPlans(req, res){
         const userService = new UserService()
         const getPlans = await userService.getPlans(req)

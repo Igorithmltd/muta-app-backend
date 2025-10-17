@@ -40,6 +40,7 @@ exports.ROUTE_DELETE_ALL_NOTIFICATION = '/delete-all-notification'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'
+exports.ROUTE_CANCEL_PLAN = '/cancel-plan'
 exports.ROUTE_GET_ALL_PLANS = '/get-all-plans'
 exports.ROUTE_GET_PLAN = '/get-plan'
 exports.ROUTE_UPDATE_PLAN = '/update-plan'

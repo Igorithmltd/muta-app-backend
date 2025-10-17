@@ -44,6 +44,7 @@ const {
   ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ,
   ROUTE_GET_VERIFIED_COACHES,
   ROUTE_UPDATE_USER,
+  ROUTE_CANCEL_PLAN,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1585,6 +1586,31 @@ router.post(ROUTE_REDEEM_PLAN, auth, (req, res) => {
 router.post(ROUTE_CREATE_PLAN, adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.createPlan(req, res);
+});
+
+/**
+ * @swagger
+ * /users/cancel-plan:
+ *   put:
+ *     summary: Cancel current subscription plan
+ *     tags: [Plans]
+ *     responses:
+ *       200:
+ *         description: Subscription redeemed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Subscription cancelled successfully
+ *       400:
+ *         description: Validation error
+ */
+router.put(ROUTE_CANCEL_PLAN, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.cancelPlan(req, res);
 });
 
 /**

@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema(
     },
     bmi: { type: Number },
     height: {
-      value: Number, 
+      value: Number,
       unit: {
         type: String,
         enum: ["cm", "ft"],
@@ -58,7 +58,7 @@ const UserSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isVerifiedCoach: {
       type: Boolean,
-      default: false
+      default: false,
     },
     servicePlatform: {
       type: String,
@@ -70,16 +70,18 @@ const UserSchema = new mongoose.Schema(
       default: "inactive",
       enum: ["active", "inactive", "suspended"],
     },
-    subscriptionPlan: {
-      type: mongoose.Schema.Types.ObjectId, ref: 'Plan'
-    },
-    subscriptionStart: { type: Date },
-    subscriptionExpiry: { type: Date },
-    subscriptionStatus: {
-      type: String,
-      enum: ["active", "cancelled", "pending", "paused", "expired", "incomplete"],
-      default: "pending",
-    },
+    // subscriptionPlan: {
+    //   type: mongoose.Schema.Types.ObjectId, ref: 'Plan'
+    // },
+    // subscriptionStart: { type: Date },
+    // subscriptionExpiry: { type: Date },
+    // subscriptionStatus: {
+    //   type: String,
+    //   enum: ["active", "cancelled", "pending", "paused", "expired", "incomplete"],
+    //   default: "pending",
+    // },
+    // subscriptionCode: { type: String, default: null },
+    // paystackAuthorizationToken: { type: String, default: null },
     coachAssigned: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -140,14 +142,16 @@ UserSchema.methods.comparePassword = async function (password) {
   const user = this;
   // console.log({password, userPassword: user.password})
   if (!password || !user.password) {
-    throw new Error('Missing password or hash for comparison');
+    throw new Error("Missing password or hash for comparison");
   }
   return await bcrypt.compare(password, user.password);
 };
 
-UserSchema.methods.isSubscriptionActive = function() {
-  return this.subscriptionStatus === 'active' && new Date() < this.subscriptionExpiry;
-}
+UserSchema.methods.isSubscriptionActive = function () {
+  return (
+    this.subscriptionStatus === "active" && new Date() < this.subscriptionExpiry
+  );
+};
 
 UserSchema.methods.generateAccessToken = async function (secretToken) {
   const token = jwt.sign(

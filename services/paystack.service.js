@@ -4,6 +4,15 @@ const validateData = require("../util/validate");
 const BaseService = require("./base");
 const axios = require("axios");
 
+/**
+ * test:
+ * monthly: PLN_02ufsh4w75lk7fx
+ * yearly: PLN_7e0ibd16z5ijrxi
+ * 
+ * live: 
+ * montly: PLN_ylerggpbm0jq6vu
+ * yearly: PLN_vu53jf8t745zu7l
+ */
 class PaystackService extends BaseService {
   constructor() {
     super();
@@ -47,26 +56,13 @@ class PaystackService extends BaseService {
       }
 
       const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId } = post;
+      const isGift = post.isGift || false;
+      const recipientEmail = post.recipientEmail || "";
 
-      // const lookupCustomer = await axios.get(
-      //   `https://api.paystack.co/customer/${email}`,
-      //   {
-      //     headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
-      //   }
-      // );
-      // const customerCode = lookupCustomer.data.data.customer_code || email;
+      if(isGift && !recipientEmail){
+        return BaseService.sendFailedResponse({ error: "Recipient email is required for gift subscriptions" });
+      }
 
-
-      // const isUserSubscribed = await axios.get(
-      //   `https://api.paystack.co/subscription`,
-      //   // `https://api.paystack.co/subscription?customer=${customerCode}`,
-      //   // `https://api.paystack.co/subscription?customer=${customerCode}&plan=${paystackSubscriptionCode}`,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-      //     },
-      //   }
-      // );
       const customerCode = user.customerCode || null;
 
       if(!customerCode){
@@ -80,7 +76,6 @@ class PaystackService extends BaseService {
         paystackSubscriptionId: paystackSubscriptionCode,
         status: "active",
       });
-      console.log({existingSubscription})
 
 
       if(existingSubscription){
@@ -96,7 +91,7 @@ class PaystackService extends BaseService {
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
-          metadata: { userId, planId, categoryId, paystackSubscriptionCode, coachId, type: "subscription" }, // VERY helpful for mapping webhooks -> user
+          metadata: { userId, planId, categoryId, paystackSubscriptionCode, coachId, type: "subscription", isGift }, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
@@ -109,7 +104,7 @@ class PaystackService extends BaseService {
       });
     }
   }
-  async checkIfCustomerHasSubscription(customerCode, planCode) {
+  async checkIfCustomerHasSubscription(paystackSubscriptionId) {
     try {
       const response = await axios.get(
         `https://api.paystack.co/subscription?customer=${customerCode}`,
@@ -134,6 +129,22 @@ class PaystackService extends BaseService {
       return false; // If there's an error, assume no active subscription
     }
   }
+  async disableSubscription(paystackSubscriptionId, token) {
+    const resp = await this.axiosInstance.post(
+      "/subscription/disable",
+      {
+        code: paystackSubscriptionId,
+        token
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    return resp.data;
+  };
 }
 
 module.exports = PaystackService;
