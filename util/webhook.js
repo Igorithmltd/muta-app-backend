@@ -138,7 +138,6 @@ const webhookFunction = async (req, res) => {
               },
             }
           );
-          console.log("called 5", resp.data);
         } catch (error) {
           console.log(
             "Error creating Paystack subscription:",
@@ -149,7 +148,6 @@ const webhookFunction = async (req, res) => {
         if (!resp.data.status) {
           return res.status(500).send("Error creating subscription");
         }
-        console.log("called 6");
 
         // if (!existingSubscription) {
         // No active subscription found - create a new subscription record
@@ -163,13 +161,11 @@ const webhookFunction = async (req, res) => {
           console.log("PlanId or CategoryId missing from webhook metadata");
           return res.status(200).send("Plan or category info missing");
         }
-        console.log("called 7");
 
         const newChat = await ChatRoomModel.create({
           type: "private",
           participants: [user._id, coachId],
         });
-        console.log("called 8");
 
         await PaymentModel.create({
           user: user._id,

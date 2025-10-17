@@ -77,9 +77,10 @@ class PaystackService extends BaseService {
 
       let existingSubscription = await SubscriptionModel.findOne({
         user: user._id,
-        // paystackSubscriptionId: paystackSubscriptionCode,
+        paystackSubscriptionId: paystackSubscriptionCode,
         status: "active",
       });
+      console.log({existingSubscription})
 
 
       if(existingSubscription){
@@ -110,7 +111,6 @@ class PaystackService extends BaseService {
   }
   async checkIfCustomerHasSubscription(customerCode, planCode) {
     try {
-      console.log({planCode, customerCode})
       const response = await axios.get(
         `https://api.paystack.co/subscription?customer=${customerCode}`,
         {
@@ -126,7 +126,7 @@ class PaystackService extends BaseService {
 
       // Check if the customer already has a subscription to the given plan
       const existingSubscription = response.data.data.find(sub => sub.plan.code === planCode);
-      console.log({existingSubscription: response.data})
+      console.log({PexistingSubscription: response.data})
   
       return existingSubscription ? true : false;
     } catch (error) {
