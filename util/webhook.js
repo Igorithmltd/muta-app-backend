@@ -122,6 +122,7 @@ const webhookFunction = async (req, res) => {
         // create subscription via Paystack API
         // const startDateUnix = Math.floor(Date.now() / 1000);
 
+        console.log({customerCode, paystackSubscriptionCode})
         let resp;
         try {
           resp = await axios.post(
