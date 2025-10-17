@@ -111,7 +111,7 @@ const webhookFunction = async (req, res) => {
         await user.save()
 
         // Gift subscription flow
-        const isGift = metadata.isGift || false;
+        const isGift = metadata.isGift === true || metadata.isGift === "true"; // normalize to boolean
         if (isGift) {
           const recipientEmail = metadata.recipientEmail;
           if(!recipientEmail){
