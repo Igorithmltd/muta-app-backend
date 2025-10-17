@@ -104,7 +104,7 @@ class PaystackService extends BaseService {
       });
     }
   }
-  async checkIfCustomerHasSubscription(paystackSubscriptionId) {
+  async checkIfCustomerHasSubscription(customerCode, paystackSubscriptionId) {
     try {
       const response = await axios.get(
         `https://api.paystack.co/subscription?customer=${customerCode}`,

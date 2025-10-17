@@ -111,7 +111,13 @@ const webhookFunction = async (req, res) => {
         await user.save()
 
         // Gift subscription flow
-        if (metadata.isGift) {
+        const isGift = metadata.isGift || false;
+        if (isGift) {
+          const recipientEmail = metadata.recipientEmail;
+          if(!recipientEmail){
+            console.log("Recipient email missing for gift subscription", {isGift});
+            return res.status(400).send("Recipient email missing for gift");
+          }
           const planWithCategory = await PlanModel.findOne({
             "categories.paystackSubscriptionId": paystackSubscriptionCode,
           });
