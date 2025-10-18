@@ -155,6 +155,33 @@ class OrderService extends BaseService {
       });
     }
   }
+  async cancelOrder(req) {
+    try {
+      const userId = req.user.id;
+      const orderId = req.params.id;
+      if(!orderId){
+        return BaseService.sendFailedResponse({ error: "Order ID is required" });
+      }
+      const order =  await OrderModel.findOne({ _id: orderId, userId: userId });
+
+      if (!order) {
+        return BaseService.sendFailedResponse({ error: "Order not found" });
+      }
+      if (order.orderStatus === "cancelled") {
+        return BaseService.sendFailedResponse({ error: "Order is already cancelled" });
+      }
+      order.orderStatus = "cancelled";
+      await order.save();
+
+      return BaseService.sendSuccessResponse({
+        message: 'Order cancelled successfully',
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
 }
 
 module.exports = OrderService;

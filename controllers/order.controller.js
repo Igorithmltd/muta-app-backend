@@ -36,6 +36,14 @@ class OrderController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, getAllOrders.data)
     }
+    async cancelOrder(req, res){
+        const orderService = new OrderService()
+        const cancelOrder = await orderService.cancelOrder(req)
+        if(!cancelOrder.success){
+            return BaseController.sendFailedResponse(res, cancelOrder.data)
+        }
+        return BaseController.sendSuccessResponse(res, cancelOrder.data)
+    }
 }
 
 module.exports = OrderController;

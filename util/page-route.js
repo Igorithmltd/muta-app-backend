@@ -157,6 +157,7 @@ exports.ROUTE_REMOVE_FROM_CART = '/remove-from-cart'
 
 //orders
 exports.ROUTE_CREATE_ORDER = '/create-order'
+exports.ROUTE_CANCEL_ORDER = '/cancel-order'
 exports.ROUTE_GET_ALL_ORDERS = '/get-all-orders'
 exports.ROUTE_GET_ORDER = '/get-order'
 exports.ROUTE_GET_USER_ORDER = '/get-user-order'
