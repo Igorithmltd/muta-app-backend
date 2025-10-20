@@ -1,5 +1,6 @@
 const SubscriptionModel = require("../models/subscription.model");
 const UserModel = require("../models/user.model");
+const connectRedis = require("../util/cache");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 const axios = require("axios");
@@ -58,6 +59,8 @@ class PaystackService extends BaseService {
       const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId } = post;
       const isGift = post.isGift || false;
       const recipientEmail = post.recipientEmail || "";
+
+      console.log(await connectRedis(),'the redix')
 
       if(isGift && !recipientEmail){
         return BaseService.sendFailedResponse({ error: "Recipient email is required for gift subscriptions" });

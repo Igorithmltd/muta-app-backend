@@ -1243,7 +1243,7 @@ router.put(ROUTE_COACH_VERIFICATION_APPROVE+"/userId", adminAuth, (req, res) => 
  *       500:
  *         description: Internal server error
  */
-router.put(ROUTE_CHANGE_PASSWORD, adminAuth, (req, res) => {
+router.put(ROUTE_CHANGE_PASSWORD, auth, (req, res) => {
   const userController = new UserController();
   return userController.approveCoach(req, res);
 });
@@ -2343,7 +2343,7 @@ router.delete(ROUTE_DELETE_ALL_NOTIFICATION, adminAuth, (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.put(ROUTE_UPDATE_DEVICE_TOKEN, adminAuth, (req, res) => {
+router.put(ROUTE_UPDATE_DEVICE_TOKEN, auth, (req, res) => {
   const userController = new UserController();
   return userController.updateDeviceToken(req, res);
 });
