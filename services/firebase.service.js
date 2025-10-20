@@ -26,10 +26,11 @@ const sendPushNotification = async ({ deviceToken, topic, title=null, body=null,
           title,
           body,
         },
-        data: {
-          data: stringifiedData,
-          notificationType: String(notificationType),
-        },
+        data: stringifiedData,
+        // data: {
+        //   data: stringifiedData,
+        //   notificationType: String(notificationType),
+        // },
         ...(deviceToken && { token: deviceToken }),
         ...(topic && { topic }),
       };
