@@ -11,9 +11,8 @@ if (!admin.apps.length) {
 }
 
 
-const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
+const sendPushNotification = async ({ deviceToken, topic, title=null, body=null, data = {} }) => {
     try {
-      console.log({data})
       const stringifiedData = {};
       Object.entries(data).forEach(([key, value]) => {
         stringifiedData[key] = String(value);
