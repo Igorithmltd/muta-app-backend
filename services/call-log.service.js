@@ -101,7 +101,8 @@ class CallLogService extends BaseService {
           image: receiver.image,
         },
         callType,
-        callStatus: "outgoing"
+        callStatus: "outgoing",
+        notificationType: "call"
       }
 
 
