@@ -101,8 +101,7 @@ class CallLogService extends BaseService {
           image: receiver.image,
         },
         callType,
-        callStatus: "outgoing",
-        notificationType: "call",
+        callStatus: "outgoing"
       }
 
 
@@ -116,6 +115,7 @@ class CallLogService extends BaseService {
         // body: `You have an incoming ${callType} call`,
         body: `You have an incoming ${callType} call`,
         data: {...callObject, callStatus: "incoming" },
+        notificationType: "call",
       })
       await callLog.save();
 
