@@ -112,6 +112,7 @@ class CallLogService extends BaseService {
         callStatus: "outgoing",
         notificationType: "call"
       }
+      console.log({userAgoraToken, receiverAgoraToken})
 
 
       // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
