@@ -104,6 +104,7 @@ class CallLogService extends BaseService {
         callStatus: "outgoing",
         notificationType: "call"
       }
+      console.log({caller: callObject.caller, receiver: callObject.receiver}, "callObject");
 
 
       // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
