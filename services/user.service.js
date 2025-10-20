@@ -824,6 +824,7 @@ class UserService extends BaseService {
         age: post.age,
         gender: post.gender,
         firstName: post.firstName,
+        lastName: post.lastName,
         ...(post.weight && { weight: post.weight }),
         ...(post.height && { height: post.height }),
         ...(post.focusArea && { focusArea: post.focusArea }),
