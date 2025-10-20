@@ -109,10 +109,9 @@ class CallLogService extends BaseService {
       sendPushNotification({
         deviceToken: receiverDeviceToken,
         // topic: `user_${receiverId}`,
-        title: "",
-        body: "",
-        // title: "Incoming Call",
-        // body: `You have an incoming ${callType} call`,
+        // title: "",
+        // body: "",
+        title: "Incoming Call",
         body: `You have an incoming ${callType} call`,
         data: {...callObject, callStatus: "incoming" },
         notificationType: "call",
