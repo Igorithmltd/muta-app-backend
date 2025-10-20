@@ -15,8 +15,11 @@ const sendPushNotification = async ({ deviceToken, topic, title=null, body=null,
     try {
       const stringifiedData = {};
       Object.entries(data).forEach(([key, value]) => {
-        stringifiedData[key] = String(value);
+        stringifiedData[key] = String(value); // ensure values are strings
       });
+  
+      // Add notificationType to the flat data object
+      // stringifiedData.notificationType = String(notificationType);
 
       const message = {
         notification: {
@@ -25,7 +28,7 @@ const sendPushNotification = async ({ deviceToken, topic, title=null, body=null,
         },
         data: {
           data: stringifiedData,
-          notificationType
+          notificationType: String(notificationType),
         },
         ...(deviceToken && { token: deviceToken }),
         ...(topic && { topic }),
