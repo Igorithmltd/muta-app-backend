@@ -37,7 +37,7 @@ const sendPushNotification = async ({ deviceToken, topic, title=null, body=null,
   
       const response = await admin.messaging().send(message);
       // console.log("✅ Push Notification Sent:", response);
-      console.log("✅ Push Notification Sent:", {message});
+      console.log("✅ Push Notification Sent:", {caller: message.data.caller, receiver: message.data.receiver});
       return response;
     } catch (error) {
       console.error("❌ Error Sending Notification:", error);
