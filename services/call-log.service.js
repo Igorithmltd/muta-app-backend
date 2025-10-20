@@ -58,7 +58,12 @@ class CallLogService extends BaseService {
         startTime: new Date(),
       });
 
-      const agoraToken = this.getAgoraToken({channelName: sessionId})
+      let agoraToken = null
+      const getAgoraToken = await this.getAgoraToken({channelName: sessionId})
+      if(!getAgoraToken.success){
+        return BaseService.sendFailedResponse({ error: "Could not generate call token" });
+      }
+      agoraToken = getAgoraToken.data && getAgoraToken.data.message ? getAgoraToken.data.message : null
 
       // {
       //   callId: <String>,
@@ -316,11 +321,10 @@ class CallLogService extends BaseService {
       );
 
       
-      return token;
-      // return BaseService.sendSuccessResponse({ message: token });
+      return BaseService.sendSuccessResponse({ message: token });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      return BaseService.sendFailedResponse(this.server_error_message);
     }
   }
 }
