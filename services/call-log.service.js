@@ -58,12 +58,20 @@ class CallLogService extends BaseService {
         startTime: new Date(),
       });
 
-      let agoraToken = null
-      const getAgoraToken = await this.getAgoraToken({channelName: sessionId})
-      if(!getAgoraToken.success){
+      let userAgoraToken = null
+      let receiverAgoraToken = null
+
+      const getUserAgoraToken = await this.getAgoraToken({channelName: sessionId, userId: userId})
+      const getReceiverAgoraToken = await this.getAgoraToken({channelName: sessionId, userId: receiverId})
+
+      if(!getUserAgoraToken.success){
         return BaseService.sendFailedResponse({ error: "Could not generate call token" });
       }
-      agoraToken = getAgoraToken.data && getAgoraToken.data.message ? getAgoraToken.data.message : null
+      if(!getReceiverAgoraToken.success){
+        return BaseService.sendFailedResponse({ error: "Could not generate call token" });
+      }
+      userAgoraToken = getUserAgoraToken.data && getUserAgoraToken.data.message ? getUserAgoraToken.data.message : null
+      receiverAgoraToken = getReceiverAgoraToken.data && getReceiverAgoraToken.data.message ? getReceiverAgoraToken.data.message : null
 
       // {
       //   callId: <String>,
@@ -87,7 +95,7 @@ class CallLogService extends BaseService {
       const callObject = {
         callId: callLog._id,
         channelId: sessionId,
-        token: agoraToken,
+        token: userAgoraToken,
         caller: {
           userId: user._id,
           firstName: user.firstName,
@@ -114,7 +122,7 @@ class CallLogService extends BaseService {
         // body: "",
         title: "Incoming Call",
         body: `You have an incoming ${callType} call`,
-        data: {...callObject, callStatus: "incoming" },
+        data: {...callObject, callStatus: "incoming", token: receiverAgoraToken },
         notificationType: "call",
       })
       await callLog.save();
@@ -295,7 +303,7 @@ class CallLogService extends BaseService {
     }
   }
   // async getAgoraToken(req) {
-  async getAgoraToken({channelName}) {
+  async getAgoraToken({channelName, userId}) {
     try {
       const appID = process.env.AGORA_APP_ID;
       const appCertificate = process.env.AGORA_APP_CERTIFICATE;
@@ -314,14 +322,17 @@ class CallLogService extends BaseService {
       const expirationTimeInSeconds = 3600; // 1 hour
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+      const tokenExpirationInSecond = 3600; // 1 hour in seconds
 
-      const token = RtcTokenBuilder.buildTokenWithUid(
+
+      const token = RtcTokenBuilder.buildTokenWithUserAccount(
         appID,
         appCertificate,
         channelName,
-        uid,
+        userId,
         RtcRole.ROLE_PUBLISHER,
-        privilegeExpiredTs
+        tokenExpirationInSecond,
+        privilegeExpiredTs,
       );
 
       
