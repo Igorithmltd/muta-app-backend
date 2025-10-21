@@ -63,8 +63,8 @@ class CallLogService extends BaseService {
       let userAgoraToken = null;
       let receiverAgoraToken = null;
 
-      const userUid = uuidv4();
-      const receiverUid = uuidv4();
+      const userUid = 1;
+      const receiverUid = 2;
 
       const getUserAgoraToken = await this.getAgoraToken({
         channelName: sessionId,
