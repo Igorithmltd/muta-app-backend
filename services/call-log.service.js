@@ -1,11 +1,11 @@
 const CallLogModel = require("../models/call-log.model");
 const BaseService = require("./base");
-const AgoraToken = require('agora-token')
+const AgoraToken = require("agora-token");
 const { v4: uuidv4 } = require("uuid");
 const { sendPushNotification } = require("./firebase.service");
 const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
-const RtcTokenBuilder = AgoraToken.RtcTokenBuilder
+const RtcTokenBuilder = AgoraToken.RtcTokenBuilder;
 class CallLogService extends BaseService {
   async initiateCall(req) {
     try {
@@ -36,17 +36,19 @@ class CallLogService extends BaseService {
       const receiver = await UserModel.findById(receiverId);
       const user = await UserModel.findById(userId);
 
-      if (!user){
+      if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      if (!receiver){
+      if (!receiver) {
         return BaseService.sendFailedResponse({ error: "Receiver not found" });
       }
       const receiverDeviceToken = receiver.deviceToken;
 
-      if(!receiverDeviceToken){
-        return BaseService.sendFailedResponse({ error: "Receiver cannot be reached at the moment" });
+      if (!receiverDeviceToken) {
+        return BaseService.sendFailedResponse({
+          error: "Receiver cannot be reached at the moment",
+        });
       }
 
       const callLog = new CallLogModel({
@@ -58,44 +60,45 @@ class CallLogService extends BaseService {
         startTime: new Date(),
       });
 
-      let userAgoraToken = null
-      let receiverAgoraToken = null
+      let userAgoraToken = null;
+      let receiverAgoraToken = null;
 
-      const getUserAgoraToken = await this.getAgoraToken({channelName: sessionId, userId: userId})
-      const getReceiverAgoraToken = await this.getAgoraToken({channelName: sessionId, userId: receiverId})
+      const userUid = uuidv4();
+      const receiverUid = uuidv4();
 
-      if(!getUserAgoraToken.success){
-        return BaseService.sendFailedResponse({ error: "Could not generate call token" });
+      const getUserAgoraToken = await this.getAgoraToken({
+        channelName: sessionId,
+        userId: userUid,
+      });
+      const getReceiverAgoraToken = await this.getAgoraToken({
+        channelName: sessionId,
+        userId: receiverUid,
+      });
+
+      if (!getUserAgoraToken.success) {
+        return BaseService.sendFailedResponse({
+          error: "Could not generate call token",
+        });
       }
-      if(!getReceiverAgoraToken.success){
-        return BaseService.sendFailedResponse({ error: "Could not generate call token" });
+      if (!getReceiverAgoraToken.success) {
+        return BaseService.sendFailedResponse({
+          error: "Could not generate call token",
+        });
       }
-      userAgoraToken = getUserAgoraToken.data && getUserAgoraToken.data.message ? getUserAgoraToken.data.message : null
-      receiverAgoraToken = getReceiverAgoraToken.data && getReceiverAgoraToken.data.message ? getReceiverAgoraToken.data.message : null
+      userAgoraToken =
+        getUserAgoraToken.data && getUserAgoraToken.data.message
+          ? getUserAgoraToken.data.message
+          : null;
+      receiverAgoraToken =
+        getReceiverAgoraToken.data && getReceiverAgoraToken.data.message
+          ? getReceiverAgoraToken.data.message
+          : null;
 
-      // {
-      //   callId: <String>,
-      //   channelId: <String> // for agora,
-      //   token: <String> // token from agora to authenticate the user
-      //   caller : {
-      //     userId: <String>
-      //     firstName: <String>
-      //     lastName: <String>
-      //     image: <String>
-      //   }
-      //   receiver : {
-      //     userId: <String>
-      //     firstName: <String>
-      //     lastName: <String>
-      //     image: <String>
-      //   }
-      //   callType: <"audio" | "video">,
-      //   callStatus <"incoming" | "outgoing" | "missed" | "declined"
-      // }
       const callObject = {
         callId: callLog._id,
         channelId: sessionId,
         token: userAgoraToken,
+        agoraUid: userUid,
         caller: {
           userId: user._id,
           firstName: user.firstName,
@@ -110,22 +113,24 @@ class CallLogService extends BaseService {
         },
         callType,
         callStatus: "outgoing",
-        notificationType: "call"
-      }
-      console.log({userAgoraToken, receiverAgoraToken})
+        notificationType: "call",
+      };
 
+      const receiverData = {
+        ...callObject,
+        callStatus: "incoming",
+        token: receiverAgoraToken,
+        agoraUid: receiverUid,
+      };
 
       // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
       sendPushNotification({
         deviceToken: receiverDeviceToken,
-        // topic: `user_${receiverId}`,
-        // title: "",
-        // body: "",
         title: "Incoming Call",
         body: `You have an incoming ${callType} call`,
-        data: {...callObject, callStatus: "incoming", token: receiverAgoraToken },
+        data: receiverData,
         notificationType: "call",
-      })
+      });
       await callLog.save();
 
       return BaseService.sendSuccessResponse({ message: callObject });
@@ -304,38 +309,38 @@ class CallLogService extends BaseService {
     }
   }
   // async getAgoraToken(req) {
-  async getAgoraToken({channelName, userId}) {
+  async getAgoraToken({ channelName, uid }) {
     try {
       const appID = process.env.AGORA_APP_ID;
       const appCertificate = process.env.AGORA_APP_CERTIFICATE;
       // const channelName = req.query.channel;
 
       if (!channelName) {
-        return BaseService.sendFailedResponse({ error: "Channel name is required" });
+        return BaseService.sendFailedResponse({
+          error: "Channel name is required",
+        });
       }
 
       const RtcRole = {
         ROLE_PUBLISHER: 1,
         ROLE_SUBSCRIBER: 2,
-      };      
+      };
       // const role = RtcRole.PUBLISHER;
       const expirationTimeInSeconds = 3600; // 1 hour
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
-      const tokenExpirationInSecond = 3600; // 1 hour in seconds
+      const tokenExpirationInSecond = 3600 * 24; // 1 hour in seconds
 
-
-      const token = RtcTokenBuilder.buildTokenWithUserAccount(
+      const token = RtcTokenBuilder.buildTokenWithUid(
         appID,
         appCertificate,
         channelName,
-        userId,
+        uid,
         RtcRole.ROLE_PUBLISHER,
         tokenExpirationInSecond,
-        // privilegeExpiredTs,
+        privilegeExpiredTs
       );
 
-      
       return BaseService.sendSuccessResponse({ message: token });
     } catch (error) {
       console.log(error, "the error");
