@@ -59,7 +59,6 @@ function setupSocket(httpServer) {
     // 2. Join all rooms the user is a part of
     const userRooms = await ChatRoomModel.find({ participants: userId });
     userRooms.forEach(async (room) => {
-
       const unreadMessages = await MessageModel.find({
         roomId: room._id,
         readBy: { $ne: userId },
@@ -133,11 +132,13 @@ function setupSocket(httpServer) {
 
     // =================== SEND MESSAGE ===================
     socket.on("sendMessage", async (data) => {
-      const messageId = data?.message.id
-      const roomId = data?.roomId || null
-      const message = await MessageModel.findById(messageId)
-      if(!message){
-        return socket.emit("error", { message: "Could not mark messages as read" });
+      const messageId = data?.message.id;
+      const roomId = data?.roomId || null;
+      const message = await MessageModel.findById(messageId);
+      if (!message) {
+        return socket.emit("error", {
+          message: "Could not mark messages as read",
+        });
       }
       try {
         // const newMessage = await MessageModel.create({
@@ -164,7 +165,7 @@ function setupSocket(httpServer) {
     socket.on("likeMessage", async (data) => {
       try {
         const userId = socket.userId;
-        const messageId = data.messageId
+        const messageId = data.messageId;
 
         const message = await MessageModel.findById(messageId);
         if (!message) {
@@ -188,7 +189,10 @@ function setupSocket(httpServer) {
         // await message.save();
 
         // Emit updated likes to room members
-        io.to(message.roomId.toString()).emit("messageLiked", {messageId, likeCount: message.likes.length});
+        io.to(message.roomId.toString()).emit("messageLiked", {
+          messageId,
+          likeCount: message.likes.length,
+        });
       } catch (error) {
         console.error("Error liking message:", error);
         socket.emit("error", { message: "Could not like the message" });
@@ -217,6 +221,50 @@ function setupSocket(httpServer) {
           });
         }
       });
+    });
+
+    // =================== MISSED CALL ===================
+    socket.on("missedCall", async ({ sessionId }) => {
+      try {
+        const callLog = await CallLogModel.findOne(
+          { sessionId },
+          // { status: "missed", endTime: new Date() },
+          // { new: true }
+        );
+
+        if (!callLog) return;
+
+        const targetUserId = callLog.receiverId.toString();
+        const targetSocketId = users[targetUserId];
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("missedCall", { callLog });
+        }
+      } catch (error) {
+        console.error("Error handling missed call:", error);
+        socket.emit("error", { message: "Could not mark call as missed." });
+      }
+    });
+
+    // =================== DECLINED CALL ===================
+    socket.on("declinedCall", async ({ sessionId }) => {
+      try {
+        const callLog = await CallLogModel.findOne(
+          { sessionId },
+          // { status: "declined", endTime: new Date() },
+          // { new: true }
+        );
+
+        if (!callLog) return;
+
+        const targetUserId = callLog.callerId.toString(); // inform the caller
+        const targetSocketId = users[targetUserId];
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("declinedCall", { callLog });
+        }
+      } catch (error) {
+        console.error("Error handling declined call:", error);
+        socket.emit("error", { message: "Could not decline call." });
+      }
     });
   });
 

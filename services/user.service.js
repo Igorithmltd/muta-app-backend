@@ -764,13 +764,11 @@ class UserService extends BaseService {
         gender: "string|required",
       };
 
-      if (userType) {
-        if (userType == "user") {
-          validateRule.age = "integer|required";
-        } else {
-          validateRule.yearsOfExperience = "integer|required";
-          validateRule.location = "string|required";
-        }
+      if (userType === "user") {
+        validateRule.age = "integer|required";
+      } else if (userType === "coach") {
+        validateRule.yearsOfExperience = "integer|required";
+        validateRule.location = "string|required";
       }
 
       const validateMessage = {
