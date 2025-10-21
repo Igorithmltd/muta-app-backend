@@ -908,7 +908,7 @@ router.post(ROUTE_LOG_HEIGHT, auth, (req, res) => {
  *     summary: Submit coach verification application
  *     description: Allows a coach to apply for verification with required credentials.
  *     tags:
- *       - Admin
+ *       - User
  *     security:
  *       - bearerAuth: []
  *     requestBody:
