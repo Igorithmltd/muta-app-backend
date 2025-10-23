@@ -183,6 +183,7 @@ exports.ROUTE_END_CALL = '/end-call'
 exports.ROUTE_RECEIVE_CALL = '/receive-call'
 exports.ROUTE_MISS_CALL = '/miss-call'
 exports.ROUTE_REJECT_CALL = '/reject-call'
+exports.ROUTE_UPDATE_STATUS = '/update-status'
 exports.ROUTE_GET_USER_CALL_LOGS = '/get-user-call-logs'
 exports.ROUTE_GET_AGORA_TOKEN = '/get-agora-token'
 

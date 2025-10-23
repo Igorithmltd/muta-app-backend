@@ -50,6 +50,14 @@ class CallLogController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, recievedCall.data)
     }
+    async updateCallStatus(req, res){
+        const callLogService = new CallLogService()
+        const updateCallStatus = await callLogService.updateCallStatus(req)
+        if(!updateCallStatus.success){
+            return BaseController.sendFailedResponse(res, updateCallStatus.data)
+        }
+        return BaseController.sendSuccessResponse(res, updateCallStatus.data)
+    }
     async getAgoraToken(req, res){
         const callLogService = new CallLogService()
         const getAgoraToken = await callLogService.getAgoraToken(req)

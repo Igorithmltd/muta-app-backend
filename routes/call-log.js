@@ -1,6 +1,6 @@
 const CallController = require('../controllers/call-log.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN } = require('../util/page-route')
+const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -179,6 +179,56 @@ router.post(ROUTE_MISS_CALL, [auth], (req, res)=>{
 router.post(ROUTE_REJECT_CALL, [auth], (req, res)=>{
     const callController = new CallController()
     return callController.rejectCall(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/update-status:
+ *   post:
+ *     summary: Update the status of a call (e.g. ringing, answered, declined, missed, ended, rejected)
+ *     tags: [Calls]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *               - status
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 description: Unique call session ID
+ *                 example: "session_12345"
+ *               status:
+ *                 type: string
+ *                 enum: [ringing, answered, declined, missed, ended, rejected]
+ *                 description: New status to set for the call
+ *                 example: "answered"
+ *     responses:
+ *       200:
+ *         description: Call status successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Call status updated to answered"
+ *                 data:
+ *                   $ref: '#/components/schemas/CallLog'
+ *       400:
+ *         description: Validation error or invalid status transition
+ *       404:
+ *         description: Call not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post(ROUTE_UPDATE_STATUS, [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.updateCallStatus(req, res)
 })
 
 /**

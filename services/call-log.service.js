@@ -294,6 +294,79 @@ class CallLogService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async updateCallStatus(req, res) {
+    try {
+      const post = req.body;
+      const userId = req.user.id;
+  
+      // 1️⃣ Validate incoming data
+      const validateRule = {
+        sessionId: "string|required",
+        status: "string|required|in:ringing,received,declined,missed,ended,rejected",
+      };
+  
+      const validateMessage = {
+        required: ":attribute is required",
+        "string.string": ":attribute must be a string.",
+        "in.in": ":attribute must be one of ringing, received, declined, missed, ended, rejected.",
+      };
+  
+      const validateResult = validateData(post, validateRule, validateMessage);
+  
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+  
+      const { sessionId, status } = post;
+  
+      // 2️⃣ Find the call log
+      const callLog = await CallLogModel.findOne({ sessionId });
+      if (!callLog) return res.status(404).json({ message: "Call not found" });
+  
+      // 3️⃣ Update status and related fields dynamically
+      callLog.status = status;
+  
+      // 4️⃣ Handle additional fields based on the new status
+      switch (status) {
+        case "ringing":
+          callLog.startTime = new Date();
+          callLog.endTime = null;
+          callLog.duration = 0;
+          break;
+  
+        case "received":
+          callLog.answerTime = new Date();
+          break;
+  
+        case "ended":
+          callLog.endTime = new Date();
+          if (callLog.answerTime) {
+            callLog.duration = Math.floor(
+              (callLog.endTime - callLog.answerTime) / 1000
+            ); // duration in seconds
+          }
+          break;
+  
+        case "missed":
+        case "declined":
+        case "rejected":
+          callLog.endTime = new Date();
+          callLog.duration = 0;
+          break;
+      }
+  
+      // 5️⃣ Save and respond
+      await callLog.save();
+  
+      return BaseService.sendSuccessResponse({
+        message: `Call status updated to ${status}`,
+        data: callLog,
+      });
+    } catch (error) {
+      console.error("Error updating call status:", error);
+      return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }  
   async getUserCallLogs(req) {
     try {
       const { id } = req.params;
