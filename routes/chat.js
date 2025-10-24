@@ -451,7 +451,7 @@ router.put(ROUTE_LIKE_UNLIKE_MESSAGE+"/:id", auth, (req, res)=>{
 
 /**
  * @swagger
- * /chat/unread-messages:
+ * /chat/get-unread-messages:
  *   get:
  *     summary: Get all unread messages for the authenticated user
  *     description: Retrieves all messages in a specific chat room that have not yet been read by the currently authenticated user.
@@ -475,9 +475,36 @@ router.put(ROUTE_LIKE_UNLIKE_MESSAGE+"/:id", auth, (req, res)=>{
  *               properties:
  *                 message:
  *                   type: array
- *                   description: List of unread messages for the user
+ *                   description: Array of unread message documents
  *                   items:
  *                     $ref: '#/components/schemas/Message'
+ *             examples:
+ *               success:
+ *                 summary: Example response
+ *                 value:
+ *                   message:
+ *                     - _id: "6532a4dfb28b7a9c1ef00123"
+ *                       senderId: "64fe9a1dfb23a5b2a9d00123"
+ *                       receiverId: "650f5b2db41a6ca09ad00123"
+ *                       roomId: "652f1c9aa4b1c7e8b9f0e456"
+ *                       message: "Hey, are you joining the meeting?"
+ *                       type: "text"
+ *                       readBy: []
+ *                       seenBy: []
+ *                       likes: []
+ *                       createdAt: "2025-10-23T10:20:00.000Z"
+ *                       updatedAt: "2025-10-23T10:25:00.000Z"
+ *                     - _id: "6532a4dfb28b7a9c1ef00124"
+ *                       senderId: "64fe9a1dfb23a5b2a9d00124"
+ *                       receiverId: "650f5b2db41a6ca09ad00124"
+ *                       roomId: "652f1c9aa4b1c7e8b9f0e456"
+ *                       message: "Don't forget the project update!"
+ *                       type: "text"
+ *                       readBy: []
+ *                       seenBy: []
+ *                       likes: []
+ *                       createdAt: "2025-10-23T11:00:00.000Z"
+ *                       updatedAt: "2025-10-23T11:00:00.000Z"
  *       400:
  *         description: Missing or invalid query parameter
  *         content:
