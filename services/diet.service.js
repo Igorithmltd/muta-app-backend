@@ -15,7 +15,7 @@ class DietServicee extends BaseService {
       const validateRule = {
         title: "string|required",
         description: "string|required",
-        category: "string|required",
+        category: "string|required|objectId",
         calories: "integer|required",
         tags: "array|required",
         duration: "integer|required",

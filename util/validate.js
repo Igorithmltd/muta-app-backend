@@ -7,6 +7,14 @@ Validator.register(
     },
     'The :attribute must be an object.'
   );
+
+  Validator.register(
+    'objectId',
+    function (value) {
+      return mongoose.Types.ObjectId.isValid(value);
+    },
+    'The :attribute must be a valid MongoDB ObjectId.'
+  );
   
 
 function validateData(body, rules, messages){

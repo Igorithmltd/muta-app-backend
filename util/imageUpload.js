@@ -42,7 +42,7 @@ function createMulterInstance (folder, transformation = [], resourceType = 'imag
   return multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
-      const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
       const videoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
 
       if (resourceType === 'image' && imageTypes.includes(file.mimetype)) {
