@@ -13,7 +13,7 @@ const dietPlan = [
             {
               "mealTitle": "Oatmeal with nuts",
               "mealType": "breakfast",
-              "crabs": 50,
+              "carbs": 50,
               "protein": 10,
               "fats": 10,
               "calories": 350,
@@ -23,7 +23,7 @@ const dietPlan = [
             {
               "mealTitle": "Chicken Salad",
               "mealType": "lunch",
-              "crabs": 30,
+              "carbs": 30,
               "protein": 40,
               "fats": 15,
               "calories": 450,
@@ -38,7 +38,7 @@ const dietPlan = [
             {
               "mealTitle": "Scrambled eggs and toast",
               "mealType": "breakfast",
-              "crabs": 25,
+              "carbs": 25,
               "protein": 20,
               "fats": 15,
               "calories": 320,
@@ -48,7 +48,7 @@ const dietPlan = [
             {
               "mealTitle": "Grilled salmon",
               "mealType": "dinner",
-              "crabs": 20,
+              "carbs": 20,
               "protein": 50,
               "fats": 20,
               "calories": 500,
@@ -63,7 +63,7 @@ const dietPlan = [
             {
               "mealTitle": "Fruit smoothie",
               "mealType": "snack",
-              "crabs": 40,
+              "carbs": 40,
               "protein": 5,
               "fats": 2,
               "calories": 220,
@@ -73,7 +73,7 @@ const dietPlan = [
             {
               "mealTitle": "Beef stir-fry",
               "mealType": "dinner",
-              "crabs": 30,
+              "carbs": 30,
               "protein": 45,
               "fats": 18,
               "calories": 550,
@@ -102,7 +102,7 @@ const dietPlan = [
             {
               "mealTitle": "Avocado and eggs",
               "mealType": "breakfast",
-              "crabs": 10,
+              "carbs": 10,
               "protein": 25,
               "fats": 30,
               "calories": 400,
@@ -112,7 +112,7 @@ const dietPlan = [
             {
               "mealTitle": "Steak with veggies",
               "mealType": "dinner",
-              "crabs": 15,
+              "carbs": 15,
               "protein": 60,
               "fats": 25,
               "calories": 600,
@@ -127,7 +127,7 @@ const dietPlan = [
             {
               "mealTitle": "Greek yogurt with seeds",
               "mealType": "snack",
-              "crabs": 12,
+              "carbs": 12,
               "protein": 15,
               "fats": 10,
               "calories": 220,
@@ -156,7 +156,7 @@ const dietPlan = [
             {
               "mealTitle": "Green smoothie",
               "mealType": "breakfast",
-              "crabs": 40,
+              "carbs": 40,
               "protein": 5,
               "fats": 3,
               "calories": 250,
@@ -166,7 +166,7 @@ const dietPlan = [
             {
               "mealTitle": "Quinoa salad",
               "mealType": "lunch",
-              "crabs": 50,
+              "carbs": 50,
               "protein": 15,
               "fats": 10,
               "calories": 400,
@@ -181,7 +181,7 @@ const dietPlan = [
             {
               "mealTitle": "Chickpea hummus wrap",
               "mealType": "lunch",
-              "crabs": 45,
+              "carbs": 45,
               "protein": 12,
               "fats": 15,
               "calories": 420,
@@ -191,7 +191,7 @@ const dietPlan = [
             {
               "mealTitle": "Roasted veggies",
               "mealType": "dinner",
-              "crabs": 35,
+              "carbs": 35,
               "protein": 8,
               "fats": 12,
               "calories": 380,
@@ -206,7 +206,7 @@ const dietPlan = [
             {
               "mealTitle": "Berry bowl",
               "mealType": "breakfast",
-              "crabs": 30,
+              "carbs": 30,
               "protein": 5,
               "fats": 2,
               "calories": 200,
@@ -221,7 +221,7 @@ const dietPlan = [
             {
               "mealTitle": "Lentil soup",
               "mealType": "dinner",
-              "crabs": 40,
+              "carbs": 40,
               "protein": 20,
               "fats": 10,
               "calories": 350,

@@ -106,7 +106,7 @@ const {
  *                         type: object
  *                         required:
  *                           - mealTitle
- *                           - crabs
+ *                           - carbs
  *                           - protein
  *                           - fats
  *                           - calories
@@ -121,7 +121,7 @@ const {
  *                             type: string
  *                             enum: [breakfast, lunch, dinner, snack]
  *                             example: "breakfast"
- *                           crabs:
+ *                           carbs:
  *                             type: integer
  *                             example: 30
  *                           protein:
@@ -265,7 +265,7 @@ router.post(ROUTE_CREATE_DIET, [adminAuth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -393,7 +393,7 @@ router.get(ROUTE_GET_ALL_DIETS, [auth], (req, res) => {
  *                           mealType:
  *                             type: string
  *                             example: "breakfast"
- *                           crabs:
+ *                           carbs:
  *                             type: integer
  *                             example: 30
  *                           protein:
@@ -591,7 +591,7 @@ router.put(ROUTE_DIET_TASK, [auth], (req, res) => {
  *                                     mealType:
  *                                       type: string
  *                                       example: "breakfast"
- *                                     crabs:
+ *                                     carbs:
  *                                       type: integer
  *                                       example: 44
  *                                     protein:
@@ -740,7 +740,7 @@ router.get(ROUTE_GET_DIET + "/:id", [auth], (req, res) => {
  *                                 mealTitle:
  *                                   type: string
  *                                   example: "Avocado Toast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: number
  *                                   example: 30
  *                                 protein:
@@ -1031,7 +1031,7 @@ router.put(ROUTE_RESET_DIET_ACTION, [auth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -1157,7 +1157,7 @@ router.get(ROUTE_RECOMMENDED_DIETS, [auth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -1270,7 +1270,7 @@ router.get(ROUTE_ACTIVE_DIETS, [auth], (req, res) => {
  *                                 mealTitle:
  *                                   type: string
  *                                   example: "Grilled Chicken Salad"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: number
  *                                   example: 20
  *                                 protein:
@@ -1441,7 +1441,7 @@ router.get(ROUTE_GET_DIET_CATEGORIES, [auth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -1590,7 +1590,7 @@ router.get(ROUTE_SEARCH_DIET_TITLE, [auth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -1745,7 +1745,7 @@ router.get(ROUTE_SEARCH_DIET_BY_CATEGORY+"/:id", [auth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -1899,7 +1899,7 @@ router.get(ROUTE_GET_COMPLETED_DIET_PLANS, [auth], (req, res) => {
  *                                 mealType:
  *                                   type: string
  *                                   example: "breakfast"
- *                                 crabs:
+ *                                 carbs:
  *                                   type: integer
  *                                   example: 44
  *                                 protein:
@@ -1992,7 +1992,7 @@ router.get(ROUTE_TOTAL_COMPLETED_DIET_PLANS, [auth], (req, res) => {
  *                           breakfastTitle:
  *                             type: string
  *                             example: "Oats with banana"
- *                           crabs:
+ *                           carbs:
  *                             type: number
  *                             example: 30
  *                           protein:

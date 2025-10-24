@@ -26,7 +26,7 @@ class DietServicee extends BaseService {
         "dailyMealBreakdown.*.meals.*.mealTitle": "string|required",
         "dailyMealBreakdown.*.meals.*.mealType":
           "string|required|in:breakfast,lunch,dinner,snack",
-        "dailyMealBreakdown.*.meals.*.crabs": "integer|required",
+        "dailyMealBreakdown.*.meals.*.carbs": "integer|required",
         "dailyMealBreakdown.*.meals.*.protein": "integer|required",
         "dailyMealBreakdown.*.meals.*.fats": "integer|required",
         "dailyMealBreakdown.*.meals.*.calories": "integer|required",

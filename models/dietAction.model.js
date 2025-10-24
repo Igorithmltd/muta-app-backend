@@ -14,7 +14,7 @@ const DietActionSchema = new mongoose.Schema(
         meals: [
           {
             mealTitle: { type: String, required: true },
-            crabs: { type: Number, required: true },
+            carbs: { type: Number, required: true },
             protein: { type: Number, required: true },
             fats: { type: Number, required: true },
             calories: { type: Number, required: true },

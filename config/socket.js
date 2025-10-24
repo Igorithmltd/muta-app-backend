@@ -266,6 +266,48 @@ function setupSocket(httpServer) {
         socket.emit("error", { message: "Could not decline call." });
       }
     });
+    // =================== Ringing CALL ===================
+    socket.on("ringingCall", async ({ sessionId }) => {
+      try {
+        const callLog = await CallLogModel.findOne(
+          { sessionId },
+          // { status: "declined", endTime: new Date() },
+          // { new: true }
+        );
+
+        if (!callLog) return;
+
+        const targetUserId = callLog.callerId.toString(); // inform the caller
+        const targetSocketId = users[targetUserId];
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("ringingCall", { callLog });
+        }
+      } catch (error) {
+        console.error("Error handling ringing call:", error);
+        socket.emit("error", { message: "Could not ring a call." });
+      }
+    });
+    // =================== De Ringing CALL ===================
+    socket.on("deringingCall", async ({ sessionId }) => {
+      try {
+        const callLog = await CallLogModel.findOne(
+          { sessionId },
+          // { status: "declined", endTime: new Date() },
+          // { new: true }
+        );
+
+        if (!callLog) return;
+
+        const targetUserId = callLog.callerId.toString(); // inform the caller
+        const targetSocketId = users[targetUserId];
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("deringingCall", { callLog });
+        }
+      } catch (error) {
+        console.error("Error handling de ringing call:", error);
+        socket.emit("error", { message: "Could not de ring a call." });
+      }
+    });
   });
 
   io.engine.on("upgrade", (req) => {
