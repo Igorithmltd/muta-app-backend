@@ -249,10 +249,20 @@ class UserService extends BaseService {
   }
   async unreadUserMessages(req) {
     try {
-      
+      const userId = req.user.id
+      const roomId = req.query.roomId
+      if(!roomId){
+        return BaseService.sendFailedResponse({error: "roomId is required"})
+      }
+
+      const messages = await MessageModel.find({
+        receiverId: userId,
+        roomId: roomId,
+        readBy: { $ne: userId },
+      });
 
       return BaseService.sendSuccessResponse({
-        message: "",
+        message: messages,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({ error: error.message });

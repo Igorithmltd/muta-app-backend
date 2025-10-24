@@ -58,6 +58,14 @@ class ChatController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, likeMessage.data)
     }
+    async unreadUserMessages(req, res){
+        const chatService = new ChatService()
+        const unreadUserMessages = await chatService.unreadUserMessages(req)
+        if(!unreadUserMessages.success){
+            return BaseController.sendFailedResponse(res, unreadUserMessages.data)
+        }
+        return BaseController.sendSuccessResponse(res, unreadUserMessages.data)
+    }
 }
 
 module.exports = ChatController

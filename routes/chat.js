@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE, ROUTE_LIKE_UNLIKE_MESSAGE } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE, ROUTE_LIKE_UNLIKE_MESSAGE, ROUTE_GET_UNREAD_MESSAGES } = require('../util/page-route')
 
 const router = require('express').Router()
 const auth = require('../middlewares/auth')
@@ -447,6 +447,71 @@ router.get(ROUTE_SEARCH_MESSAGE, auth, (req, res)=>{
 router.put(ROUTE_LIKE_UNLIKE_MESSAGE+"/:id", auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.likeMessage(req, res)
+})
+
+/**
+ * @swagger
+ * /chat/unread-messages:
+ *   get:
+ *     summary: Get all unread messages for the authenticated user
+ *     description: Retrieves all messages in a specific chat room that have not yet been read by the currently authenticated user.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the chat room to fetch unread messages from
+ *     responses:
+ *       200:
+ *         description: Unread messages retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: array
+ *                   description: List of unread messages for the user
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Missing or invalid query parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: roomId is required
+ *       404:
+ *         description: Room or messages not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: No unread messages found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get(ROUTE_GET_UNREAD_MESSAGES, auth, (req, res)=>{
+    const chatController = new ChatController()
+    return chatController.unreadUserMessages(req, res)
 })
 
 module.exports = router

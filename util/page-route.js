@@ -128,6 +128,7 @@ exports.ROUTE_GET_CHAT_MESSAGES = '/get-chat-messages'
 exports.ROUTE_GENERAL_CHAT = '/general-chat'
 exports.ROUTE_LIKE_UNLIKE_MESSAGE = '/like-unlike-message'
 exports.ROUTE_SEARCH_MESSAGE = '/search-message'
+exports.ROUTE_GET_UNREAD_MESSAGES = '/get-unread-messages'
 
 //products
 exports.ROUTE_CREATE_PRODUCT = '/create-product'
