@@ -68,11 +68,11 @@ class CallLogService extends BaseService {
 
       const getUserAgoraToken = await this.getAgoraToken({
         channelName: sessionId,
-        userId: userUid,
+        uid: userUid,
       });
       const getReceiverAgoraToken = await this.getAgoraToken({
         channelName: sessionId,
-        userId: receiverUid,
+        uid: receiverUid,
       });
 
       if (!getUserAgoraToken.success) {
