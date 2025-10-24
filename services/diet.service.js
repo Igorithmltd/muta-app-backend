@@ -56,12 +56,12 @@ class DietServicee extends BaseService {
           error: "Diet with this title already exists",
         });
       }
-      if (post.duration !== post.dailyMealBreakdown.length) {
-        return BaseService.sendFailedResponse({
-          error:
-            "Duration must exactly match the number of days in dailyMealBreakdown",
-        });
-      }
+      // if (post.duration !== post.dailyMealBreakdown.length) {
+      //   return BaseService.sendFailedResponse({
+      //     error:
+      //       "Duration must exactly match the number of days in dailyMealBreakdown",
+      //   });
+      // }
 
       // Add day field dynamically
       // const today = moment();
