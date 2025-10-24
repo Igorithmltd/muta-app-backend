@@ -56,13 +56,13 @@ class DietServicee extends BaseService {
           error: "Diet with this title already exists",
         });
       }
-      console.log({duration: post.duration, dailyMealBreakdown: post.dailyMealBreakdown.length})
-      // if (post.duration !== post.dailyMealBreakdown.length) {
-      //   return BaseService.sendFailedResponse({
-      //     error:
-      //       "Duration must exactly match the number of days in dailyMealBreakdown",
-      //   });
-      // }
+
+      if (post.duration !== post.dailyMealBreakdown.length) {
+        return BaseService.sendFailedResponse({
+          error:
+            "Duration must exactly match the number of days in dailyMealBreakdown",
+        });
+      }
 
       // Add day field dynamically
       // const today = moment();
@@ -79,7 +79,6 @@ class DietServicee extends BaseService {
         ...post,
         // dailyMealBreakdown: breakdownWithDays,
       });
-      console.log({diet})
 
       const savedDiet = await diet.save();
 

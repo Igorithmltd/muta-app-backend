@@ -1,4 +1,5 @@
 const Validator = require('validatorjs')
+const mongoose = require('mongoose')
 
 Validator.register(
     'object',

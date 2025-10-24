@@ -69,6 +69,7 @@ router.post(ROUTE_IMAGE_UPLOAD_MULTIPLE, auth, image_uploader.array('file'),(req
  *       500:
  *         description: Server error
  */
+
 router.post(ROUTE_IMAGE_UPLOAD_SINGLE, auth, image_uploader.single('file'), (req, res)=>{
     const utilController = new UtilController()
     return utilController.uploadSingleImage(req, res)
