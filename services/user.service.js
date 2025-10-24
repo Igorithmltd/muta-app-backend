@@ -23,6 +23,7 @@ const NotificationModel = require("../models/notification.model");
 const SubscriptionModel = require("../models/subscription.model");
 const { sendPushNotification } = require("./firebase.service");
 const PaystackService = require("./paystack.service");
+const sendOTP = require("../util/sendOtp");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -2436,6 +2437,94 @@ class UserService extends BaseService {
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: "Failed to fetch water logs",
+      });
+    }
+  }
+  async verifyPhoneNumber(req) {
+    try {
+      const userId = req.user.id;
+
+      const { phoneNumber } = req.body;
+      if (!phoneNumber) {
+        return BaseService.sendFailedResponse({
+          error: "Phone number is required",
+        });
+      }
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      const otp = generateOTP();
+
+      
+      const otpResult = await sendOTP(phoneNumber, otp);
+      console.log({otpResult: otpResult.data})
+
+      if(otpResult.code == 'ok'){
+        const expiresAt = new Date(Date.now() + EXPIRES_AT);
+  
+        user.otp = otp;
+        user.otpExpiresAt = expiresAt;
+        await user.save();
+  
+
+        return BaseService.sendSuccessResponse({
+          message: "OTP sent successfully to this number",
+        });
+      }else{
+        return BaseService.sendFailedResponse({error: 'Failed to sent otp to ths number'})
+      }
+      
+    } catch (error) {
+      console.log(error)
+      return BaseService.sendFailedResponse({
+        error: "Failed to generate otp",
+      });
+    }
+  }
+  async verifyCodeToPhoneNumber(req) {
+    try {
+      const userId = req.user.id;
+
+      const { code } = req.body;
+      if (!code) {
+        return BaseService.sendFailedResponse({
+          error: "otp code is required",
+        });
+      }
+      if (!phoneNumber) {
+        return BaseService.sendFailedResponse({
+          error: "phone Number is required",
+        });
+      }
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      if (empty(user.otp)) {
+        return BaseService.sendFailedResponse({ error: "OTP not found" });
+      }
+
+      if (user.otp !== otp) {
+        return BaseService.sendFailedResponse({ error: "Invalid OTP" });
+      }
+      if (user.otpExpiresAt < new Date()) {
+        return BaseService.sendFailedResponse({ error: "OTP expired" });
+      }
+
+      user.phoneNumber = phoneNumber
+      user.otp = null;
+      user.otpExpiresAt = null;
+      await user.save();
+      
+      return BaseService.sendSuccessResponse({
+        message: "Phone updated successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to update phone number",
       });
     }
   }

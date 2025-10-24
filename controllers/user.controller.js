@@ -411,6 +411,22 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, updateDeviceToken.data)
     }
+    async verifyPhoneNumber(req, res){
+        const userService = new UserService()
+        const verifyPhoneNumber = await userService.verifyPhoneNumber(req)
+        if(!verifyPhoneNumber.success){
+            return BaseController.sendFailedResponse(res, verifyPhoneNumber.data)
+        }
+        return BaseController.sendSuccessResponse(res, verifyPhoneNumber.data)
+    }
+    async verifyCodeToPhoneNumber(req, res){
+        const userService = new UserService()
+        const verifyCodeToPhoneNumber = await userService.verifyCodeToPhoneNumber(req)
+        if(!verifyCodeToPhoneNumber.success){
+            return BaseController.sendFailedResponse(res, verifyCodeToPhoneNumber.data)
+        }
+        return BaseController.sendSuccessResponse(res, verifyCodeToPhoneNumber.data)
+    }
 }
 
 module.exports = UserController

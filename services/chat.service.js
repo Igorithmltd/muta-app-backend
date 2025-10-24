@@ -251,15 +251,17 @@ class UserService extends BaseService {
     try {
       const userId = req.user.id
       const roomId = req.query.roomId
-      if(!roomId){
-        return BaseService.sendFailedResponse({error: "roomId is required"})
+
+      const filter = {
+        receiverId: userId,
+        readBy: { $ne: userId },
       }
 
-      const messages = await MessageModel.find({
-        receiverId: userId,
-        roomId: roomId,
-        readBy: { $ne: userId },
-      });
+      if(roomId){
+        filter.roomId = roomId
+      }
+
+      const messages = await MessageModel.find(filter);
 
       return BaseService.sendSuccessResponse({
         message: messages,

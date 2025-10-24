@@ -37,6 +37,8 @@ exports.ROUTE_MARK_NOTIFICATION_AS_READ = '/mark-notification-as-read'
 exports.ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ = '/mark-all-notifications-as-read'
 exports.ROUTE_DELETE_NOTIFICATION = '/delete-notification'
 exports.ROUTE_DELETE_ALL_NOTIFICATION = '/delete-all-notification'
+exports.ROUTE_VERIFY_PHONE_NUMBER = '/verify-phone-number'
+exports.ROUTE_UPDATE_PHONE_NUMBER = '/update-phone-number'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'

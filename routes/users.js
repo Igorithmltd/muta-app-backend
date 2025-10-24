@@ -45,6 +45,8 @@ const {
   ROUTE_GET_VERIFIED_COACHES,
   ROUTE_UPDATE_USER,
   ROUTE_CANCEL_PLAN,
+  ROUTE_VERIFY_PHONE_NUMBER,
+  ROUTE_UPDATE_PHONE_NUMBER,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2346,6 +2348,116 @@ router.delete(ROUTE_DELETE_ALL_NOTIFICATION, adminAuth, (req, res) => {
 router.put(ROUTE_UPDATE_DEVICE_TOKEN, auth, (req, res) => {
   const userController = new UserController();
   return userController.updateDeviceToken(req, res);
+});
+
+/**
+ * @swagger
+ * /users/verify-phone-number:
+ *   post:
+ *     summary: Send otp to verify phone number
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 example: "08137327372"
+ *                 description: The user phone number
+ *     responses:
+ *       200:
+ *         description: code sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: code sent successfully.
+ *       400:
+ *         description: Bad request (e.g. incorrect device token, mismatch, or missing fields)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Device token is incorrect.
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post(ROUTE_VERIFY_PHONE_NUMBER, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.verifyPhoneNumber(req, res);
+});
+
+/**
+ * @swagger
+ * /users/update-phone-number:
+ *   post:
+ *     summary: Update the user phone number
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 example: "08138483848"
+ *                 description: The phone number of the user
+ *               code:
+ *                 type: string
+ *                 example: 53433
+ *                 description: The otp sent
+ *     responses:
+ *       200:
+ *         description: password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: password updated successfully.
+ *       400:
+ *         description: Bad request (e.g. incorrect device token, mismatch, or missing fields)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: phone number is incorrect.
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post(ROUTE_UPDATE_PHONE_NUMBER, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.verifyCodeToPhoneNumber(req, res);
 });
 
 module.exports = router;

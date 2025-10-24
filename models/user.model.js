@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["beginner", "intermediate", "advanced"],
     },
-    // phoneNumber: { type: String, trim: true, unique: true, default: "" },
+    phoneNumber: { type: String },
     googleId: { type: String, unique: true, sparse: true },
     password: { type: String },
     userType: {
