@@ -62,13 +62,8 @@ const {
  *                 type: string
  *                 example: "This is a balanced diet plan for weight loss"
  *               category:
- *                 type: object
- *                 required:
- *                   - _id
- *                 properties:
- *                   _id:
- *                     type: string
- *                     example: "6863d1d9f94e880960616e38"
+ *                 type: string
+ *                 example: "6863d1d9f94e880960616e38"
  *               calories:
  *                 type: integer
  *                 example: 1200
