@@ -85,12 +85,12 @@ function setupSocket(httpServer) {
     });
 
     // Mark messages as read
-    socket.on("markAsRead", async ({ roomId, messageIds }) => {
+    socket.on("markAsRead", async ({ roomId }) => {
       try {
         // Add current userId to readBy array of each message
         await MessageModel.updateMany(
           {
-            _id: { $in: messageIds },
+            // _id: { $in: messageIds },
             roomId: roomId,
             readBy: { $ne: userId },
           },
@@ -100,7 +100,7 @@ function setupSocket(httpServer) {
         // Optionally emit an event back to notify others in the room
         io.to(roomId).emit("messagesRead", {
           userId,
-          messageIds,
+          // messageIds,
         });
       } catch (error) {
         console.error("Error marking messages as read:", error);

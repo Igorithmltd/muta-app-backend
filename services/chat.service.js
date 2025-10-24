@@ -247,6 +247,17 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
+  async unreadUserMessages(req) {
+    try {
+      
+
+      return BaseService.sendSuccessResponse({
+        message: "",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
 }
 
 /*
