@@ -14,7 +14,7 @@ const sendOTP = async (phoneNumber, code) => {
         // to: '+2348111158225', // e.g. '2349012345678'
         from: TERMII_SENDER_ID, // Use 'Termii' or your sender ID
         //   from: TERMII_SENDER_ID,// Use 'Termii' or your sender ID
-        channel: "dnd", // Options: generic, dnd, whatsapp
+        channel: "generic", // Options: generic, dnd, whatsapp
         type: "plain",
         //   sms: code,
         sms: `Your verification code is ${code}`,

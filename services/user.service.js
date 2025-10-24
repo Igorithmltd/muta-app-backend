@@ -2459,7 +2459,7 @@ class UserService extends BaseService {
 
       
       const otpResult = await sendOTP(phoneNumber, otp);
-      console.log({otpResult: otpResult.data})
+      // console.log({otpResult: otpResult.data})
 
       if(otpResult.code == 'ok'){
         const expiresAt = new Date(Date.now() + EXPIRES_AT);
