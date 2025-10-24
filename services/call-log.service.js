@@ -369,10 +369,11 @@ class CallLogService extends BaseService {
   }  
   async getUserCallLogs(req) {
     try {
-      const { id } = req.params;
 
+      const userId = req.user.id
       const logs = await CallLogModel.find({
         $or: [{ callerId: userId }, { receiverId: userId }],
+        status: { $in: ["missed", "received", "initiated"] },
       }).sort({ createdAt: -1 });
 
       return BaseService.sendSuccessResponse({ message: logs });

@@ -233,17 +233,10 @@ router.post(ROUTE_UPDATE_STATUS, [auth], (req, res)=>{
 
 /**
  * @swagger
- * /calls/get-user-call-logs/{userId}:
+ * /calls/get-user-call-logs:
  *   get:
  *     summary: Get call logs for a user
  *     tags: [Calls]
- *     parameters:
- *       - in: path
- *         name: userId
- *         schema:
- *           type: string
- *         required: true
- *         description: User ID to fetch call logs for
  *     responses:
  *       200:
  *         description: List of call logs
@@ -256,7 +249,7 @@ router.post(ROUTE_UPDATE_STATUS, [auth], (req, res)=>{
  *       404:
  *         description: No call logs found for user
  */
-router.post(ROUTE_GET_USER_CALL_LOGS+"/:id", [auth], (req, res)=>{
+router.get(ROUTE_GET_USER_CALL_LOGS, [auth], (req, res)=>{
     const callController = new CallController()
     return callController.getUserCallLogs(req, res)
 })

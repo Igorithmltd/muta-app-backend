@@ -252,6 +252,10 @@ class UserService extends BaseService {
       const userId = req.user.id
       const roomId = req.query.roomId
 
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 50;
+      const skip = (page - 1) * limit;
+
       const filter = {
         receiverId: userId,
         readBy: { $ne: userId },
@@ -261,7 +265,41 @@ class UserService extends BaseService {
         filter.roomId = roomId
       }
 
-      const messages = await MessageModel.find(filter);
+      const messages = await MessageModel.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("senderId", "firstName lastName email image")
+      .populate("receiverId", "firstName lastName email image")
+      .populate("likes")
+      .populate("readBy", "firstName lastName email image");
+
+    const totalMessages = await MessageModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalMessages / limit);
+
+    const enrichedMessages = messages.map((msg) => {
+      const msgObj = msg.toObject();
+
+      msgObj.isLikedByMe = msg.likes.some(
+        (likedUser) => likedUser._id.toString() === userId.toString()
+      );
+
+      // msgObj.isReadByMe = msg.readBy.some(
+      //   (reader) => reader._id.toString() === userId.toString()
+      // );
+
+      return msgObj;
+    });
+
+    return BaseService.sendSuccessResponse({
+      message: enrichedMessages,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalMessages,
+      },
+    });
 
       return BaseService.sendSuccessResponse({
         message: messages,
