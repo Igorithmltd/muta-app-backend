@@ -56,6 +56,7 @@ class DietServicee extends BaseService {
           error: "Diet with this title already exists",
         });
       }
+      console.log({duration: post.duration, dailyMealBreakdown: post.dailyMealBreakdown.length})
       // if (post.duration !== post.dailyMealBreakdown.length) {
       //   return BaseService.sendFailedResponse({
       //     error:
