@@ -50,7 +50,7 @@ function createMulterInstance (folder, transformation = [], resourceType = 'imag
       } else if (resourceType === 'video' && videoTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file format. Only supported formats are JPEG, PNG, WEBP for images and MP4, WEBM, OGG for videos.'), false);
+        cb(new Error('Invalid file format. Only supported formats are alloweed.'), false);
       }
     }
   });
