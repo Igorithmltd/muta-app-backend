@@ -375,8 +375,8 @@ class CallLogService extends BaseService {
         $or: [{ callerId: userId }, { receiverId: userId }],
         status: { $in: ["missed", "received", "initiated"] },
       }).sort({ createdAt: -1 })
-      .populate("callerId", "firstName lastName email image")
-      .populate("receiverId", "firstName lastName email image");
+      .populate("callerId", "firstName lastName email image _id")
+      .populate("receiverId", "firstName lastName email image _id");
 
       return BaseService.sendSuccessResponse({ message: logs });
     } catch (error) {
