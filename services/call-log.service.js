@@ -374,7 +374,9 @@ class CallLogService extends BaseService {
       const logs = await CallLogModel.find({
         $or: [{ callerId: userId }, { receiverId: userId }],
         status: { $in: ["missed", "received", "initiated"] },
-      }).sort({ createdAt: -1 });
+      }).sort({ createdAt: -1 })
+      .populate("callerId", "firstName lastName email image")
+      .populate("receiverId", "firstName lastName email image");
 
       return BaseService.sendSuccessResponse({ message: logs });
     } catch (error) {
