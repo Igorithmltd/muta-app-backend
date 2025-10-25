@@ -1,14 +1,45 @@
-const UtilController = require('../controllers/util.controller')
-const auth = require('../middlewares/auth')
-const { image_uploader, video_uploader } = require('../util/imageUpload')
-const { ROUTE_IMAGE_UPLOAD_MULTIPLE, ROUTE_IMAGE_UPLOAD_SINGLE, ROUTE_SEND_EMAIL, ROUTE_VIDEO_UPLOAD_SINGLE, ROUTE_INITIALIZE_PAYMENT } = require('../util/page-route')
+const UtilController = require("../controllers/util.controller");
+const auth = require("../middlewares/auth");
+const { image_uploader, video_uploader } = require("../util/imageUpload");
+const {
+  ROUTE_IMAGE_UPLOAD_MULTIPLE,
+  ROUTE_IMAGE_UPLOAD_SINGLE,
+  ROUTE_SEND_EMAIL,
+  ROUTE_VIDEO_UPLOAD_SINGLE,
+  ROUTE_INITIALIZE_PAYMENT,
+} = require("../util/page-route");
 
-const router = require('express').Router()
+const router = require("express").Router();
 
-router.post(ROUTE_IMAGE_UPLOAD_MULTIPLE, auth, image_uploader.array('file'),(req, res)=>{
-    const utilController = new UtilController()
-    return utilController.uploadMultipleImage(req, res)
-})
+router.post(
+  ROUTE_IMAGE_UPLOAD_MULTIPLE,
+  auth,
+  (req, res, next) => {
+    image_uploader.array("file")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          error: err.message,
+        });
+      }
+      next();
+    });
+  },
+  (req, res) => {
+    const utilController = new UtilController();
+    return utilController.uploadMultipleImage(req, res);
+  }
+);
+
+// router.post(
+//   ROUTE_IMAGE_UPLOAD_MULTIPLE,
+//   auth,
+//   image_uploader.array("file"),
+//   (req, res) => {
+//     const utilController = new UtilController();
+//     return utilController.uploadMultipleImage(req, res);
+//   }
+// );
 
 /**
  * @swagger
@@ -70,15 +101,45 @@ router.post(ROUTE_IMAGE_UPLOAD_MULTIPLE, auth, image_uploader.array('file'),(req
  *         description: Server error
  */
 
-router.post(ROUTE_IMAGE_UPLOAD_SINGLE, auth, image_uploader.single('file'), (req, res)=>{
-    const utilController = new UtilController()
-    return utilController.uploadSingleImage(req, res)
-})
+router.post(
+  ROUTE_IMAGE_UPLOAD_SINGLE,
+  auth,
+  (req, res, next) => {
+    image_uploader.single("file")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          error: err.message,
+        });
+      }
+      next();
+    });
+  },
+  (req, res) => {
+    const utilController = new UtilController();
+    return utilController.uploadSingleImage(req, res);
+  }
+);
 
-router.post(ROUTE_VIDEO_UPLOAD_SINGLE, auth, video_uploader.single('file'), (req, res)=>{
-    const utilController = new UtilController()
-    return utilController.uploadSingleVideo(req, res)
-})
+router.post(
+  ROUTE_VIDEO_UPLOAD_SINGLE,
+  auth,
+  (req, res, next) => {
+    image_uploader.single("file")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          error: err.message,
+        });
+      }
+      next();
+    });
+  },
+  (req, res) => {
+    const utilController = new UtilController();
+    return utilController.uploadSingleVideo(req, res);
+  }
+);
 
 /**
  * @swagger
@@ -189,14 +250,14 @@ router.post(ROUTE_VIDEO_UPLOAD_SINGLE, auth, video_uploader.single('file'), (req
  *                   type: string
  *                   example: "An internal server error occurred. Please try again later."
  */
-router.post(ROUTE_INITIALIZE_PAYMENT, auth, (req, res)=>{
-    const utilController = new UtilController()
-    return utilController.initializePayment(req, res)
-})
+router.post(ROUTE_INITIALIZE_PAYMENT, auth, (req, res) => {
+  const utilController = new UtilController();
+  return utilController.initializePayment(req, res);
+});
 
-router.post(ROUTE_SEND_EMAIL, (req, res)=>{
-    const utilController = new UtilController()
-    return utilController.sendMailToEmail(req, res)
-})
+router.post(ROUTE_SEND_EMAIL, (req, res) => {
+  const utilController = new UtilController();
+  return utilController.sendMailToEmail(req, res);
+});
 
-module.exports = router
+module.exports = router;
