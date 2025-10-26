@@ -223,6 +223,28 @@ function setupSocket(httpServer) {
       });
     });
 
+    // =================== UPDATE CALL ===================
+    socket.on("callStatusUpdated", async ({ sessionId }) => {
+      try {
+        const callLog = await CallLogModel.findOne(
+          { sessionId },
+          // { status: "missed", endTime: new Date() },
+          // { new: true }
+        );
+
+        if (!callLog) return;
+
+        const targetUserId = callLog.receiverId.toString();
+        const targetSocketId = users[targetUserId];
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("callStatusUpdated", { callLog });
+        }
+      } catch (error) {
+        console.error("Error handling update call:", error);
+        socket.emit("error", { message: "Could not mark call as missed." });
+      }
+    });
+
     // =================== MISSED CALL ===================
     socket.on("missedCall", async ({ sessionId }) => {
       try {
