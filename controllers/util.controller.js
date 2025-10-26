@@ -21,6 +21,14 @@ class UtilController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, singleFileUpload.data)
     }
+    async uploadDocument(req, res){
+        const utilService = new UtilService()
+        const uploadDocument = await utilService.uploadDocument(req)
+        if(!uploadDocument.success){
+            return BaseController.sendFailedResponse(res, uploadDocument.data)
+        }
+        return BaseController.sendSuccessResponse(res, uploadDocument.data)
+    }
     async initializePayment(req, res){
         const paystackService = new PaystackService()
         const initializePayment = await paystackService.initializePayment(req)

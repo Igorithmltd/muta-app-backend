@@ -175,6 +175,7 @@ exports.ROUTE_SEED = '/seed'
 exports.ROUTE_IMAGE_UPLOAD_MULTIPLE = '/image-upload-multiple'
 exports.ROUTE_IMAGE_UPLOAD_SINGLE = '/image-upload-single'
 exports.ROUTE_VIDEO_UPLOAD_SINGLE = '/video-upload-single'
+exports.ROUTE_DOCUMENT_UPLOAD = '/document-upload'
 exports.ROUTE_INITIALIZE_PAYMENT = '/initialize-payment'
 
 //email

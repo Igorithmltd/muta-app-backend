@@ -22,6 +22,26 @@ class UtilService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async uploadDocument(req) {
+    try {
+      let file = {};
+      if (empty(req.file)) {
+        return BaseService.sendFailedResponse({
+          error: "Please provide a file",
+        });
+      }
+
+      file = {
+        imageUrl: req.file.path,
+        publicId: req.file.filename,
+      };
+
+      return BaseService.sendSuccessResponse({ message: file });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
 
   async uploadSingleVideo(req) {
     try {
