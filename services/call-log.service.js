@@ -369,7 +369,7 @@ class CallLogService extends BaseService {
       // 5️⃣ Save and respond
       await callLog.save();
   
-      getIO().to(chat._id.toString()).emit("callStatusUpdated", callLog);
+      getIO().to(chat._id.toString()).emit("callStatusUpdated", {sessionId: callLog.sessionId});
       // getIO().to(callLog.callerId.toString()).emit("callStatusUpdated", callLog);
 
       return BaseService.sendSuccessResponse({
