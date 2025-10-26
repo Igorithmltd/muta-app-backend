@@ -323,7 +323,11 @@ class CallLogService extends BaseService {
       const { sessionId, status } = post;
   
       // 2️⃣ Find the call log
-      const callLog = await CallLogModel.findOne({ sessionId });
+      const callLog = await CallLogModel.findOne({ sessionId })
+      .populate("callerId", "firstName lastName email image _id")
+      .populate("receiverId", "firstName lastName email image _id");
+
+
       if (!callLog) return res.status(404).json({ message: "Call not found" });
 
       const chat = await ChatRoomModel.findOne({
