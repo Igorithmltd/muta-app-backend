@@ -75,7 +75,7 @@ function createMulterInstance(
       } else {
         cb(
           new Error(
-            "Invalid file format. Only supported formats are alloweed."
+            "Invalid file format. Only supported formats are allowed."
           ),
           false
         );

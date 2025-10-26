@@ -109,7 +109,7 @@ function setupSocket(httpServer) {
     });
 
     // =================== LISTEN TO CALL ACTIONS ===================
-    socket.on("end_call", async (data) => {
+    socket.on("endCall", async (data) => {
       // Update DB and notify other party
       const { sessionId } = data;
       const callLog = await CallLogModel.findOneAndUpdate(
@@ -117,7 +117,7 @@ function setupSocket(httpServer) {
         { status: "ended", endTime: new Date() }
       );
 
-      io.to(callLog.receiverId.toString()).emit("call_ended", callLog);
+      io.to(callLog.receiverId.toString()).emit("endCall", callLog);
     });
 
     // =================== LEAVE ROOM ===================
@@ -320,4 +320,13 @@ function setupSocket(httpServer) {
   return io;
 }
 
+function getIO() {
+  if (!io) {
+    throw new Error("Socket.io not initialized! Call setupSocket(server) first.");
+  }
+  return io;
+}
+
+
 module.exports = setupSocket;
+module.exports.getIO = getIO

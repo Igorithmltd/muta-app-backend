@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const { sendPushNotification } = require("./firebase.service");
 const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
+const { getIO } = require("../config/socket");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder;
 class CallLogService extends BaseService {
   async initiateCall(req) {
@@ -358,6 +359,8 @@ class CallLogService extends BaseService {
       // 5️⃣ Save and respond
       await callLog.save();
   
+      getIO().to(callLog.receiverId).emit("callStatusUpdated", callLog);
+
       return BaseService.sendSuccessResponse({
         message: `Call status updated to ${status}`,
         data: callLog,
