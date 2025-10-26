@@ -361,6 +361,7 @@ class CallLogService extends BaseService {
       await callLog.save();
   
       getIO().to(callLog.receiverId).emit("callStatusUpdated", callLog);
+      getIO().to(callLog.callerId).emit("callStatusUpdated", callLog);
 
       return BaseService.sendSuccessResponse({
         message: `Call status updated to ${status}`,
