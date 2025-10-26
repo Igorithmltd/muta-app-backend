@@ -35,6 +35,10 @@ function setupSocket(httpServer) {
 
     users[userId] = socket.id;
 
+    //join userId personal group
+    socket.join(userId.toString());
+
+
     // 1. Join general forum room
     const generalRoom = await ChatRoomModel.findOne({
       type: "group",
