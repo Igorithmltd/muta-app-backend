@@ -6,6 +6,7 @@ const { sendPushNotification } = require("./firebase.service");
 const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
 const { getIO } = require("../config/socket");
+const ChatRoomModel = require("../models/chatModel");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder;
 class CallLogService extends BaseService {
   async initiateCall(req) {
@@ -324,6 +325,14 @@ class CallLogService extends BaseService {
       // 2️⃣ Find the call log
       const callLog = await CallLogModel.findOne({ sessionId });
       if (!callLog) return res.status(404).json({ message: "Call not found" });
+
+      const chat = await ChatRoomModel.findOne({
+        participants: { $all: [callLog.callerId, callLog.receiverId] }
+      });
+
+      if(!chat){
+        return BaseService.sendFailedResponse({error: 'Chat does not exists between this coach and user'})
+      }
   
       // 3️⃣ Update status and related fields dynamically
       callLog.status = status;
@@ -360,8 +369,8 @@ class CallLogService extends BaseService {
       // 5️⃣ Save and respond
       await callLog.save();
   
-      getIO().to(callLog.receiverId.toString()).emit("callStatusUpdated", callLog);
-      getIO().to(callLog.callerId.toString()).emit("callStatusUpdated", callLog);
+      getIO().to(chat._id.toString()).emit("callStatusUpdated", callLog);
+      // getIO().to(callLog.callerId.toString()).emit("callStatusUpdated", callLog);
 
       return BaseService.sendSuccessResponse({
         message: `Call status updated to ${status}`,
