@@ -303,8 +303,9 @@ class CallLogService extends BaseService {
       // 1️⃣ Validate incoming data
       const validateRule = {
         sessionId: "string|required",
-        status: "string|required|in:ringing,received,declined,missed,ended,rejected",
+        status: "string|required|in:ringing,received,missed,ended,rejected",
       };
+
   
       const validateMessage = {
         required: ":attribute is required",
