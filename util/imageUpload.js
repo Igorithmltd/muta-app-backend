@@ -73,6 +73,7 @@ function createMulterInstance(
       } else if (resourceType === "raw" && rawTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
+        console.log({resourceType, mimetype: file.mimetype});
         cb(
           new Error(
             "Invalid file format. Only supported formats are allowed."
