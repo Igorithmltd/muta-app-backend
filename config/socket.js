@@ -4,8 +4,9 @@ const ChatRoomModel = require("../models/chatModel");
 const CallLogModel = require("../models/call-log.model");
 const MessageModel = require("../models/message.model");
 
+let io;
 function setupSocket(httpServer) {
-  const io = new Server(httpServer, {
+  io = new Server(httpServer, {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
