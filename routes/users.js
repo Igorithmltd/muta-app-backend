@@ -47,6 +47,7 @@ const {
   ROUTE_CANCEL_PLAN,
   ROUTE_VERIFY_PHONE_NUMBER,
   ROUTE_UPDATE_PHONE_NUMBER,
+  ROUTE_COACH_DASHBOARD,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2458,6 +2459,61 @@ router.post(ROUTE_VERIFY_PHONE_NUMBER, auth, (req, res) => {
 router.post(ROUTE_UPDATE_PHONE_NUMBER, auth, (req, res) => {
   const userController = new UserController();
   return userController.verifyCodeToPhoneNumber(req, res);
+});
+
+/**
+ * @swagger
+ * /users/coach-dashboard:
+ *   get:
+ *     summary: Get coach dashboard data (engagements, unread messages, new chats)
+ *     description: Returns daily statistics for the coach — total engagements (calls + chats), unread messages, and new chats for the current day.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     engagementsCount:
+ *                       type: integer
+ *                       example: 12
+ *                       description: Total number of calls and chats today
+ *                     unreadCount:
+ *                       type: integer
+ *                       example: 5
+ *                       description: Total unread messages for the coach
+ *                     totalNewChats:
+ *                       type: integer
+ *                       example: 3
+ *                       description: Number of unique users the coach chatted with today
+ *       400:
+ *         description: Bad request (invalid parameters or missing data)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid request parameters.
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: Data not found for the coach
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_COACH_DASHBOARD, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.coachDashboardData(req, res);
 });
 
 module.exports = router;

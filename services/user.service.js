@@ -24,6 +24,7 @@ const SubscriptionModel = require("../models/subscription.model");
 const { sendPushNotification } = require("./firebase.service");
 const PaystackService = require("./paystack.service");
 const sendOTP = require("../util/sendOtp");
+const MessageModel = require("../models/message.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -852,11 +853,11 @@ class UserService extends BaseService {
     try {
       const post = req.body;
       const userId = req.user.id;
-  
+
       const updatedUser = await UserModel.findByIdAndUpdate(userId, post, {
         new: true,
       });
-  
+
       return BaseService.sendSuccessResponse({
         message: "User profile updated successfully",
         data: updatedUser,
@@ -867,7 +868,7 @@ class UserService extends BaseService {
         error: "Something went wrong. Please try again later.",
       });
     }
-  }  
+  }
   async profileImageUpload(req) {
     try {
       let post = req.body;
@@ -1795,40 +1796,40 @@ class UserService extends BaseService {
     try {
       const { couponCode } = req.body;
       const userId = req.user._id;
-  
+
       // Fetch user
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-  
+
       // Find coupon
       const coupon = await CouponModel.findOne({ code: couponCode });
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-      const customerCode = coupon.customerCode
-      const authorizationCode = coupon.authorizationCode
-  
+      const customerCode = coupon.customerCode;
+      const authorizationCode = coupon.authorizationCode;
+
       // Validate coupon expiration
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
-  
+
       // Validate coupon usage
       if (coupon.used) {
         return BaseService.sendFailedResponse({
           error: "Coupon has already been used",
         });
       }
-  
+
       // Validate recipient
       if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
       }
-  
+
       // Check if user already has an active subscription
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
@@ -1840,7 +1841,7 @@ class UserService extends BaseService {
           error: "User already has an active subscription",
         });
       }
-  
+
       // Load plan from coupon
       const plan = await PlanModel.findById(coupon.planId);
       if (!plan) {
@@ -1848,26 +1849,27 @@ class UserService extends BaseService {
           error: "Associated plan not found",
         });
       }
-  
+
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
       const categoryDuration = coupon.categoryDuration; // e.g., "monthly" or "yearly"
       const category = plan.categories.find(
         (cat) => cat.duration === categoryDuration
       );
-  
+
       if (!category) {
         return BaseService.sendFailedResponse({
           error: `Plan category '${categoryDuration}' not found`,
         });
       }
-  
+
       // Validate authorizationCode and customerCode presence
       if (!authorizationCode || !customerCode) {
         return BaseService.sendFailedResponse({
-          error: "Authorization and customer codes are required to redeem subscription",
+          error:
+            "Authorization and customer codes are required to redeem subscription",
         });
       }
-  
+
       // Create Paystack subscription
       let resp;
       try {
@@ -1893,13 +1895,13 @@ class UserService extends BaseService {
           error: "Failed to create subscription with payment provider",
         });
       }
-  
+
       if (!resp.data.status) {
         return BaseService.sendFailedResponse({
           error: "Paystack subscription creation failed",
         });
       }
-  
+
       // Calculate expiry date based on category duration
       let expiryDate = new Date();
       if (category.duration === "monthly") {
@@ -1907,7 +1909,7 @@ class UserService extends BaseService {
       } else if (["yearly", "annually"].includes(category.duration)) {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
-  
+
       // Create subscription in your DB
       const subscription = await SubscriptionModel.create({
         user: userId,
@@ -1918,13 +1920,13 @@ class UserService extends BaseService {
         expiryDate,
         paystackSubscriptionId: resp.data.data.subscription_code,
       });
-  
+
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
       coupon.usedAt = new Date();
       await coupon.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
         subscription: {
@@ -1942,35 +1944,44 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
-  
+
   async cancelPlan(req, res) {
     try {
-      const userId = req.user.id
+      const userId = req.user.id;
 
       const subscription = await SubscriptionModel.findOne({
         user: userId,
         status: "active",
       });
 
-      if(!subscription) {
-        return BaseService.sendFailedResponse({ error: "No active subscription found" });
+      if (!subscription) {
+        return BaseService.sendFailedResponse({
+          error: "No active subscription found",
+        });
       }
 
-      const paystackSubscriptionId = subscription.subscriptionCode
-      const token = subscription.paystackAuthorizationToken
-      
-      if(!paystackSubscriptionId){
-        return BaseService.sendFailedResponse({ error: "No Paystack subscription id found" });
+      const paystackSubscriptionId = subscription.subscriptionCode;
+      const token = subscription.paystackAuthorizationToken;
+
+      if (!paystackSubscriptionId) {
+        return BaseService.sendFailedResponse({
+          error: "No Paystack subscription id found",
+        });
       }
 
-      const paystackService = new PaystackService()
-      const cancelPaystackSubscription = await paystackService.disableSubscription(paystackSubscriptionId, token)
-
+      const paystackService = new PaystackService();
+      const cancelPaystackSubscription =
+        await paystackService.disableSubscription(
+          paystackSubscriptionId,
+          token
+        );
 
       subscription.status = "cancelled";
       await subscription.save();
 
-      return BaseService.sendSuccessResponse({ message: "Subscription plan cancelled" });
+      return BaseService.sendSuccessResponse({
+        message: "Subscription plan cancelled",
+      });
     } catch (error) {
       console.error("Create plan error:");
       return BaseService.sendFailedResponse({ error: "Failed to cancel plan" });
@@ -2457,27 +2468,26 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      
       const otpResult = await sendOTP(phoneNumber, otp);
       // console.log({otpResult: otpResult.data})
 
-      if(otpResult.code == 'ok'){
+      if (otpResult.code == "ok") {
         const expiresAt = new Date(Date.now() + EXPIRES_AT);
-  
+
         user.otp = otp;
         user.otpExpiresAt = expiresAt;
         await user.save();
-  
 
         return BaseService.sendSuccessResponse({
           message: "OTP sent successfully to this number",
         });
-      }else{
-        return BaseService.sendFailedResponse({error: 'Failed to sent otp to ths number'})
+      } else {
+        return BaseService.sendFailedResponse({
+          error: "Failed to sent otp to ths number",
+        });
       }
-      
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({
         error: "Failed to generate otp",
       });
@@ -2514,13 +2524,88 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "OTP expired" });
       }
 
-      user.phoneNumber = phoneNumber
+      user.phoneNumber = phoneNumber;
       user.otp = null;
       user.otpExpiresAt = null;
       await user.save();
-      
+
       return BaseService.sendSuccessResponse({
         message: "Phone updated successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to update phone number",
+      });
+    }
+  }
+  async coachDashboardData(req) {
+    try {
+      const response = {};
+      const coachId = req.user.id
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // ✅ Calls today
+      const todayCalls = await CallLogModel.find({
+        $or: [{ callerId: coachId }, { receiverId: coachId }],
+        createdAt: { $gte: startOfDay, $lte: endOfDay },
+      });
+
+      // ✅ Chats today (messages sent today)
+      const todayChats = await MessageModel.find({
+        senderId: coachId,
+        createdAt: { $gte: startOfDay, $lte: endOfDay },
+      });
+
+      // Combined engagements count
+      const engagementsCount = todayCalls.length + todayChats.length;
+
+      const unreadMessages = await MessageModel.find({
+        receiverId: coachId,
+        readBy: { $ne: coachId },
+      });
+
+      const unreadCount = unreadMessages.length;
+
+      const newChatsToday = await MessageModel.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: startOfDay, $lte: endOfDay },
+            $or: [{ senderId: coachId }, { receiverId: coachId }],
+          },
+        },
+        {
+          $project: {
+            otherUser: {
+              $cond: [
+                { $eq: ["$senderId", coachId] },
+                "$receiverId",
+                "$senderId",
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$otherUser",
+          },
+        },
+        {
+          $count: "totalNewChatsToday",
+        },
+      ]);
+
+      const totalNewChats = newChatsToday[0]?.totalNewChatsToday || 0;
+
+      response["engagementsCount"] = engagementsCount
+      response["unreadCount"] = unreadCount
+      response["totalNewChats"] = totalNewChats
+
+      return BaseService.sendSuccessResponse({
+        message: response,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({

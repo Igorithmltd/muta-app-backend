@@ -427,6 +427,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, verifyCodeToPhoneNumber.data)
     }
+    async coachDashboardData(req, res){
+        const userService = new UserService()
+        const coachDashboardData = await userService.coachDashboardData(req)
+        if(!coachDashboardData.success){
+            return BaseController.sendFailedResponse(res, coachDashboardData.data)
+        }
+        return BaseController.sendSuccessResponse(res, coachDashboardData.data)
+    }
 }
 
 module.exports = UserController

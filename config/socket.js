@@ -230,7 +230,6 @@ function setupSocket(httpServer) {
 
     // =================== UPDATE CALL ===================
     socket.on("callStatusUpdated", async ({ sessionId }) => {
-      console.log('callStatusUpdated event received for sessionId:', sessionId);
       try {
         const callLog = await CallLogModel.findOne(
           { sessionId },
@@ -243,7 +242,6 @@ function setupSocket(httpServer) {
         const targetUserId = callLog.receiverId.toString();
         const targetSocketId = users[targetUserId];
         if (targetSocketId) {
-          console.log("callStatusUpdated", "event sent ")
           io.to(targetSocketId).emit("callStatusUpdated", { callLog });
         }
       } catch (error) {
