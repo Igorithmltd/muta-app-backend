@@ -2563,7 +2563,6 @@ class UserService extends BaseService {
       });
 
       // Combined engagements count
-      const engagementsCount = todayCalls.length + todayChats.length;
 
       const unreadMessages = await MessageModel.find({
         receiverId: coachId,
@@ -2602,7 +2601,8 @@ class UserService extends BaseService {
 
       const totalNewChats = newChatsToday[0]?.totalNewChatsToday || 0;
 
-      response["engagementsCount"] = engagementsCount
+      response["engagementsCountCalls"] = todayCalls.length
+      response["engagementsCountChats"] = todayChats.length
       response["unreadCount"] = unreadCount
       response["totalNewChats"] = totalNewChats
 

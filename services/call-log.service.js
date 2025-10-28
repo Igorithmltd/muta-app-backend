@@ -389,14 +389,72 @@ class CallLogService extends BaseService {
     try {
 
       const userId = req.user.id
-      const logs = await CallLogModel.find({
+      const callType = req.query.callType
+      const filter = {
         $or: [{ callerId: userId }, { receiverId: userId }],
         status: { $in: ["missed", "received", "imcoming"] },
-      }).sort({ createdAt: -1 })
+      }
+      if(callType){
+        filter.callType = callType
+      }
+      
+      const logs = await CallLogModel.find(filter).sort({ createdAt: -1 })
       .populate("callerId", "firstName lastName email image _id")
       .populate("receiverId", "firstName lastName email image _id");
 
       return BaseService.sendSuccessResponse({ message: logs });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async getUserMissedCalls(req) {
+    try {
+
+      const userId = req.user.id
+      const callType = req.query.callType
+      const filter = {
+        $or: [{ callerId: userId }, { receiverId: userId }],
+        status: "missed",
+      }
+
+      if(callType){
+        filter.callType = callType
+      }
+
+      const logs = await CallLogModel.find(filter).sort({ createdAt: -1 })
+      .populate("callerId", "firstName lastName email image _id")
+      .populate("receiverId", "firstName lastName email image _id");
+
+      return BaseService.sendSuccessResponse({ message: logs });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async markCallAsRead(req) {
+    try {
+
+      const userId = req.user.id
+      const id = req.params.id
+
+      if(!id){
+        return BaseService.sendFailedResponse({error: 'Please provide a call id'})
+      }
+
+      const call = await CallLogModel.findOne({
+        _id: id,
+        $or: [{ callerId: userId }, { receiverId: userId }],
+      })
+
+      if(!call){
+        return BaseService.sendFailedResponse({error: 'Call not found'})
+      }
+
+      call.isRead = true
+      await call.save()
+
+      return BaseService.sendSuccessResponse({ message: 'Call marked as read' });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);

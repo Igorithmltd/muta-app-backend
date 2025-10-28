@@ -2482,10 +2482,14 @@ router.post(ROUTE_UPDATE_PHONE_NUMBER, auth, (req, res) => {
  *                 message:
  *                   type: object
  *                   properties:
- *                     engagementsCount:
+ *                     engagementsCountCalls:
  *                       type: integer
  *                       example: 12
- *                       description: Total number of calls and chats today
+ *                       description: Total number of calls today
+ *                     engagementsCountChats:
+ *                       type: integer
+ *                       example: 12
+ *                       description: Total number of chats today
  *                     unreadCount:
  *                       type: integer
  *                       example: 5

@@ -58,6 +58,22 @@ class CallLogController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, updateCallStatus.data)
     }
+    async getUserMissedCalls(req, res){
+        const callLogService = new CallLogService()
+        const getUserMissedCalls = await callLogService.getUserMissedCalls(req)
+        if(!getUserMissedCalls.success){
+            return BaseController.sendFailedResponse(res, getUserMissedCalls.data)
+        }
+        return BaseController.sendSuccessResponse(res, getUserMissedCalls.data)
+    }
+    async markCallAsRead(req, res){
+        const callLogService = new CallLogService()
+        const markCallAsRead = await callLogService.markCallAsRead(req)
+        if(!markCallAsRead.success){
+            return BaseController.sendFailedResponse(res, markCallAsRead.data)
+        }
+        return BaseController.sendSuccessResponse(res, markCallAsRead.data)
+    }
     async getAgoraToken(req, res){
         const callLogService = new CallLogService()
         const getAgoraToken = await callLogService.getAgoraToken(req)

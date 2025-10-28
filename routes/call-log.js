@@ -1,6 +1,6 @@
 const CallController = require('../controllers/call-log.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS } = require('../util/page-route')
+const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -252,6 +252,127 @@ router.post(ROUTE_UPDATE_STATUS, [auth], (req, res)=>{
 router.get(ROUTE_GET_USER_CALL_LOGS, [auth], (req, res)=>{
     const callController = new CallController()
     return callController.getUserCallLogs(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/get-user-missed-calls:
+ *   get:
+ *     summary: Get all missed calls
+ *     description: Retrieve all missed calls for the authenticated user. You can filter by call type (audio or video) using the `callType` query parameter.
+ *     tags: [Calls]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: callType
+ *         schema:
+ *           type: string
+ *           enum: [audio, video]
+ *         required: false
+ *         description: Filter missed calls by call type
+ *     responses:
+ *       200:
+ *         description: List of missed calls
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CallLog'
+ *       400:
+ *         description: Invalid query parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Invalid call type
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_GET_USER_MISSED_CALLS, [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.getUserMissedCalls(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/mark-call-as-read/{callId}:
+ *   put:
+ *     summary: Mark a call as read
+ *     description: Marks a specific call log as read by its ID.
+ *     tags: [Calls]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: callId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique ID of the call log to mark as read.
+ *     responses:
+ *       200:
+ *         description: Call successfully marked as read
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Call marked as read successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/CallLog'
+ *       400:
+ *         description: Invalid call ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid call ID provided"
+ *       404:
+ *         description: Call not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Call not found"
+ *       500:
+ *         description: Internal server error
+ */
+router.put(ROUTE_MARK_CALL_AS_READ+"/:id", [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.markCallAsRead(req, res)
 })
 
 /**

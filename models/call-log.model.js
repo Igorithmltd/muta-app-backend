@@ -25,7 +25,8 @@ const CallLogSchema = new mongoose.Schema(
     platform: { type: String, enum: ["mobile", "web"], default: "mobile" },
     sessionId: { type: String }, // Agora/Twilio session id
     recordingUrl: { type: String },
-    createdAt: { type: Date, default: Date.now },
+    isRead: { type: Boolean, default: false },
+    // createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
