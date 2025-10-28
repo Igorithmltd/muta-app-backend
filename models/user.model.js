@@ -181,7 +181,7 @@ UserSchema.pre(/^find/, function (next) {
   // This refers to the query, not the result
   if (this.getQuery().userType !== "coach") {
     // Optionally exclude coach-only fields for non-coach queries
-    this.select("-isVerifiedCoach -specialty -yearsOfExperience");
+    // this.select("-isVerifiedCoach -specialty -yearsOfExperience");
   }
   next();
 });
