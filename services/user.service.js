@@ -25,6 +25,7 @@ const { sendPushNotification } = require("./firebase.service");
 const PaystackService = require("./paystack.service");
 const sendOTP = require("../util/sendOtp");
 const MessageModel = require("../models/message.model");
+const CallLogModel = require("../models/call-log.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -2609,8 +2610,9 @@ class UserService extends BaseService {
         message: response,
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
-        error: "Failed to update phone number",
+        error: "Failed to fetch coach dashboard",
       });
     }
   }
