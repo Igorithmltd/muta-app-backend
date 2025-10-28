@@ -1137,7 +1137,7 @@ class UserService extends BaseService {
       });
     }
   }
-  async applyCoachVerificationBadge() {
+  async applyCoachVerificationBadge(req) {
     try {
       const userId = req.user.id;
       const post = req.body;
@@ -1184,6 +1184,7 @@ class UserService extends BaseService {
         message: "Coach verification application submitted successfully",
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
