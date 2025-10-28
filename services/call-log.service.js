@@ -57,7 +57,7 @@ class CallLogService extends BaseService {
         callerId: userId,
         receiverId,
         callType,
-        status: "initiated",
+        status: "imcoming",
         sessionId,
         startTime: new Date(),
       });
@@ -391,7 +391,7 @@ class CallLogService extends BaseService {
       const userId = req.user.id
       const logs = await CallLogModel.find({
         $or: [{ callerId: userId }, { receiverId: userId }],
-        status: { $in: ["missed", "received", "initiated"] },
+        status: { $in: ["missed", "received", "imcoming"] },
       }).sort({ createdAt: -1 })
       .populate("callerId", "firstName lastName email image _id")
       .populate("receiverId", "firstName lastName email image _id");

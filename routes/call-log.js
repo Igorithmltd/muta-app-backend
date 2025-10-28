@@ -30,7 +30,7 @@ const router = require('express').Router()
  *                 enum: [audio, video]
  *     responses:
  *       201:
- *         description: Call initiated and logged
+ *         description: Call imcoming and logged
  *         content:
  *           application/json:
  *             schema:
