@@ -2563,7 +2563,6 @@ class UserService extends BaseService {
       });
 
       // Combined engagements count
-
       const unreadMessages = await MessageModel.find({
         receiverId: coachId,
         readBy: { $ne: coachId },
