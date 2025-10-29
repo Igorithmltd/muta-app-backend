@@ -300,47 +300,48 @@ class CallLogService extends BaseService {
     try {
       const post = req.body;
       const userId = req.user.id;
-  
+
       // 1️⃣ Validate incoming data
       const validateRule = {
         sessionId: "string|required",
         status: "string|required|in:ringing,received,missed,ended,rejected",
       };
 
-  
       const validateMessage = {
         required: ":attribute is required",
         "string.string": ":attribute must be a string.",
-        "in.in": ":attribute must be one of ringing, received, declined, missed, ended, rejected.",
+        "in.in":
+          ":attribute must be one of ringing, received, declined, missed, ended, rejected.",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const { sessionId, status } = post;
-  
+
       // 2️⃣ Find the call log
       const callLog = await CallLogModel.findOne({ sessionId })
-      .populate("callerId", "firstName lastName email image _id")
-      .populate("receiverId", "firstName lastName email image _id");
-
+        .populate("callerId", "firstName lastName email image _id")
+        .populate("receiverId", "firstName lastName email image _id");
 
       if (!callLog) return res.status(404).json({ message: "Call not found" });
 
       const chat = await ChatRoomModel.findOne({
-        participants: { $all: [callLog.callerId, callLog.receiverId] }
+        participants: { $all: [callLog.callerId, callLog.receiverId] },
       });
 
-      if(!chat){
-        return BaseService.sendFailedResponse({error: 'Chat does not exists between this coach and user'})
+      if (!chat) {
+        return BaseService.sendFailedResponse({
+          error: "Chat does not exists between this coach and user",
+        });
       }
-  
+
       // 3️⃣ Update status and related fields dynamically
       callLog.status = status;
-  
+
       // 4️⃣ Handle additional fields based on the new status
       switch (status) {
         case "ringing":
@@ -348,11 +349,11 @@ class CallLogService extends BaseService {
           callLog.endTime = null;
           callLog.duration = 0;
           break;
-  
+
         case "received":
           callLog.answerTime = new Date();
           break;
-  
+
         case "ended":
           callLog.endTime = new Date();
           if (callLog.answerTime) {
@@ -361,7 +362,7 @@ class CallLogService extends BaseService {
             ); // duration in seconds
           }
           break;
-  
+
         case "missed":
         case "declined":
         case "rejected":
@@ -369,10 +370,10 @@ class CallLogService extends BaseService {
           callLog.duration = 0;
           break;
       }
-  
+
       // 5️⃣ Save and respond
       await callLog.save();
-  
+
       getIO().to(chat._id.toString()).emit("callStatusUpdated", callLog);
       // getIO().to(callLog.callerId.toString()).emit("callStatusUpdated", callLog);
 
@@ -384,23 +385,23 @@ class CallLogService extends BaseService {
       console.error("Error updating call status:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
     }
-  }  
+  }
   async getUserCallLogs(req) {
     try {
-
-      const userId = req.user.id
-      const callType = req.query.callType
+      const userId = req.user.id;
+      const callType = req.query.callType;
       const filter = {
         $or: [{ callerId: userId }, { receiverId: userId }],
         status: { $in: ["missed", "received", "imcoming"] },
+      };
+      if (callType) {
+        filter.callType = callType;
       }
-      if(callType){
-        filter.callType = callType
-      }
-      
-      const logs = await CallLogModel.find(filter).sort({ createdAt: -1 })
-      .populate("callerId", "firstName lastName email image _id")
-      .populate("receiverId", "firstName lastName email image _id");
+
+      const logs = await CallLogModel.find(filter)
+        .sort({ createdAt: -1 })
+        .populate("callerId", "firstName lastName email image _id")
+        .populate("receiverId", "firstName lastName email image _id");
 
       return BaseService.sendSuccessResponse({ message: logs });
     } catch (error) {
@@ -410,21 +411,21 @@ class CallLogService extends BaseService {
   }
   async getUserMissedCalls(req) {
     try {
-
-      const userId = req.user.id
-      const callType = req.query.callType
+      const userId = req.user.id;
+      const callType = req.query.callType;
       const filter = {
         $or: [{ callerId: userId }, { receiverId: userId }],
         status: "missed",
+      };
+
+      if (callType) {
+        filter.callType = callType;
       }
 
-      if(callType){
-        filter.callType = callType
-      }
-
-      const logs = await CallLogModel.find(filter).sort({ createdAt: -1 })
-      .populate("callerId", "firstName lastName email image _id")
-      .populate("receiverId", "firstName lastName email image _id");
+      const logs = await CallLogModel.find(filter)
+        .sort({ createdAt: -1 })
+        .populate("callerId", "firstName lastName email image _id")
+        .populate("receiverId", "firstName lastName email image _id");
 
       return BaseService.sendSuccessResponse({ message: logs });
     } catch (error) {
@@ -434,27 +435,43 @@ class CallLogService extends BaseService {
   }
   async markCallAsRead(req) {
     try {
+      const select = req.query.select;
 
-      const userId = req.user.id
-      const id = req.params.id
+      const userId = req.user.id;
+      const id = req.params.id;
 
-      if(!id){
-        return BaseService.sendFailedResponse({error: 'Please provide a call id'})
+      if (select && select==='all') {
+        await CallLogModel.updateMany(
+          {
+            $or: [{ callerId: userId }, { receiverId: userId }],
+            isRead: false,
+          },
+          { isRead: true }
+        );
+
+      } else {
+        if (!id) {
+          return BaseService.sendFailedResponse({
+            error: "Please provide a call id",
+          });
+        }
+
+        const call = await CallLogModel.findOne({
+          _id: id,
+          $or: [{ callerId: userId }, { receiverId: userId }],
+        });
+
+        if (!call) {
+          return BaseService.sendFailedResponse({ error: "Call not found" });
+        }
+
+        call.isRead = true;
+        await call.save();
       }
 
-      const call = await CallLogModel.findOne({
-        _id: id,
-        $or: [{ callerId: userId }, { receiverId: userId }],
-      })
-
-      if(!call){
-        return BaseService.sendFailedResponse({error: 'Call not found'})
-      }
-
-      call.isRead = true
-      await call.save()
-
-      return BaseService.sendSuccessResponse({ message: 'Call marked as read' });
+      return BaseService.sendSuccessResponse({
+        message: "Call marked as read",
+      });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse(this.server_error_message);
