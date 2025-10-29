@@ -319,12 +319,19 @@ router.get(ROUTE_GET_USER_MISSED_CALLS, [auth], (req, res)=>{
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
+ *       - in: params
  *         name: callId
  *         required: true
  *         schema:
  *           type: string
  *         description: The unique ID of the call log to mark as read.
+ *       - in: query
+ *         name: select
+ *         schema:
+ *           type: string
+ *           example: all
+ *         required: false
+ *         description: To select all call logs
  *     responses:
  *       200:
  *         description: Call successfully marked as read
