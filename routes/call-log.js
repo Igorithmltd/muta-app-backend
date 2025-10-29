@@ -311,7 +311,7 @@ router.get(ROUTE_GET_USER_MISSED_CALLS, [auth], (req, res)=>{
 
 /**
  * @swagger
- * /calls/mark-call-as-read/{callId}:
+ * /calls/mark-call-as-read:
  *   put:
  *     summary: Mark a call as read
  *     description: Marks a specific call log as read by its ID.
@@ -319,7 +319,7 @@ router.get(ROUTE_GET_USER_MISSED_CALLS, [auth], (req, res)=>{
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: params
+ *       - in: query
  *         name: callId
  *         required: true
  *         schema:
@@ -377,7 +377,7 @@ router.get(ROUTE_GET_USER_MISSED_CALLS, [auth], (req, res)=>{
  *       500:
  *         description: Internal server error
  */
-router.put(ROUTE_MARK_CALL_AS_READ+"/:id", [auth], (req, res)=>{
+router.put(ROUTE_MARK_CALL_AS_READ, [auth], (req, res)=>{
     const callController = new CallController()
     return callController.markCallAsRead(req, res)
 })

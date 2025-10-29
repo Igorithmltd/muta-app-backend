@@ -436,11 +436,11 @@ class CallLogService extends BaseService {
   async markCallAsRead(req) {
     try {
       const select = req.query.select;
+      const id = req.query.callId;
 
       const userId = req.user.id;
-      const id = req.params.id;
 
-      if (select && select==='all') {
+      if (!id) {
         await CallLogModel.updateMany(
           {
             $or: [{ callerId: userId }, { receiverId: userId }],
