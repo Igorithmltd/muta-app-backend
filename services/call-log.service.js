@@ -95,6 +95,8 @@ class CallLogService extends BaseService {
         getReceiverAgoraToken.data && getReceiverAgoraToken.data.message
           ? getReceiverAgoraToken.data.message
           : null;
+      const userJwtToken = user.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
+      const receiverJwtToken = receiver.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
 
       const callObject = {
         callId: callLog._id,
@@ -116,6 +118,7 @@ class CallLogService extends BaseService {
         callType,
         callStatus: "outgoing",
         notificationType: "call",
+        jwtToken: userJwtToken
       };
 
       const receiverData = {
@@ -123,6 +126,7 @@ class CallLogService extends BaseService {
         callStatus: "incoming",
         token: receiverAgoraToken,
         agoraUid: receiverUid,
+        jwtToken: receiverJwtToken
       };
 
       // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
