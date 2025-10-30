@@ -153,14 +153,14 @@ UserSchema.methods.isSubscriptionActive = function () {
   );
 };
 
-UserSchema.methods.generateAccessToken = async function (secretToken) {
+UserSchema.methods.generateAccessToken = async function (secretToken, expiresIn="1w") {
   const token = jwt.sign(
     {
       id: this._id,
       userType: this.userType,
     },
     secretToken,
-    { expiresIn: "1w" }
+    { expiresIn: expiresIn }
   );
   return token;
 };

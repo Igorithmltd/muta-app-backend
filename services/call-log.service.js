@@ -57,7 +57,7 @@ class CallLogService extends BaseService {
         callerId: userId,
         receiverId,
         callType,
-        status: "imcoming",
+        status: "incoming",
         sessionId,
         startTime: new Date(),
       });
@@ -392,7 +392,7 @@ class CallLogService extends BaseService {
       const callType = req.query.callType;
       const filter = {
         $or: [{ callerId: userId }, { receiverId: userId }],
-        status: { $in: ["missed", "received", "imcoming"] },
+        status: { $in: ["missed", "received", "incoming"] },
       };
       if (callType) {
         filter.callType = callType;
