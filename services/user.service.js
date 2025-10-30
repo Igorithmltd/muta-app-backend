@@ -1754,8 +1754,8 @@ class UserService extends BaseService {
 
       // Populate user with subscription and plan
       const user = await UserModel.findById(userId)
-        .populate("subscription") // SubscriptionModel
-        .populate("subscriptionPlan"); // PlanModel
+        // .populate("subscription") // SubscriptionModel
+        // .populate("subscriptionPlan"); // PlanModel
 
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
@@ -1765,7 +1765,7 @@ class UserService extends BaseService {
         user: userId,
         status: "active",
         expiryDate: { $gt: new Date() },
-      }).populate("plan");
+      }).populate("planId");
       if (!userSubscriptionPlan) {
         return BaseService.sendSuccessResponse({
           message: "No active subscription",
