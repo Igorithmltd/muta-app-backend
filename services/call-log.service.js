@@ -95,8 +95,8 @@ class CallLogService extends BaseService {
         getReceiverAgoraToken.data && getReceiverAgoraToken.data.message
           ? getReceiverAgoraToken.data.message
           : null;
-      const userJwtToken = user.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
-      const receiverJwtToken = receiver.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
+      const userJwtToken = await user.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
+      const receiverJwtToken = await receiver.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
 
       const callObject = {
         callId: callLog._id,
