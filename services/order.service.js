@@ -108,12 +108,29 @@ class OrderService extends BaseService {
   }
   async getUserOrders(req) {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
       const userId = req.user.id;
       const orders = await OrderModel.find({ userId: userId })
         .sort("-createdAt")
-        .populate("items.product");
+        .populate("items.product")
+        .skip(skip)
+        .limit(limit);
+
+      const totalCount = orders.length;
+
       return BaseService.sendSuccessResponse({
         message: orders,
+        data: {
+          pagination: {
+            total: totalCount,
+            page: page,
+            limit: limit,
+            pages: Math.ceil(totalCount / limit),
+          },
+        }
       });
     } catch (error) {
       return BaseService.sendFailedResponse({

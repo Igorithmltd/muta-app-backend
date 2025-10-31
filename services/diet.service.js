@@ -123,8 +123,7 @@ class DietServicee extends BaseService {
           };
         })
       );
-
-      const totalPages = Math.ceil(totalCount / limit);
+      
 
       return BaseService.sendSuccessResponse({
         message: "Diets fetched successfully.",

@@ -10,7 +10,7 @@ class ProductService extends BaseService {
   async createProduct(req) {
     try {
       const post = req.body;
-  
+
       // Validate main product fields
       const validateRule = {
         title: "string|required",
@@ -21,51 +21,50 @@ class ProductService extends BaseService {
         images: "array|required",
         variations: "array|required|min:1",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         "string.string": ":attribute must be a string.",
         "integer.integer": ":attribute must be an integer.",
         "array.array": ":attribute must be an array.",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       // Extra manual validation for variations
       for (const variation of post.variations) {
         if (
           !variation.color ||
           !variation.size ||
-          typeof variation.stock !== 'number'
+          typeof variation.stock !== "number"
         ) {
           return BaseService.sendFailedResponse({
             error: "Each variation must have color, size, and stock (number)",
           });
         }
       }
-  
+
       // Check if product already exists
       const existingProduct = await ProductModel.findOne({
         title: post.title,
       });
-  
+
       if (existingProduct) {
         return BaseService.sendFailedResponse({
           error: "Product with this title already exists",
         });
       }
-  
+
       // Create and save the product
       const newProduct = new ProductModel(post);
       await newProduct.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Product created successfully",
       });
-  
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -74,30 +73,53 @@ class ProductService extends BaseService {
   async getAllProducts(req) {
     try {
       const userId = req.user?.id;
-  
+
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
       const filter = req.query.category ? { category: req.query.category } : {};
-      const allProducts = await ProductModel.find(filter).populate('category');
-  
+      const allProducts = await ProductModel.find(filter)
+        .populate("category")
+        .skip(skip)
+        .limit(limit);
+      const totalCount = allProducts.length;
+
+      const totalPages = Math.ceil(totalCount / limit);
+      // const totalPages = Math.ceil(totalCount / limit);
+
       let favoriteProductIds = [];
-  
+
       if (userId) {
         // Find the user's favorite product IDs
-        const favorite = await FavoriteProductModel.findOne({ userId }).select('product');
+        const favorite = await FavoriteProductModel.findOne({ userId }).select(
+          "product"
+        );
         if (favorite && favorite.product) {
-          favoriteProductIds = favorite.product.map(p => p.toString());
+          favoriteProductIds = favorite.product.map((p) => p.toString());
         }
       }
-  
+
       // Attach `isFavorite` field to each product
-      const productsWithFavoriteFlag = allProducts.map(product => {
+      const productsWithFavoriteFlag = allProducts.map((product) => {
         const isFavorite = favoriteProductIds.includes(product._id.toString());
         return {
           ...product.toObject(),
           isFavorite,
         };
       });
-  
-      return BaseService.sendSuccessResponse({ message: productsWithFavoriteFlag });
+
+      return BaseService.sendSuccessResponse({
+        message: productsWithFavoriteFlag,
+        data: {
+          pagination: {
+            page,
+            limit,
+            totalPages,
+            totalCount,
+          },
+        },
+      });
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
@@ -140,34 +162,36 @@ class ProductService extends BaseService {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
-  
-      const product = await ProductModel.findById(id).populate('category');
-  
+
+      const product = await ProductModel.findById(id).populate("category");
+
       if (!product) {
         return BaseService.sendFailedResponse({
           error: "Product not found",
         });
       }
-  
+
       let isFavorite = false;
-  
+
       if (userId) {
         const favorite = await FavoriteProductModel.findOne({
           userId,
           product: id, // check if this product is in the array
         });
-  
+
         if (favorite) {
           isFavorite = true;
         }
       }
-  
+
       const productWithFavoriteFlag = {
         ...product.toObject(),
         isFavorite,
       };
-  
-      return BaseService.sendSuccessResponse({ message: productWithFavoriteFlag });
+
+      return BaseService.sendSuccessResponse({
+        message: productWithFavoriteFlag,
+      });
     } catch (error) {
       console.log(error, "the error");
       return BaseService.sendFailedResponse(this.server_error_message);
@@ -177,33 +201,35 @@ class ProductService extends BaseService {
     try {
       const { title } = req.query;
       const userId = req.user?.id;
-  
+
       if (!title) {
         return BaseService.sendFailedResponse({
           error: "Product title is required",
         });
       }
-  
+
       const products = await ProductModel.find({
-        title: { $regex: new RegExp(title, 'i') }, // case-insensitive search
-      }).populate('category');
-  
+        title: { $regex: new RegExp(title, "i") }, // case-insensitive search
+      }).populate("category");
+
       if (!products || products.length === 0) {
         return BaseService.sendFailedResponse({
           error: "No products found with the given title",
         });
       }
-  
+
       let productsWithFavoriteFlag = [];
-  
+
       if (userId) {
         const favorites = await FavoriteProductModel.find({
           userId,
           product: { $in: products.map((p) => p._id) },
         });
-  
-        const favoriteProductIds = new Set(favorites.map((f) => f.product.toString()));
-  
+
+        const favoriteProductIds = new Set(
+          favorites.map((f) => f.product.toString())
+        );
+
         productsWithFavoriteFlag = products.map((product) => ({
           ...product.toObject(),
           isFavorite: favoriteProductIds.has(product._id.toString()),
@@ -214,7 +240,7 @@ class ProductService extends BaseService {
           isFavorite: false,
         }));
       }
-  
+
       return BaseService.sendSuccessResponse({
         message: productsWithFavoriteFlag,
       });
@@ -357,14 +383,30 @@ class ProductService extends BaseService {
   }
   async getFavorites(req) {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
       const userId = req.user.id;
-  
+
       // Find or create the user's favorite record
       let favorites = await FavoriteProductModel.find({ userId })
-      .populate('product');
-  
+        .populate("product")
+        .skip(skip)
+        .limit(limit);
+
+      const totalCount = favorites.length;
+
       return BaseService.sendSuccessResponse({
         message: favorites,
+        data: {
+          pagination: {
+            page,
+            limit,
+            totalPages: Math.ceil(totalCount / limit),
+            totalCount,
+          },
+        }
       });
     } catch (error) {
       console.error("Add to favorites error:", error);
@@ -377,16 +419,16 @@ class ProductService extends BaseService {
     try {
       const userId = req.user.id;
       const { productId } = req.body;
-  
+
       // Ensure product exists
       const product = await ProductModel.findById(productId);
       if (!product) {
         return BaseService.sendFailedResponse({ error: "Product not found" });
       }
-  
+
       // Find or create the user's favorite record
       let favoriteRecord = await FavoriteProductModel.findOne({ userId });
-  
+
       if (favoriteRecord) {
         // Check if already favorited
         if (favoriteRecord.product.includes(productId)) {
@@ -394,7 +436,7 @@ class ProductService extends BaseService {
             message: "Product is already in favorites",
           });
         }
-  
+
         // Add product to existing favorites
         favoriteRecord.product.push(productId);
       } else {
@@ -404,9 +446,9 @@ class ProductService extends BaseService {
           product: [productId],
         });
       }
-  
+
       await favoriteRecord.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Product added to favorites",
       });
@@ -421,21 +463,21 @@ class ProductService extends BaseService {
     try {
       const userId = req.user.id;
       const { productId } = req.body;
-  
+
       const favoriteRecord = await FavoriteProductModel.findOne({ userId });
-  
+
       if (!favoriteRecord || !favoriteRecord.product.includes(productId)) {
         return BaseService.sendFailedResponse({
           message: "Product is not in favorites",
         });
       }
-  
+
       // Filter out the productId
       favoriteRecord.product = favoriteRecord.product.filter(
         (favId) => favId.toString() !== productId
       );
       await favoriteRecord.save();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Product removed from favorites",
       });
