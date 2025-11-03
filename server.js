@@ -67,10 +67,10 @@ app.all("*", (req, res, next) => {
 
 app.use(errorController);
 
-setupSocket(httpServer)
 
-setupApp()
 httpServer.listen(port, async () => {
   console.log(`Server running on ${port}`);
   await connectToMongoDB(mongoURL);
+  setupApp()
+  setupSocket(httpServer)
 });

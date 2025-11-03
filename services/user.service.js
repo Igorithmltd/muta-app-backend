@@ -2499,10 +2499,10 @@ class UserService extends BaseService {
     try {
       const userId = req.user.id;
 
-      const { code } = req.body;
+      const { code, phoneNumber } = req.body;
       if (!code) {
         return BaseService.sendFailedResponse({
-          error: "otp code is required",
+          error: "code is required",
         });
       }
       if (!phoneNumber) {
@@ -2519,7 +2519,7 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "OTP not found" });
       }
 
-      if (user.otp !== otp) {
+      if (user.otp !== code) {
         return BaseService.sendFailedResponse({ error: "Invalid OTP" });
       }
       if (user.otpExpiresAt < new Date()) {
@@ -2535,6 +2535,7 @@ class UserService extends BaseService {
         message: "Phone updated successfully",
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
         error: "Failed to update phone number",
       });

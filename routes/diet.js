@@ -310,7 +310,7 @@ router.post(ROUTE_CREATE_DIET, [adminAuth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_ALL_DIETS, [auth], (req, res) => {
+router.get(ROUTE_GET_ALL_DIETS, (req, res) => {
   const dietController = new DietController();
   return dietController.getAllDiets(req, res);
 });

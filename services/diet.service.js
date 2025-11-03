@@ -107,6 +107,8 @@ class DietServicee extends BaseService {
         DietModel.countDocuments(),
       ]);
 
+      const totalPages = Math.ceil(totalCount / limit);
+
       // Enrich each diet with user count and ratings
       const enrichedDiets = await Promise.all(
         allDiet.map(async (diet) => {
@@ -138,6 +140,7 @@ class DietServicee extends BaseService {
         },
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
         error: "An error occurred while fetching diets.",
       });
