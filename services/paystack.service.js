@@ -59,6 +59,7 @@ class PaystackService extends BaseService {
       const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId } = post;
       const isGift = post.isGift || false;
       const recipientEmail = post.recipientEmail || "";
+      const giftMessage = post.giftMessage || "";
 
       // console.log(await connectRedis(),'the redix')
 
@@ -100,7 +101,7 @@ class PaystackService extends BaseService {
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
-          metadata: { userId, planId, categoryId, paystackSubscriptionCode, coachId, type: "subscription", isGift }, // VERY helpful for mapping webhooks -> user
+          metadata: { userId, planId, categoryId, paystackSubscriptionCode, coachId, type: "subscription", isGift, ...(giftMessage && {giftMessage}) }, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );

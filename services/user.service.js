@@ -1936,8 +1936,26 @@ class UserService extends BaseService {
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
-      coupon.usedAt = new Date();
+      // coupon.usedAt = new Date();
       await coupon.save();
+
+      const emailToken = resp.data.data.email_token || ""
+      const subscriptionCode = resp.data.data.subscription_code || "";
+
+
+      const response = await axios.post(
+        "https://api.paystack.co/subscription/disable",
+        {
+          code: subscriptionCode,
+          token: emailToken,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",

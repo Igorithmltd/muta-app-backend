@@ -1,6 +1,5 @@
 const crypto = require("crypto");
 const UserModel = require("../models/user.model.js");
-const UserService = require("../services/user.service.js");
 const PlanModel = require("../models/plan.model.js");
 const SubscriptionModel = require("../models/subscription.model.js");
 const axios = require("axios");
@@ -226,7 +225,6 @@ const webhookFunction = async (req, res) => {
           }
 
           // Save it on the user model (or wherever needed)
-          await user.save();
 
           if (!resp.data.status) {
             return res.status(500).send("Error creating subscription");
@@ -259,6 +257,7 @@ const webhookFunction = async (req, res) => {
           });
 
           const paystackSubscriptionId = resp.data.data.subscription_code;
+          user.emailToken = resp.data.data.email_token || ""
 
           if(!paystackSubscriptionId){
             console.log("Paystack subscription ID missing in response");
@@ -278,9 +277,8 @@ const webhookFunction = async (req, res) => {
             paystackAuthorizationToken: authorizationCode,
             subscriptionCode: paystackSubscriptionId
           });
-          console.log({subscription})
 
-
+          await user.save();
           await subscription.save();
 
           console.log(`Created new subscription for user ${user._id}`);
