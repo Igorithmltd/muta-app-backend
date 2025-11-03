@@ -672,7 +672,8 @@ class UserService extends BaseService {
 
       const validateRule = {
         email: "email|required",
-        password: "string|required",
+        oldPassword: "string|required",
+        newPassword: "string|required",
       };
 
       const validateMessage = {
@@ -686,7 +687,11 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email, password } = post;
+      const { email, newPassword, oldPassword } = post;
+
+      if (!oldPassword || !newPassword) {
+        return BaseService.sendFailedResponse({ error: "Both old and new passwords are required." });
+      }
 
       const userExists = await UserModel.findOne({ email });
       if (empty(userExists)) {
@@ -695,7 +700,12 @@ class UserService extends BaseService {
         });
       }
 
-      userExists.password = password;
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return BaseService.sendFailedResponse({ error: "Old password is incorrect." });
+      }
+
+      userExists.password = newPassword;
       userExists.markModified("password");
       await userExists.save();
 
@@ -2275,8 +2285,14 @@ class UserService extends BaseService {
   async getNotifications(req) {
     try {
       const userId = req.user.id;
+      const isRead = req.query.isRead
 
-      const notifications = await NotificationModel.find({ userId }).sort({
+      const filter = {
+        userId,
+        ...(isRead && {isRead})
+      }
+
+      const notifications = await NotificationModel.find(filter).sort({
         timestamp: -1,
       });
 
@@ -2289,6 +2305,22 @@ class UserService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: formattedNotifications,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async getUnreadNotificationsCount(req) {
+    try {
+      const userId = req.user.id;
+
+
+      const notifications = await NotificationModel.find({userId, isRead: false}).countDocuments();
+
+      return BaseService.sendSuccessResponse({
+        message: notifications,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({

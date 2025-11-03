@@ -48,6 +48,7 @@ const {
   ROUTE_VERIFY_PHONE_NUMBER,
   ROUTE_UPDATE_PHONE_NUMBER,
   ROUTE_COACH_DASHBOARD,
+  ROUTE_GET_UNREAD_NOTIFICATIONS_COUNT,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -1248,7 +1249,7 @@ router.put(ROUTE_COACH_VERIFICATION_APPROVE+"/userId", adminAuth, (req, res) => 
  */
 router.put(ROUTE_CHANGE_PASSWORD, auth, (req, res) => {
   const userController = new UserController();
-  return userController.approveCoach(req, res);
+  return userController.changePassword(req, res);
 });
 
 /**
@@ -2039,6 +2040,13 @@ router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
  *       - Users
  *     security:
  *       - bearerAuth: []   # Assuming JWT Bearer token auth
+ *     parameters:
+ *       - in: query
+ *         name: isRead
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: Filter notifications by read status (true = read, false = unread)
  *     responses:
  *       200:
  *         description: List of notifications retrieved successfully
@@ -2047,7 +2055,7 @@ router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 message:
+ *                 notifications:
  *                   type: array
  *                   items:
  *                     type: object
@@ -2058,7 +2066,7 @@ router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
  *                         example: "64df2139a1e4f3c00123abcd"
  *                       userId:
  *                         type: string
- *                         description: user ID
+ *                         description: User ID
  *                         example: "64df2139a1e4f3c00123abcd"
  *                       title:
  *                         type: string
@@ -2066,25 +2074,57 @@ router.get(ROUTE_GET_WATER_LOGS, auth, (req, res) => {
  *                         example: "Workout Reminder"
  *                       body:
  *                         type: string
- *                         description: Notification description
+ *                         description: Notification body or message
  *                         example: "Don't forget to complete your workout today!"
  *                       type:
  *                         type: string
- *                         description: Notification description
+ *                         description: The category or type of notification
  *                         enum: ['streak', 'weight', 'challenge', 'system']
  *                         example: "streak"
  *                       isRead:
  *                         type: boolean
- *                         description: Notification read status
+ *                         description: Whether the notification has been read
  *                         example: true
  *       401:
  *         description: Unauthorized - user not authenticated
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_GET_NOTIFICATIONS  , auth, (req, res) => {
+router.get(ROUTE_GET_NOTIFICATIONS, auth, (req, res) => {
   const userController = new UserController();
   return userController.getNotifications(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-unread-notifications-count:
+ *   get:
+ *     summary: Get unread notifications count for the authenticated user
+ *     description: Returns the total number of unread notifications for the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []   # Assuming JWT Bearer token auth
+ *     responses:
+ *       200:
+ *         description: Unread notification count retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: integer
+ *                   description: value of unread notifications message
+ *                   example: 10
+ *       401:
+ *         description: Unauthorized - user not authenticated
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_UNREAD_NOTIFICATIONS_COUNT, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.getUnreadNotificationsCount(req, res);
 });
 
 /**
@@ -2196,7 +2236,7 @@ router.post(ROUTE_BROADCAST_NOTIFICATION, adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_MARK_NOTIFICATION_AS_READ, adminAuth, (req, res) => {
+router.post(ROUTE_MARK_NOTIFICATION_AS_READ, auth, (req, res) => {
   const userController = new UserController();
   return userController.markNotificationAsRead(req, res);
 });

@@ -362,6 +362,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getNotifications.data)
     }
+    async getUnreadNotificationsCount(req, res){
+        const userService = new UserService()
+        const getUnreadNotificationsCount = await userService.getUnreadNotificationsCount(req)
+        if(!getUnreadNotificationsCount.success){
+            return BaseController.sendFailedResponse(res, getUnreadNotificationsCount.data)
+        }
+        return BaseController.sendSuccessResponse(res, getUnreadNotificationsCount.data)
+    }
     async broadcastNotification(req, res){
         const userService = new UserService()
         const broadcastNotification = await userService.broadcastNotification(req)
