@@ -3,6 +3,7 @@ const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROU
 
 const router = require('express').Router()
 const auth = require('../middlewares/auth')
+const adminAuth = require('../middlewares/adminAuth')
 
 /**
  * @swagger
@@ -503,7 +504,7 @@ router.put(ROUTE_LIKE_UNLIKE_MESSAGE+"/:id", auth, (req, res)=>{
  *                   type: string
  *                   example: Internal server error
  */
-router.put(ROUTE_FLAG_MESSAGE+"/:id", auth, (req, res)=>{
+router.put(ROUTE_FLAG_MESSAGE+"/:id", adminAuth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.flagMessage(req, res)
 })
