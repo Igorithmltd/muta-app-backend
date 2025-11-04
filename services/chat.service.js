@@ -117,6 +117,10 @@ class UserService extends BaseService {
       filter.createdAt = { $lt: beforeTime };
     }
 
+    if(req.user.userType == 'user'){
+      filter.isFlagged = false
+    }
+
     const messages = await MessageModel.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -179,10 +183,16 @@ class UserService extends BaseService {
         return BaseService.sendSuccessResponse({ message: [] });
       }
 
-      const messages = await MessageModel.find({
+      const filter = {
         roomId: roomId,
         message: { $regex: keyword, $options: "i" }, // contains keyword anywhere
-      })
+      }
+
+      if(req.user.userType == 'user'){
+        filter.isFlagged = false
+      }
+
+      const messages = await MessageModel.find(filter)
         .sort({ createdAt: -1 })
         .populate("senderId", "firstName lastName email image")
         .populate("receiverId", "firstName lastName email image")
@@ -265,6 +275,10 @@ class UserService extends BaseService {
         filter.roomId = roomId
       }
 
+      if(req.user.userType == 'user'){
+        filter.isFlagged = false
+      }
+
       const messages = await MessageModel.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -308,11 +322,30 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
-}
+  async flagMessage(req) {
+    try {
+    const { id: messageId } = req.params;
 
-/*
-points:
-- 
- */
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return BaseService.sendFailedResponse({ error: "Invalid message ID" });
+    }
+    const message = await MessageModel.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+    const isFlagged = message.isFlagged
+
+    message.isFlagged = !message.isFlagged;
+
+    await message.save();
+
+      return BaseService.sendSuccessResponse({
+        message: `Message ${isFlagged ? "unflagged" : "flagged"} successfully`,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({ error: error.message });
+    }
+  }
+}
 
 module.exports = UserService;

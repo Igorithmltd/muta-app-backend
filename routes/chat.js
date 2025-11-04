@@ -1,5 +1,5 @@
 const ChatController = require('../controllers/chat.controller')
-const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE, ROUTE_LIKE_UNLIKE_MESSAGE, ROUTE_GET_UNREAD_MESSAGES } = require('../util/page-route')
+const { ROUTE_CREATE_PRIVATE_CHAT, ROUTE_GET_CHATS, ROUTE_GET_CHAT_MESSAGES, ROUTE_GENERAL_CHAT, ROUTE_SEARCH_MESSAGE, ROUTE_SEND_MESSAGE, ROUTE_LIKE_UNLIKE_MESSAGE, ROUTE_GET_UNREAD_MESSAGES, ROUTE_FLAG_MESSAGE } = require('../util/page-route')
 
 const router = require('express').Router()
 const auth = require('../middlewares/auth')
@@ -447,6 +447,65 @@ router.get(ROUTE_SEARCH_MESSAGE, auth, (req, res)=>{
 router.put(ROUTE_LIKE_UNLIKE_MESSAGE+"/:id", auth, (req, res)=>{
     const chatController = new ChatController()
     return chatController.likeMessage(req, res)
+})
+
+/**
+ * @swagger
+ * /chat/flag-message/{messageId}:
+ *   put:
+ *     summary: Flag or unflag a message
+ *     description: Toggles the flag status of a message for the currently authenticated user.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the message to flag or unflag
+ *     responses:
+ *       200:
+ *         description: Flag status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Message flagged status updated
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     messageId:
+ *                       type: string
+ *                       example: 651dfaaab12a24c87b99b101
+ *       404:
+ *         description: Message not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Message not found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.put(ROUTE_FLAG_MESSAGE+"/:id", auth, (req, res)=>{
+    const chatController = new ChatController()
+    return chatController.flagMessage(req, res)
 })
 
 /**

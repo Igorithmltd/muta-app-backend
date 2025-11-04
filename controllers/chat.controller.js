@@ -58,6 +58,14 @@ class ChatController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, likeMessage.data)
     }
+    async flagMessage(req, res){
+        const chatService = new ChatService()
+        const flagMessage = await chatService.flagMessage(req)
+        if(!flagMessage.success){
+            return BaseController.sendFailedResponse(res, flagMessage.data)
+        }
+        return BaseController.sendSuccessResponse(res, flagMessage.data)
+    }
     async unreadUserMessages(req, res){
         const chatService = new ChatService()
         const unreadUserMessages = await chatService.unreadUserMessages(req)

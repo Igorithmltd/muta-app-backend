@@ -35,6 +35,10 @@ const MessageSchema = new mongoose.Schema(
       enum: ["text", "image", "file"],
       default: "text",
     },
+    isFlagged: {
+      type: Boolean,
+      default: false,
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
