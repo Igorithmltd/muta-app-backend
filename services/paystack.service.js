@@ -80,25 +80,27 @@ class PaystackService extends BaseService {
       //   return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
       // }
       let existingPaystackSubscription
-      if(customerCode){
+      if(customerCode && !isGift){
         existingPaystackSubscription = await this.checkIfCustomerHasSubscription(customerCode, paystackSubscriptionCode);
         if(existingPaystackSubscription){
           return BaseService.sendSuccessResponse({message: "Subscription already active"});
         }
       }
 
-
-      let existingSubscription = await SubscriptionModel.findOne({
-        user: user._id,
-        paystackSubscriptionId: paystackSubscriptionCode,
-        status: "active",
-      });
-
-
-      if(existingSubscription){
-        return BaseService.sendSuccessResponse({message: "Subscription already active"});
+      if(!isGift){
+        let existingSubscription = await SubscriptionModel.findOne({
+          user: user._id,
+          paystackSubscriptionId: paystackSubscriptionCode,
+          status: "active",
+        });
+  
+  
+        if(existingSubscription){
+          return BaseService.sendSuccessResponse({message: "Subscription already active"});
+        }
       }
 
+      
     //   if(isUserSubscribed?.status && isUserSubscribed?.data.length > 0){
     //     return BaseService.sendFailedResponse({error: 'You are already subscribed to this plan'})
     //   }
