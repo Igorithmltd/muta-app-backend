@@ -92,7 +92,7 @@ class PaystackService extends BaseService {
 
 
       if(existingSubscription){
-        return BaseService.sendFailedResponse({error: "Subscription already active"});
+        return BaseService.sendSuccessResponse({message: "Subscription already active"});
       }
 
     //   if(isUserSubscribed?.status && isUserSubscribed?.data.length > 0){
