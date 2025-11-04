@@ -66,10 +66,10 @@ class PaystackService extends BaseService {
       if(isGift && !recipientEmail){
         return BaseService.sendFailedResponse({ error: "Recipient email is required for gift subscriptions" });
       }
-
+      
+      
       const receiverExists = await UserModel.findOne({email: recipientEmail})
-
-      if(!receiverExists){
+      if(isGift && !receiverExists){
         return BaseService.sendFailedResponse({ error: "Recipient does not have an account" });
       }
 
