@@ -75,11 +75,14 @@ class PaystackService extends BaseService {
 
       const customerCode = user.customerCode || null;
 
-      if(!customerCode){
-        return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
+      // if(!customerCode){
+      //   return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
+      // }
+      let existingPaystackSubscription
+      if(customerCode){
+        existingPaystackSubscription = await this.checkIfCustomerHasSubscription(customerCode, paystackSubscriptionCode);
       }
 
-      const existingPaystackSubscription = await this.checkIfCustomerHasSubscription(customerCode, paystackSubscriptionCode);
 
       let existingSubscription = await SubscriptionModel.findOne({
         user: user._id,
