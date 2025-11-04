@@ -107,22 +107,28 @@ const webhookFunction = async (req, res) => {
         // user.subscriptionCode = paystackSubscriptionCode;
         // user.paystackAuthorizationToken = authorizationCode;
         user.customerCode = customerCode;
-        await user.save()
+        await user.save();
 
         // Gift subscription flow
         const recipientEmail = metadata.recipientEmail | "";
-        const couponCode = "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+        const duration = metadata.duration || "";
+        const couponCode =
+          "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
 
         const customMessage = `
            Hey ${recipientEmail}! Guess what? ${user.firstName} ${user.lastName} just sent you some Muta motivation! 🌟
          Time to stretch, sweat, and smile your way into greatness.
          Go open your Muta app and claim your gift using this code ${couponCode} — your fitness journey just got a major power-up! 💪🏾🔥
-        `
+        `;
         const isGift = metadata.isGift === true || metadata.isGift === "true"; // normalize to boolean
-        const giftMessage = metadata.giftMessage ? metadata.giftMessage : customMessage; // normalize to boolean
+        const giftMessage = metadata.giftMessage
+          ? metadata.giftMessage
+          : customMessage; // normalize to boolean
         if (isGift) {
-          if(!recipientEmail){
-            console.log("Recipient email missing for gift subscription", {isGift});
+          if (!recipientEmail) {
+            console.log("Recipient email missing for gift subscription", {
+              isGift,
+            });
             return res.status(400).send("Recipient email missing for gift");
           }
           const planWithCategory = await PlanModel.findOne({
@@ -257,11 +263,20 @@ const webhookFunction = async (req, res) => {
           });
 
           const paystackSubscriptionId = resp.data.data.subscription_code;
-          user.emailToken = resp.data.data.email_token || ""
+          user.emailToken = resp.data.data.email_token || "";
 
-          if(!paystackSubscriptionId){
+          if (!paystackSubscriptionId) {
             console.log("Paystack subscription ID missing in response");
             return res.status(500).send("Subscription ID missing");
+          }
+
+          let currentExpiry = new Date();
+
+          let newExpiryDate = new Date(currentExpiry);
+          if (duration === "monthly") {
+            newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
+          } else if (duration === "yearly") {
+            newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
           }
 
           // Create subscription record
@@ -274,8 +289,9 @@ const webhookFunction = async (req, res) => {
             reference: data.reference,
             status: "active",
             startDate: new Date(),
+            expiryDate: newExpiryDate,
             paystackAuthorizationToken: authorizationCode,
-            subscriptionCode: paystackSubscriptionId
+            subscriptionCode: paystackSubscriptionId,
           });
 
           await user.save();

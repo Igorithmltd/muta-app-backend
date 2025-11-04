@@ -1771,11 +1771,13 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const userSubscriptionPlan = await SubscriptionModel.findOne({
+      const filter  = {
         user: userId,
         status: "active",
         expiryDate: { $gt: new Date() },
-      }).populate("planId");
+      }
+
+      const userSubscriptionPlan = await SubscriptionModel.findOne(filter).populate("planId");
       if (!userSubscriptionPlan) {
         return BaseService.sendSuccessResponse({
           message: "No active subscription",
