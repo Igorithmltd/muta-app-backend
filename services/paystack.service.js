@@ -82,6 +82,9 @@ class PaystackService extends BaseService {
       let existingPaystackSubscription
       if(customerCode){
         existingPaystackSubscription = await this.checkIfCustomerHasSubscription(customerCode, paystackSubscriptionCode);
+        if(existingPaystackSubscription){
+          return BaseService.sendSuccessResponse({message: "Subscription already active"});
+        }
       }
 
 
@@ -121,7 +124,8 @@ class PaystackService extends BaseService {
   async checkIfCustomerHasSubscription(customerCode, paystackSubscriptionId) {
     try {
       const response = await axios.get(
-        `https://api.paystack.co/subscription?customer=${customerCode}`,
+        // `https://api.paystack.co/subscription?customer=${customerCode}`,
+        `https://api.paystack.co/subscription`,
         {
           headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
@@ -131,13 +135,17 @@ class PaystackService extends BaseService {
           // },
         }
       );
-  
+      function hasActiveSubscription(subscriptions, customerCode) {
+        return subscriptions.some(
+          (sub) =>
+            sub.customer.customer_code === customerCode &&
+            sub.status === "active"
+        );
+      }
 
-      // Check if the customer already has a subscription to the given plan
-      const existingSubscription = response.data.data.find(sub => sub.plan.code === planCode);
-      console.log({PexistingSubscription: response.data})
+      const userHasSub = hasActiveSubscription(response.data.data, customerCode);
   
-      return existingSubscription ? true : false;
+      return userHasSub;
     } catch (error) {
       console.error("Error checking subscription status:", error);
       return false; // If there's an error, assume no active subscription

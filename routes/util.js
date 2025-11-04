@@ -261,6 +261,10 @@ router.post(
  *                 type: boolean
  *                 example: true
  *                 description: Whether it is a gift or not
+ *               duration:
+ *                 type: string
+ *                 example: 'monthly'
+ *                 description: duration of the plan category
  *               recipientEmail:
  *                 type: string
  *                 example: "abc@gmail.com"
