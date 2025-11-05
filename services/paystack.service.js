@@ -32,7 +32,7 @@ class PaystackService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        email: "string|required",
+        // email: "string|required",
         amount: "integer|required",
         planId: "string|required",
         coachId: "string|required",
@@ -66,6 +66,10 @@ class PaystackService extends BaseService {
 
       if(isGift && !recipientEmail){
         return BaseService.sendFailedResponse({ error: "Recipient email is required for gift subscriptions" });
+      }
+
+      if(!isGift && !email){
+        return BaseService.sendFailedResponse({ error: "Email is required" });
       }
       
       
