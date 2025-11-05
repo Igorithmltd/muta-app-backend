@@ -32,7 +32,7 @@ class PaystackService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        // email: "string|required",
+        email: "string|required",
         amount: "integer|required",
         planId: "string|required",
         coachId: "string|required",
