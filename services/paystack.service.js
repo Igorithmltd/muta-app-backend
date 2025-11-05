@@ -39,6 +39,7 @@ class PaystackService extends BaseService {
         categoryId: "string|required",
         duration: "string|required",
         paystackSubscriptionCode: "string|required",
+        isGift: "boolean|required",
       };
 
       const validateMessage = {
@@ -57,8 +58,7 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId, duration } = post;
-      const isGift = post.isGift || false;
+      const { email, amount, planId, categoryId, paystackSubscriptionCode, coachId, duration, isGift } = post;
       const recipientEmail = post.recipientEmail || "";
       const giftMessage = post.giftMessage || "";
 
