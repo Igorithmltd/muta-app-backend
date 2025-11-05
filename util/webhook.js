@@ -125,14 +125,12 @@ const webhookFunction = async (req, res) => {
           ? metadata.giftMessage
           : customMessage; // normalize to boolean
         if (isGift) {
-          console.log('before 0', {recipientEmail: metadata.recipientEmail})
           if (!metadata?.recipientEmail) {
             console.log("Recipient email missing for gift subscription", {
               metadata,
             });
             return res.status(400).send("Recipient email missing for gift");
           }
-          console.log('before 1', {recipientEmail})
           const planWithCategory = await PlanModel.findOne({
             "categories.paystackSubscriptionId": paystackSubscriptionCode,
           });
@@ -142,12 +140,10 @@ const webhookFunction = async (req, res) => {
             );
             return res.status(200).send("Plan not found for gift subscription");
           }
-          console.log('before 2')
 
           const matchedCategory = planWithCategory.categories.find(
             (cat) => cat.paystackSubscriptionId === paystackSubscriptionCode
           );
-          console.log('before 3')
 
           if (!matchedCategory) {
             console.log("Category not found in plan for gift subscription");
@@ -155,10 +151,8 @@ const webhookFunction = async (req, res) => {
               .status(200)
               .send("Category not found for gift subscription");
           }
-          console.log('before 4')
           const categoryDuration = matchedCategory.duration;
 
-          console.log('before 5')
 
           // Generate coupon for gift recipient
 
@@ -173,7 +167,6 @@ const webhookFunction = async (req, res) => {
             customerCode: customerCode,
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days expiry
           });
-          console.log('before 6')
 
           await sendEmail({
             from: "Muta App <no-reply@fitnessapp.com>",
@@ -181,7 +174,6 @@ const webhookFunction = async (req, res) => {
             to: metadata.recipientEmail || user.email,
             html: giftMessage,
           });
-          console.log('before 7')
 
           // Create Payment record for gift subscription too
           await PaymentModel.create({
@@ -189,12 +181,11 @@ const webhookFunction = async (req, res) => {
             amount: data.amount / 100,
             reference: reference,
             status: "success",
-            type: "gift_subscription",
+            type: "subscription",
             metadata,
             channel: data.channel,
             paidAt: new Date(data.paid_at),
           });
-          console.log('before 8')
 
           console.log(
             `Processed gift subscription payment for user ${user._id}`
