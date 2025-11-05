@@ -110,13 +110,13 @@ const webhookFunction = async (req, res) => {
         await user.save();
 
         // Gift subscription flow
-        const recipientEmail = metadata.recipientEmail | "";
+        const recipientEmail = metadata.recipientEmail;
         const duration = metadata.duration || "";
         const couponCode =
           "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
 
         const customMessage = `
-           Hey ${recipientEmail}! Guess what? ${user.firstName} ${user.lastName} just sent you some Muta motivation! 🌟
+           Hey ${metadata?.recipientEmail}! Guess what? ${user.firstName} ${user.lastName} just sent you some Muta motivation! 🌟
          Time to stretch, sweat, and smile your way into greatness.
          Go open your Muta app and claim your gift using this code ${couponCode} — your fitness journey just got a major power-up! 💪🏾🔥
         `;
@@ -126,7 +126,7 @@ const webhookFunction = async (req, res) => {
           : customMessage; // normalize to boolean
         if (isGift) {
           console.log('before 0', {recipientEmail})
-          if (!recipientEmail) {
+          if (!metadata?.recipientEmail) {
             console.log("Recipient email missing for gift subscription", {
               metadata,
             });
