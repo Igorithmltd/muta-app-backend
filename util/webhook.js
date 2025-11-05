@@ -125,6 +125,7 @@ const webhookFunction = async (req, res) => {
           ? metadata.giftMessage
           : customMessage; // normalize to boolean
         if (isGift) {
+          console.log('before 1', recipientEmail)
           if (!recipientEmail) {
             console.log("Recipient email missing for gift subscription", {
               metadata,
