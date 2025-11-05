@@ -127,7 +127,7 @@ const webhookFunction = async (req, res) => {
         if (isGift) {
           if (!recipientEmail) {
             console.log("Recipient email missing for gift subscription", {
-              isGift,
+              metadata,
             });
             return res.status(400).send("Recipient email missing for gift");
           }
