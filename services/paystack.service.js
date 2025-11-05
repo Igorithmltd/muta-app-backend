@@ -110,7 +110,7 @@ class PaystackService extends BaseService {
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
-          metadata: { userId, planId, categoryId, duration, paystackSubscriptionCode, coachId, type: "subscription", isGift, ...(giftMessage && {giftMessage}) }, // VERY helpful for mapping webhooks -> user
+          metadata: { userId, planId, categoryId, duration, paystackSubscriptionCode, coachId, type: "subscription", isGift, ...(giftMessage && {giftMessage}), ...(recipientEmail && {recipientEmail})}, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
       );
