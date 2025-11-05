@@ -74,9 +74,9 @@ class PaystackService extends BaseService {
       
       
       const receiverExists = await UserModel.findOne({email: recipientEmail})
-      if(isGift && !receiverExists){
-        return BaseService.sendFailedResponse({ error: "Recipient does not have an account" });
-      }
+      // if(isGift && !receiverExists){
+      //   return BaseService.sendFailedResponse({ error: "Recipient does not have an account" });
+      // }
 
       const customerCode = user.customerCode || null;
 
