@@ -125,14 +125,14 @@ const webhookFunction = async (req, res) => {
           ? metadata.giftMessage
           : customMessage; // normalize to boolean
         if (isGift) {
-          console.log('before 1', {recipientEmail})
+          console.log('before 0', {recipientEmail})
           if (!recipientEmail) {
             console.log("Recipient email missing for gift subscription", {
               metadata,
             });
             return res.status(400).send("Recipient email missing for gift");
           }
-          console.log('before 1')
+          console.log('before 1', {recipientEmail})
           const planWithCategory = await PlanModel.findOne({
             "categories.paystackSubscriptionId": paystackSubscriptionCode,
           });
