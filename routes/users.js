@@ -578,7 +578,7 @@ router.put(ROUTE_UPDATE_NUGGET + "/:id", adminAuth, (req, res) => {
  */
 router.post(ROUTE_CREATE_NUGGET, adminAuth, (req, res) => {
   const userController = new UserController();
-  return userController.editNugget(req, res);
+  return userController.createNugget(req, res);
 });
 
 /**

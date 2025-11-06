@@ -977,6 +977,35 @@ class UserService extends BaseService {
       });
     }
   }
+  async createNugget(req) {
+    try {
+      const post = req.body;
+      const validateRule = {
+        title: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        string: ":attribute must be a string",
+      };
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const nugget = new NuggetModel({title: post.title});
+      await nugget.save()
+
+      return BaseService.sendSuccessResponse({
+        message: "nugget create successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
   async editNugget(req) {
     try {
       const nuggetId = req.params.id;
@@ -986,6 +1015,7 @@ class UserService extends BaseService {
       const validateRule = {
         title: "string|required",
       };
+      
       const validateMessage = {
         required: ":attribute is required",
         string: ":attribute must be a string",
@@ -1809,7 +1839,7 @@ class UserService extends BaseService {
   async redeemCoupon(req, res) {
     try {
       const { couponCode } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Fetch user
       const user = await UserModel.findById(userId);
@@ -1864,8 +1894,10 @@ class UserService extends BaseService {
         });
       }
 
+      
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
       const categoryDuration = coupon.categoryDuration; // e.g., "monthly" or "yearly"
+      console.log({plan: plan.categories, categoryDuration})
       const category = plan.categories.find(
         (cat) => cat.duration === categoryDuration
       );
