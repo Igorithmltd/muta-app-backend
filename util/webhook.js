@@ -159,7 +159,7 @@ const webhookFunction = async (req, res) => {
           await CouponModel.create({
             code: couponCode,
             coachId,
-            planId: planWithCategory._id,
+            planId: paystackSubscriptionCode,
             giftedByUserId: user._id,
             recipientEmail: metadata.recipientEmail || "",
             used: false,

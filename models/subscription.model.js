@@ -6,7 +6,7 @@ const SubscriptionSchema = new mongoose.Schema(
     coachId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     planId: { type: mongoose.Schema.Types.ObjectId, ref: "Plan", required: true },
     categoryId: { type: mongoose.Schema.Types.ObjectId, required: true }, // New field
-    reference: { type: String, required: true },
+    // reference: { type: String, required: true },
     status: {
       type: String,
       enum: ["active", "pending", "cancelled"],

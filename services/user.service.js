@@ -26,6 +26,7 @@ const PaystackService = require("./paystack.service");
 const sendOTP = require("../util/sendOtp");
 const MessageModel = require("../models/message.model");
 const CallLogModel = require("../models/call-log.model");
+const mongoose = require("mongoose");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -1887,7 +1888,8 @@ class UserService extends BaseService {
       }
 
       // Load plan from coupon
-      const plan = await PlanModel.findById(coupon.planId);
+      const plan = await PlanModel.findOne({ "categories.paystackSubscriptionId": coupon.planId });
+      console.log({plan, c: coupon.planId})
       if (!plan) {
         return BaseService.sendFailedResponse({
           error: "Associated plan not found",
@@ -1896,15 +1898,15 @@ class UserService extends BaseService {
 
       
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
-      const categoryDuration = coupon.categoryDuration; // e.g., "monthly" or "yearly"
-      console.log({plan: plan.categories, categoryDuration})
+      const paystackSubscriptionId = coupon.planId; // e.g., "monthly" or "yearly"
+      console.log({plan: plan.categories, categoryDuration: coupon})
       const category = plan.categories.find(
-        (cat) => cat.duration === categoryDuration
+        (cat) => cat.paystackSubscriptionId === paystackSubscriptionId
       );
 
       if (!category) {
         return BaseService.sendFailedResponse({
-          error: `Plan category '${categoryDuration}' not found`,
+          error: `Plan category '${categoryId}' not found`,
         });
       }
 
@@ -1917,36 +1919,36 @@ class UserService extends BaseService {
       }
 
       // Create Paystack subscription
-      let resp;
-      try {
-        resp = await axios.post(
-          "https://api.paystack.co/subscription",
-          {
-            customer: customerCode,
-            plan: category.paystackSubscriptionId, // use category's subscription plan id
-            authorization: authorizationCode,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-            },
-          }
-        );
-      } catch (error) {
-        console.error(
-          "Error creating Paystack subscription:",
-          error.response?.data || error.message
-        );
-        return BaseService.sendFailedResponse({
-          error: "Failed to create subscription with payment provider",
-        });
-      }
+      // let resp;
+      // try {
+      //   resp = await axios.post(
+      //     "https://api.paystack.co/subscription",
+      //     {
+      //       customer: customerCode,
+      //       plan: category.paystackSubscriptionId, // use category's subscription plan id
+      //       authorization: authorizationCode,
+      //     },
+      //     {
+      //       headers: {
+      //         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      //       },
+      //     }
+      //   );
+      // } catch (error) {
+      //   console.error(
+      //     "Error creating Paystack subscription:",
+      //     error.response?.data || error.message
+      //   );
+      //   return BaseService.sendFailedResponse({
+      //     error: "Failed to create subscription with payment provider",
+      //   });
+      // }
 
-      if (!resp.data.status) {
-        return BaseService.sendFailedResponse({
-          error: "Paystack subscription creation failed",
-        });
-      }
+      // if (!resp.data.status) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Paystack subscription creation failed",
+      //   });
+      // }
 
       // Calculate expiry date based on category duration
       let expiryDate = new Date();
@@ -1964,7 +1966,8 @@ class UserService extends BaseService {
         status: "active",
         startDate: new Date(),
         expiryDate,
-        paystackSubscriptionId: resp.data.data.subscription_code,
+        paystackSubscriptionId: paystackSubscriptionId,
+        coachId: coupon.coachId
       });
 
       // Mark coupon as used
@@ -1973,23 +1976,23 @@ class UserService extends BaseService {
       // coupon.usedAt = new Date();
       await coupon.save();
 
-      const emailToken = resp.data.data.email_token || ""
-      const subscriptionCode = resp.data.data.subscription_code || "";
+      // const emailToken = resp.data.data.email_token || ""
+      // const subscriptionCode = resp.data.data.subscription_code || "";
 
 
-      const response = await axios.post(
-        "https://api.paystack.co/subscription/disable",
-        {
-          code: subscriptionCode,
-          token: emailToken,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // const response = await axios.post(
+      //   "https://api.paystack.co/subscription/disable",
+      //   {
+      //     code: subscriptionCode,
+      //     token: emailToken,
+      //   },
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+      //       "Content-Type": "application/json",
+      //     },
+      //   }
+      // );
 
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",
