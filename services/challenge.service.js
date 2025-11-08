@@ -141,6 +141,7 @@ class ChallengeService extends BaseService {
   async updateChallenge(req) {
     try {
       const challengeId = req.params.id;
+      const post = req.body
 
       const challenge = await ChallengeModel.findById(challengeId);
       if (!challenge) {
@@ -161,21 +162,22 @@ class ChallengeService extends BaseService {
 
       const updatedChallenge = await ChallengeModel.findByIdAndUpdate(
         challengeId,
-        {
-          $set: {
-            title: req.body.title || challenge.title,
-            goal: req.body.goal || challenge.goal,
-            duration: req.body.duration || challenge.duration,
-            durationUnit: req.body.durationUnit || challenge.durationUnit,
-            type: req.body.type || challenge.type,
-            difficulty: req.body.difficulty || challenge.difficulty,
-            tasks: req.body.tasks || challenge.tasks,
-            image: {
-              imageUrl: req.body.image.imageUrl || challenge.image.imageUrl,
-              publicId: req.body.image.publicId || challenge.image.publicId,
-            },
-          },
-        },
+        post,
+        // {
+        //   $set: {
+        //     title: req.body.title || challenge.title,
+        //     goal: req.body.goal || challenge.goal,
+        //     duration: req.body.duration || challenge.duration,
+        //     durationUnit: req.body.durationUnit || challenge.durationUnit,
+        //     type: req.body.type || challenge.type,
+        //     difficulty: req.body.difficulty || challenge.difficulty,
+        //     tasks: req.body.tasks || challenge.tasks,
+        //     image: {
+        //       imageUrl: req.body.image.imageUrl || challenge.image.imageUrl,
+        //       publicId: req.body.image.publicId || challenge.image.publicId,
+        //     },
+        //   },
+        // },
         { new: true }
       );
       if (!updatedChallenge) {
