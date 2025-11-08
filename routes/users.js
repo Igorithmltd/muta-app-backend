@@ -1188,7 +1188,7 @@ router.put(ROUTE_COACH_VERIFICATION_REJECT+"/:userId", adminAuth, (req, res) => 
  *       500:
  *         description: Server error
  */
-router.put(ROUTE_COACH_VERIFICATION_APPROVE+"/userId", adminAuth, (req, res) => {
+router.put(ROUTE_COACH_VERIFICATION_APPROVE+"/:userId", adminAuth, (req, res) => {
   const userController = new UserController();
   return userController.approveCoach(req, res);
 });

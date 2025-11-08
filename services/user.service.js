@@ -1407,7 +1407,7 @@ class UserService extends BaseService {
 
       user.coachVerification.status = "approved";
       user.coachVerification.reviewedAt = new Date();
-      user.coachVerification.reviewedBy = adminId;
+      // user.coachVerification.reviewedBy = adminId;
 
       await user.save();
 
@@ -1435,7 +1435,7 @@ class UserService extends BaseService {
 
       user.coachVerification.status = "rejected";
       user.coachVerification.reviewedAt = new Date();
-      user.coachVerification.reviewedBy = adminId;
+      // user.coachVerification.reviewedBy = adminId;
 
       await user.save();
 
