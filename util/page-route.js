@@ -180,6 +180,7 @@ exports.ROUTE_IMAGE_UPLOAD_SINGLE = '/image-upload-single'
 exports.ROUTE_VIDEO_UPLOAD_SINGLE = '/video-upload-single'
 exports.ROUTE_DOCUMENT_UPLOAD = '/document-upload'
 exports.ROUTE_INITIALIZE_PAYMENT = '/initialize-payment'
+exports.ROUTE_SEND_CUSTOM_MAIL = '/send-custom-mail'
 
 //email
 exports.ROUTE_SEND_EMAIL = '/send-email'

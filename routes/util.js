@@ -8,6 +8,7 @@ const {
   ROUTE_VIDEO_UPLOAD_SINGLE,
   ROUTE_INITIALIZE_PAYMENT,
   ROUTE_DOCUMENT_UPLOAD,
+  ROUTE_SEND_CUSTOM_MAIL,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -327,6 +328,11 @@ router.post(
 router.post(ROUTE_INITIALIZE_PAYMENT, auth, (req, res) => {
   const utilController = new UtilController();
   return utilController.initializePayment(req, res);
+});
+
+router.post(ROUTE_SEND_CUSTOM_MAIL, (req, res) => {
+  const utilController = new UtilController();
+  return utilController.sendCustomMail(req, res);
 });
 
 router.post(ROUTE_SEND_EMAIL, (req, res) => {

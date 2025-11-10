@@ -45,6 +45,14 @@ class UtilController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, singleFileUpload.data)
     }
+    async sendCustomMail(req, res){
+        const utilService = new UtilService()
+        const sendCustomMail = await utilService.sendCustomMail(req)
+        if(!sendCustomMail.success){
+            return BaseController.sendFailedResponse(res, sendCustomMail.data)
+        }
+        return BaseController.sendSuccessResponse(res, sendCustomMail.data)
+    }
 
     async sendMailToEmail(req, res){
         const {email, subject, message} = req.body
