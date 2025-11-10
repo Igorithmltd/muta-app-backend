@@ -983,18 +983,20 @@ class UserService extends BaseService {
       const post = req.body;
       const validateRule = {
         title: "string|required",
+        scheduledFor: "string|required"
       };
 
       const validateMessage = {
         required: ":attribute is required",
-        string: ":attribute must be a string",
+        string: ":attribute must be a string"
       };
       const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const nugget = new NuggetModel({title: post.title});
+      const nugget = new NuggetModel({title: post.title, scheduledFor: post.scheduledFor, expiresAt: new Date(new Date(post.scheduledFor).getTime() + 24 * 60 * 60 * 1000)});
+
       await nugget.save()
 
       return BaseService.sendSuccessResponse({
