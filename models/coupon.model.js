@@ -15,7 +15,7 @@ const CouponSchema = new mongoose.Schema(
     usedByUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     planId: {
         type: String,
