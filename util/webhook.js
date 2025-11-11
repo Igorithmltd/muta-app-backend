@@ -166,7 +166,6 @@ const webhookFunction = async (req, res) => {
             authorizationCode: authorizationCode,
             customerCode: customerCode,
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days expiry
-            usedByUserId
           });
 
           await sendEmail({
