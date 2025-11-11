@@ -245,11 +245,19 @@ const webhookFunction = async (req, res) => {
             return res.status(200).send("Plan or category info missing");
           }
 
-          // Create private chat room between user and coach
-          await ChatRoomModel.create({
+          const existingRoom = await ChatRoomModel.findOne({
             type: "private",
-            participants: [user._id, coachId],
+            participants: { $all: [user._id, coachId] },
           });
+
+          if(!existingRoom){
+            await ChatRoomModel.create({
+              type: "private",
+              participants: [user._id, coachId],
+            });
+          }
+
+          // Create private chat room between user and coach
 
           // Record the payment
           await PaymentModel.create({
