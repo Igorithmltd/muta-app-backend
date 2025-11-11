@@ -10,14 +10,14 @@ const NuggetSchema = new mongoose.Schema(
     likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     sharedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     downloadedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    scheduledFor: { type: Date, required: false },
-    expiresAt: { type: Date, required: false },
+    // scheduledFor: { type: Date, required: false },
+    // expiresAt: { type: Date, required: false },
   },
   { timestamps: true }
 );
 
 
-NuggetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// NuggetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const NuggetModel = mongoose.model("Nugget", NuggetSchema);
 module.exports = NuggetModel;

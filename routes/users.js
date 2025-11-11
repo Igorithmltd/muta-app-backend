@@ -560,10 +560,6 @@ router.put(ROUTE_UPDATE_NUGGET + "/:id", adminAuth, (req, res) => {
  *                 type: string
  *                 description: Title of the nugget
  *                 example: The bigger, the better. Keep going
- *               scheduledFor:
- *                 type: date
- *                 description: Date for the nugget schedule of the nugget
- *                 example: ISODate("2025-11-12T08:00:00Z")
  *     responses:
  *       201:
  *         description: Nugget created successfully
