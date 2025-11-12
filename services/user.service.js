@@ -2015,6 +2015,7 @@ class UserService extends BaseService {
   async cancelPlan(req, res) {
     try {
       const userId = req.user.id;
+      const message = req.body.message || "";
 
       const subscription = await SubscriptionModel.findOne({
         user: userId,
@@ -2030,18 +2031,15 @@ class UserService extends BaseService {
       const paystackSubscriptionId = subscription.subscriptionCode;
       const token = subscription.paystackAuthorizationToken;
 
-      if (!paystackSubscriptionId) {
-        return BaseService.sendFailedResponse({
-          error: "No Paystack subscription id found",
-        });
+      if (paystackSubscriptionId) {
+        const paystackService = new PaystackService();
+        const cancelPaystackSubscription =
+          await paystackService.disableSubscription(
+            paystackSubscriptionId,
+            token
+          );
       }
 
-      const paystackService = new PaystackService();
-      const cancelPaystackSubscription =
-        await paystackService.disableSubscription(
-          paystackSubscriptionId,
-          token
-        );
 
       subscription.status = "cancelled";
       await subscription.save();
