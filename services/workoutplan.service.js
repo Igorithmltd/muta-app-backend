@@ -334,13 +334,19 @@ class WorkoutplanService extends BaseService {
     });
 
     if (joinedWorkoutplan) {
-      if (!joinedWorkoutplan.status.includes(["completed", "in-progress"])) {
+      if( joinedWorkoutplan.status === "in-progress" ) {
         return BaseService.sendSuccessResponse({
           message: "You have already joined this Workout plan",
           workoutPlanAction: joinedWorkoutplan,
         });
       }
-      await WorkoutPlanActionModel.findByIdAndDelete(joinedWorkoutplan._id);
+      if (!joinedWorkoutplan.status.includes(["completed", "in-progress"])) {
+        await WorkoutPlanActionModel.findByIdAndDelete(joinedWorkoutplan._id);
+        // return BaseService.sendSuccessResponse({
+        //   message: "You have already joined this Workout plan",
+        //   workoutPlanAction: joinedWorkoutplan,
+        // });
+      }
     }
 
 
@@ -417,13 +423,13 @@ class WorkoutplanService extends BaseService {
       type: "streak",
     });
 
-    if (user && user.deviceToken) {
-      await sendPushNotification({
-        title: "You just joined a new workout plan",
-        body: `You have to rememeber that consistency is the key. Well done!`,
-        deviceToken: user.deviceToken,
-      });
-    }
+    // if (user && user.deviceToken) {
+    //   await sendPushNotification({
+    //     title: "You just joined a new workout plan",
+    //     body: `You have to rememeber that consistency is the key. Well done!`,
+    //     deviceToken: user.deviceToken,
+    //   });
+    // }
 
     await newWorkoutplanAction.populate({
       path: "workoutPlanId",
@@ -716,6 +722,12 @@ class WorkoutplanService extends BaseService {
       if (!workoutplanAction) {
         return BaseService.sendFailedResponse({
           error: "You have not joined this challenge",
+        });
+      }
+
+      if( workoutplanAction.status == "not-started" ) {
+        return BaseService.sendFailedResponse({
+          error: "Workout plan is reset already",
         });
       }
 
