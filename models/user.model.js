@@ -35,6 +35,7 @@ const UserSchema = new mongoose.Schema(
     },
     phoneNumber: { type: String },
     googleId: { type: String, unique: true, sparse: true },
+    appleId: { type: String, unique: true, sparse: true },
     password: { type: String },
     userType: {
       type: String,
@@ -64,7 +65,7 @@ const UserSchema = new mongoose.Schema(
     servicePlatform: {
       type: String,
       // default: "local",
-      enum: ["local", "google"],
+      enum: ["local", "google", "apple"],
     },
     status: {
       type: String,

@@ -1,5 +1,5 @@
 const UserController = require('../controllers/user.controller')
-const { ROUTE_REGISTER, ROUTE_LOGIN, ROUTE_FORGOT_PASSWORD, ROUTE_RESET_PASSWORD, ROUTE_SEND_OTP, ROUTE_VERIFY_OTP, ROUTE_VERIFY_EMAIL, ROUTE_VERIFY_PASSWORD_OTP, ROUTE_REFRESH_TOKEN, ROUTE_GOOGLE_SIGNUP } = require('../util/page-route')
+const { ROUTE_REGISTER, ROUTE_LOGIN, ROUTE_FORGOT_PASSWORD, ROUTE_RESET_PASSWORD, ROUTE_SEND_OTP, ROUTE_VERIFY_OTP, ROUTE_VERIFY_EMAIL, ROUTE_VERIFY_PASSWORD_OTP, ROUTE_REFRESH_TOKEN, ROUTE_GOOGLE_SIGNUP, ROUTE_APPLE_SIGNUP } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -55,6 +55,55 @@ router.post(ROUTE_REGISTER, (req, res)=>{
 
 /**
  * @swagger
+ * /auth/apple-signup:
+ *   post:
+ *     summary: Register new user through apple
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 format: text
+ *                 example: <your_id_token>
+ *               userType:
+ *                 type: string
+ *                 format: text
+ *                 example: (user | coach)
+ *               authorizationCode:
+ *                 type: string
+ *                 format: text
+ *                 example: <your_authorization_code>
+ *     responses:
+ *       200:
+ *         description: Registration successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: <access_token>
+ *       400:
+ *         description: Missing or invalid email
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_GOOGLE_SIGNUP, (req, res)=>{
+    const userController = new UserController()
+    return userController.googleSignup(req, res)
+})
+
+/**
+ * @swagger
  * /auth/google-signup:
  *   post:
  *     summary: Register new user through google
@@ -93,9 +142,9 @@ router.post(ROUTE_REGISTER, (req, res)=>{
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_GOOGLE_SIGNUP, (req, res)=>{
+router.post(ROUTE_APPLE_SIGNUP, (req, res)=>{
     const userController = new UserController()
-    return userController.googleSignup(req, res)
+    return userController.appleSignup(req, res)
 })
 
 /**

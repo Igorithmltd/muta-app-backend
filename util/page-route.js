@@ -1,7 +1,7 @@
 
 //users
 exports.ROUTE_REGISTER = '/register'
-exports.ROUTE_GOOGLE_SIGNUP = '/google-signup'
+exports.ROUTE_APPLE_SIGNUP = '/apple-signup'
 exports.ROUTE_LOGIN = '/login'
 exports.ROUTE_FORGOT_PASSWORD = '/forgot-password'
 exports.ROUTE_RESET_PASSWORD = '/reset-password'

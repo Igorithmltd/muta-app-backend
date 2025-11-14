@@ -3,6 +3,7 @@ const sendEmail = require("../util/emailService");
 const BaseService = require("./base");
 const UserModel = require("../models/user.model");
 const { empty } = require("../util");
+const jwt = require('jsonwebtoken')
 const validateData = require("../util/validate");
 const {
   generateOTP,
@@ -205,6 +206,130 @@ class UserService extends BaseService {
       console.log(error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
+      });
+    }
+  }
+  async appleSignup(req, res) {
+    try {
+      const {
+        authorizationCode, // The authorization code from Apple
+        idToken,          // The id_token from Apple (used to extract user info)
+        userType,          // The type of user (e.g., admin, regular)
+      } = req.body;
+  
+      // Replace with your Apple OAuth credentials
+      const APPLE_CLIENT_ID = process.env.APPLE_CLIENT_ID; // Your Apple Service ID (client ID)
+      const APPLE_CLIENT_SECRET = process.env.APPLE_CLIENT_SECRET; // Your Apple Client Secret (generated from Apple Developer Console)
+      const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID; // Your Apple Team ID (from Apple Developer Console)
+      const APPLE_KEY_ID = process.env.APPLE_KEY_ID; // Your Key ID from Apple (from the private key you uploaded in Apple Developer Console)
+      
+      // 1. Validate the incoming data (similar to Google signup validation)
+      const validateRule = {
+        authorizationCode: 'string|required',
+        idToken: 'string|required',
+        userType: 'string|required',
+      };
+  
+      const validateMessage = {
+        required: ':attribute is required',
+      };
+  
+      const validateResult = validateData(req.body, validateRule, validateMessage);
+  
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+  
+      // 2. Decode the ID Token (optional but useful for debugging)
+      const decodedToken = jwt.decode(idToken, { complete: true });
+      console.log('Decoded Apple ID Token:', decodedToken);
+  
+      // 3. Exchange authorization code for access and refresh tokens
+      const tokenResponse = await axios.post('https://appleid.apple.com/auth/token', null, {
+        params: {
+          client_id: APPLE_CLIENT_ID,
+          client_secret: APPLE_CLIENT_SECRET,
+          code: authorizationCode,
+          grant_type: 'authorization_code',
+          redirect_uri: 'https://yourdomain.com/auth/apple/callback', // Replace with your actual redirect URI
+        }
+      });
+  
+      const { access_token, refresh_token, id_token: newIdToken } = tokenResponse.data;
+  
+      // 4. Decode the new ID token to get user information
+      const payload = jwt.decode(newIdToken);
+      const { sub: appleId, email, given_name, family_name, name, picture } = payload;
+  
+      // 5. Generate a username based on email or name
+      const username = email ? email.split('@')[0] : name.replace(/\s+/g, '').toLowerCase();
+  
+      // 6. Extract first and last names
+      const firstName = given_name || name.split(' ')[0];
+      const lastName = family_name || name.split(' ').slice(1).join(' ');
+  
+      // 7. Check if the user already exists in the database
+      const userWithAppleId = await UserModel.findOne({
+        $or: [{ appleId }, { email }],
+      });
+  
+      if (userWithAppleId) {
+        // If the user already exists, generate JWT tokens
+        const accessToken = await userWithAppleId.generateAccessToken(process.env.ACCESS_TOKEN_SECRET || '');
+        const refreshToken = await userWithAppleId.generateRefreshToken(process.env.REFRESH_TOKEN_SECRET || '');
+  
+        return BaseService.sendSuccessResponse({
+          message: accessToken,
+          user: userWithAppleId,
+          refreshToken,
+        });
+      }
+  
+      // 8. Create a new user if the user doesn't exist
+      const userObject = {
+        appleId,
+        firstName,
+        lastName,
+        username,
+        email,
+        image: { imageUrl: picture || '', publicId: '' }, // Apple profile image (optional)
+        isVerified: true,
+        servicePlatform: 'apple', // Mark this user as using the "Apple" service for signup
+        userType, // You can pass userType from the frontend (e.g., "admin", "regular")
+      };
+  
+      // 9. Create a new user in the database
+      const newUser = new UserModel(userObject);
+  
+      await newUser.save();
+  
+      // 10. Generate JWT tokens for the newly created user
+      const accessToken = await newUser.generateAccessToken(process.env.ACCESS_TOKEN_SECRET || '');
+      const refreshToken = await newUser.generateRefreshToken(process.env.REFRESH_TOKEN_SECRET || '');
+  
+      // 11. Send a welcome email or confirmation email to the user
+      const emailHtml = `
+        <h1>Registration successful</h1>
+        <p>Hi <strong>${newUser.email}</strong>,</p>
+        <p>You have successfully signed up with Apple.</p>
+      `;
+      await sendEmail({
+        subject: 'Welcome to Muta App',
+        to: newUser.email,
+        html: emailHtml,
+      });
+  
+      // 12. Send the success response with the access token, user info, and refresh token
+      return BaseService.sendSuccessResponse({
+        message: accessToken,
+        user: newUser,
+        refreshToken,
+      });
+  
+    } catch (error) {
+      console.error('Apple Sign-Up Error:', error);
+      return BaseService.sendFailedResponse({
+        error: 'Something went wrong with the Apple Sign-Up process.',
       });
     }
   }
@@ -2725,12 +2850,12 @@ class UserService extends BaseService {
   async deleteUser(req) {
     try {
       const session = await mongoose.startSession();
-      
+
       const userId = req.user.id;
-      
-      const user = await UserModel.findById(userId)
-      if(!user){
-        return BaseService.sendFailedResponse({error: 'User not found'})
+
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
       session.startTransaction();
@@ -2753,7 +2878,7 @@ class UserService extends BaseService {
       });
     } catch (error) {
       await session.abortTransaction();
-      session.endSession(); 
+      session.endSession();
       return BaseService.sendFailedResponse({
         error: "Failed to fetch sleep hours",
       });
