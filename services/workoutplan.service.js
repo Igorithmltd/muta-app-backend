@@ -226,9 +226,10 @@ class WorkoutplanService extends BaseService {
   async updateWorkoutplan(req) {
     try {
       const workoutplanId = req.params.id;
+      const post = req.body
 
       const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
-      if (!challenge) {
+      if (!workoutplan) {
         return BaseService.sendFailedResponse({
           error: "Workout plan not found",
         });
@@ -244,23 +245,24 @@ class WorkoutplanService extends BaseService {
         });
       }
 
-      const workoutplanUpdate = await ChallengeModel.findByIdAndUpdate(
-        challengeId,
-        {
-          $set: {
-            title: req.body.title || challenge.title,
-            goal: req.body.goal || challenge.goal,
-            duration: req.body.duration || challenge.duration,
-            durationUnit: req.body.durationUnit || challenge.durationUnit,
-            type: req.body.type || challenge.type,
-            difficulty: req.body.difficulty || challenge.difficulty,
-            tasks: req.body.tasks || challenge.tasks,
-            image: {
-              imageUrl: req.body.image.imageUrl || challenge.image.imageUrl,
-              publicId: req.body.image.publicId || challenge.image.publicId,
-            },
-          },
-        },
+      const workoutplanUpdate = await WorkoutPlanModel.findByIdAndUpdate(
+        workoutplanId,
+        post,
+        // {
+        //   $set: {
+        //     title: req.body.title || challenge.title,
+        //     goal: req.body.goal || challenge.goal,
+        //     duration: req.body.duration || challenge.duration,
+        //     durationUnit: req.body.durationUnit || challenge.durationUnit,
+        //     type: req.body.type || challenge.type,
+        //     difficulty: req.body.difficulty || challenge.difficulty,
+        //     tasks: req.body.tasks || challenge.tasks,
+        //     image: {
+        //       imageUrl: req.body.image.imageUrl || challenge.image.imageUrl,
+        //       publicId: req.body.image.publicId || challenge.image.publicId,
+        //     },
+        //   },
+        // },
         { new: true }
       );
       if (!workoutplanUpdate) {
