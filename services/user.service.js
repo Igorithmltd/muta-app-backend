@@ -27,6 +27,11 @@ const sendOTP = require("../util/sendOtp");
 const MessageModel = require("../models/message.model");
 const CallLogModel = require("../models/call-log.model");
 const mongoose = require("mongoose");
+const ChallengeActionModel = require("../models/challengeAction.model");
+const DietActionModel = require("../models/dietAction.model");
+const FavoriteProductModel = require("../models/favorite.model");
+const OrderModel = require("../models/order.model");
+const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -691,7 +696,9 @@ class UserService extends BaseService {
       const { email, newPassword, oldPassword } = post;
 
       if (!oldPassword || !newPassword) {
-        return BaseService.sendFailedResponse({ error: "Both old and new passwords are required." });
+        return BaseService.sendFailedResponse({
+          error: "Both old and new passwords are required.",
+        });
       }
 
       const userExists = await UserModel.findOne({ email });
@@ -703,7 +710,9 @@ class UserService extends BaseService {
 
       const isMatch = await bcrypt.compare(oldPassword, user.password);
       if (!isMatch) {
-        return BaseService.sendFailedResponse({ error: "Old password is incorrect." });
+        return BaseService.sendFailedResponse({
+          error: "Old password is incorrect.",
+        });
       }
 
       userExists.password = newPassword;
@@ -994,8 +1003,8 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const nugget = new NuggetModel({title: post.title});
-      await nugget.save()
+      const nugget = new NuggetModel({ title: post.title });
+      await nugget.save();
 
       return BaseService.sendSuccessResponse({
         message: "nugget create successfully",
@@ -1016,7 +1025,7 @@ class UserService extends BaseService {
       const validateRule = {
         title: "string|required",
       };
-      
+
       const validateMessage = {
         required: ":attribute is required",
         string: ":attribute must be a string",
@@ -1226,7 +1235,7 @@ class UserService extends BaseService {
         message: "Coach verification application submitted successfully",
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
@@ -1379,13 +1388,15 @@ class UserService extends BaseService {
   async getCoachApplications(req, res) {
     try {
       const { status } = req.query;
-      if(!status){
+      if (!status) {
         return BaseService.sendFailedResponse({
           error: "Status query parameter is required",
         });
       }
-      const query = status ? { "coachVerification.status": status, userType: 'coach' } : {userType: 'coach'};
-      console.log(query)
+      const query = status
+        ? { "coachVerification.status": status, userType: "coach" }
+        : { userType: "coach" };
+      console.log(query);
 
       const coaches = await UserModel.find(query, {
         password: 0,
@@ -1800,21 +1811,23 @@ class UserService extends BaseService {
       const userId = req.user.id;
 
       // Populate user with subscription and plan
-      const user = await UserModel.findById(userId)
-        // .populate("subscription") // SubscriptionModel
-        // .populate("subscriptionPlan"); // PlanModel
+      const user = await UserModel.findById(userId);
+      // .populate("subscription") // SubscriptionModel
+      // .populate("subscriptionPlan"); // PlanModel
 
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const filter  = {
+      const filter = {
         user: userId,
         status: "active",
         expiryDate: { $gt: new Date() },
-      }
+      };
 
-      const userSubscriptionPlan = await SubscriptionModel.findOne(filter).populate("planId");
+      const userSubscriptionPlan = await SubscriptionModel.findOne(
+        filter
+      ).populate("planId");
       if (!userSubscriptionPlan) {
         return BaseService.sendSuccessResponse({
           message: "No active subscription",
@@ -1894,18 +1907,19 @@ class UserService extends BaseService {
       }
 
       // Load plan from coupon
-      const plan = await PlanModel.findOne({ "categories.paystackSubscriptionId": coupon.planId });
-      console.log({plan, c: coupon.planId})
+      const plan = await PlanModel.findOne({
+        "categories.paystackSubscriptionId": coupon.planId,
+      });
+      console.log({ plan, c: coupon.planId });
       if (!plan) {
         return BaseService.sendFailedResponse({
           error: "Associated plan not found",
         });
       }
 
-      
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
       const paystackSubscriptionId = coupon.planId; // e.g., "monthly" or "yearly"
-      console.log({plan: plan.categories, categoryDuration: coupon})
+      console.log({ plan: plan.categories, categoryDuration: coupon });
       const category = plan.categories.find(
         (cat) => cat.paystackSubscriptionId === paystackSubscriptionId
       );
@@ -1973,7 +1987,7 @@ class UserService extends BaseService {
         startDate: new Date(),
         expiryDate,
         paystackSubscriptionId: paystackSubscriptionId,
-        coachId: coupon.coachId
+        coachId: coupon.coachId,
       });
 
       // Mark coupon as used
@@ -1984,7 +1998,6 @@ class UserService extends BaseService {
 
       // const emailToken = resp.data.data.email_token || ""
       // const subscriptionCode = resp.data.data.subscription_code || "";
-
 
       // const response = await axios.post(
       //   "https://api.paystack.co/subscription/disable",
@@ -2045,7 +2058,6 @@ class UserService extends BaseService {
             token
           );
       }
-
 
       subscription.status = "cancelled";
       await subscription.save();
@@ -2344,12 +2356,12 @@ class UserService extends BaseService {
   async getNotifications(req) {
     try {
       const userId = req.user.id;
-      const isRead = req.query.isRead
+      const isRead = req.query.isRead;
 
       const filter = {
         userId,
-        ...(isRead && {isRead})
-      }
+        ...(isRead && { isRead }),
+      };
 
       const notifications = await NotificationModel.find(filter).sort({
         timestamp: -1,
@@ -2375,8 +2387,10 @@ class UserService extends BaseService {
     try {
       const userId = req.user.id;
 
-
-      const notifications = await NotificationModel.find({userId, isRead: false}).countDocuments();
+      const notifications = await NotificationModel.find({
+        userId,
+        isRead: false,
+      }).countDocuments();
 
       return BaseService.sendSuccessResponse({
         message: notifications,
@@ -2626,7 +2640,7 @@ class UserService extends BaseService {
         message: "Phone updated successfully",
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({
         error: "Failed to update phone number",
       });
@@ -2635,7 +2649,7 @@ class UserService extends BaseService {
   async coachDashboardData(req) {
     try {
       const response = {};
-      const coachId = req.user.id
+      const coachId = req.user.id;
 
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
@@ -2692,18 +2706,56 @@ class UserService extends BaseService {
 
       const totalNewChats = newChatsToday[0]?.totalNewChatsToday || 0;
 
-      response["engagementsCountCalls"] = todayCalls.length
-      response["engagementsCountChats"] = todayChats.length
-      response["unreadCount"] = unreadCount
-      response["totalNewChats"] = totalNewChats
+      response["engagementsCountCalls"] = todayCalls.length;
+      response["engagementsCountChats"] = todayChats.length;
+      response["unreadCount"] = unreadCount;
+      response["totalNewChats"] = totalNewChats;
 
       return BaseService.sendSuccessResponse({
         message: response,
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({
         error: "Failed to fetch coach dashboard",
+      });
+    }
+  }
+
+  async deleteUser(req) {
+    try {
+      const session = await mongoose.startSession();
+      
+      const userId = req.user.id;
+      
+      const user = await UserModel.findById(userId)
+      if(!user){
+        return BaseService.sendFailedResponse({error: 'User not found'})
+      }
+
+      session.startTransaction();
+      await ChallengeActionModel.deleteMany({ userId }).session(session);
+      await DietActionModel.deleteMany({ userId }).session(session);
+      await FavoriteProductModel.deleteMany({ userId }).session(session);
+      await NotificationModel.deleteMany({ userId }).session(session);
+      await OrderModel.deleteMany({ userId }).session(session);
+      await SleepEntryModel.deleteMany({ userId }).session(session);
+      await WaterEntryModel.deleteMany({ userId }).session(session);
+      await WorkoutPlanActionModel.deleteMany({ userId }).session(session);
+
+      await UserModel.findByIdAndDelete(userId).session(session);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return BaseService.sendSuccessResponse({
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession(); 
+      return BaseService.sendFailedResponse({
+        error: "Failed to fetch sleep hours",
       });
     }
   }

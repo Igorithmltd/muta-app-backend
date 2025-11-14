@@ -41,6 +41,7 @@ exports.ROUTE_DELETE_ALL_NOTIFICATION = '/delete-all-notification'
 exports.ROUTE_VERIFY_PHONE_NUMBER = '/verify-phone-number'
 exports.ROUTE_UPDATE_PHONE_NUMBER = '/update-phone-number'
 exports.ROUTE_COACH_DASHBOARD = '/coach-dashboard'
+exports.ROUTE_DELETE_USER = '/delete-user'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'

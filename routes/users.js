@@ -49,6 +49,7 @@ const {
   ROUTE_UPDATE_PHONE_NUMBER,
   ROUTE_COACH_DASHBOARD,
   ROUTE_GET_UNREAD_NOTIFICATIONS_COUNT,
+  ROUTE_DELETE_USER,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2558,6 +2559,23 @@ router.post(ROUTE_UPDATE_PHONE_NUMBER, auth, (req, res) => {
 router.get(ROUTE_COACH_DASHBOARD, auth, (req, res) => {
   const userController = new UserController();
   return userController.coachDashboardData(req, res);
+});
+
+/**
+ * @swagger
+ * /users/delete-user:
+ *   delete:
+ *     summary: Delete a logged user by ID
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ */
+router.delete(ROUTE_DELETE_USER, auth, (req, res) => {
+  const userController = new UserController();
+  return userController.deleteUser(req, res);
 });
 
 module.exports = router;

@@ -451,6 +451,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, coachDashboardData.data)
     }
+    async deleteUser(req, res){
+        const userService = new UserService()
+        const deleteUser = await userService.deleteUser(req)
+        if(!deleteUser.success){
+            return BaseController.sendFailedResponse(res, deleteUser.data)
+        }
+        return BaseController.sendSuccessResponse(res, deleteUser.data)
+    }
 }
 
 module.exports = UserController
