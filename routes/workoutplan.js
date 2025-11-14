@@ -549,7 +549,7 @@ router.get(ROUTE_GET_WORKOUTPLAN + "/:id", auth, (req, res) => {
 
 /**
  * @swagger
- * /workoutplan/update-workoutplan:
+ * /workoutplan/update-workoutplan/{id}:
  *   put:
  *     summary: Update workoutplan
  *     tags:
