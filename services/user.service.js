@@ -908,15 +908,16 @@ class UserService extends BaseService {
 
       let validateRule = {
         firstName: "string|required",
-        lastName: "string|required",
+        // lastName: "string|required",
         gender: "string|required",
       };
 
       if (userType === "user") {
-        validateRule.age = "integer|required";
+        // validateRule.age = "integer|required";
       } else if (userType === "coach") {
         validateRule.yearsOfExperience = "integer|required";
         validateRule.location = "string|required";
+        validateRule.lastName = "string|required";
       }
 
       const validateMessage = {
