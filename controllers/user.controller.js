@@ -467,6 +467,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, deleteUser.data)
     }
+    async customerSupport(req, res){
+        const userService = new UserService()
+        const customerSupport = await userService.customerSupport(req, res)
+        if(!customerSupport.success){
+            return BaseController.sendFailedResponse(res, customerSupport.data)
+        }
+        return BaseController.sendSuccessResponse(res, customerSupport.data)
+    }
 }
 
 module.exports = UserController

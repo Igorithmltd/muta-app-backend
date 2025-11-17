@@ -50,6 +50,7 @@ const {
   ROUTE_COACH_DASHBOARD,
   ROUTE_GET_UNREAD_NOTIFICATIONS_COUNT,
   ROUTE_DELETE_USER,
+  ROUTE_CUSTOMER_SUPPORT,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2577,5 +2578,42 @@ router.delete(ROUTE_DELETE_USER, auth, (req, res) => {
   const userController = new UserController();
   return userController.deleteUser(req, res);
 });
+
+/**
+ * @swagger
+ * /users/get-account:
+ *   get:
+ *     summary: Get user details
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: The user details object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 whatsappNumber:
+ *                   type: string
+ *                   description: Full name of the user
+ *                   example: John Doe
+ *                 supportEmail:
+ *                   type: string
+ *                   format: email
+ *                   description: User's email address
+ *                   example: johndoe@example.com
+ *                 supportCall:
+ *                   type: string
+ *                   description: User's phone number
+ *                   example: 08151128383
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_CUSTOMER_SUPPORT, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.customerSupport(req, res);
+});
+
 
 module.exports = router;

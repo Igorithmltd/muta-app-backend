@@ -2847,7 +2847,24 @@ class UserService extends BaseService {
       });
     }
   }
+  async customerSupport(req) {
+    try {
+      const whatsappNumber = process.env.SUPPORT_WHATSAPP || "+2347074237297"
+      const supportEmail = process.env.SUPPORT_EMAIL || "mutaapp8@gmail.com"
+      const supportCall = process.env.SUPPORT_CALL || "+2347074237297"
 
+      return BaseService.sendSuccessResponse({ message: {
+        whatsappNumber,
+        supportEmail,
+        supportCall
+      } });
+    } catch (error) {
+      console.log(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
   async deleteUser(req) {
     try {
       const session = await mongoose.startSession();
