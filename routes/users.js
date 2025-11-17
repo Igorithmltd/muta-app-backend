@@ -2581,14 +2581,14 @@ router.delete(ROUTE_DELETE_USER, auth, (req, res) => {
 
 /**
  * @swagger
- * /users/get-account:
+ * /users/customer-support:
  *   get:
- *     summary: Get user details
+ *     summary: Get customer support
  *     tags:
  *       - Users
  *     responses:
  *       200:
- *         description: The user details object
+ *         description: The customer support details object
  *         content:
  *           application/json:
  *             schema:
@@ -2596,8 +2596,8 @@ router.delete(ROUTE_DELETE_USER, auth, (req, res) => {
  *               properties:
  *                 whatsappNumber:
  *                   type: string
- *                   description: Full name of the user
- *                   example: John Doe
+ *                   description: Whatsapp number
+ *                   example: 0811111111
  *                 supportEmail:
  *                   type: string
  *                   format: email
@@ -2605,7 +2605,7 @@ router.delete(ROUTE_DELETE_USER, auth, (req, res) => {
  *                   example: johndoe@example.com
  *                 supportCall:
  *                   type: string
- *                   description: User's phone number
+ *                   description: admin's phone number
  *                   example: 08151128383
  *       500:
  *         description: Server error
