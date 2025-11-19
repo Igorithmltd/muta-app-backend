@@ -535,7 +535,7 @@ router.post(ROUTE_CREATE_PRODUCT_CATEGORY, adminAuth, (req, res)=>{
  */
 router.get(ROUTE_GET_PRODUCT_CATEGORY+"/:id", auth, (req, res)=>{
     const productController = new ProductController()
-    return productController.getProduct(req, res)
+    return productController.getProductCategory(req, res)
 })
 
 /**
@@ -605,7 +605,7 @@ router.get(ROUTE_GET_ALL_PRODUCT_CATEGORIES, auth, (req, res)=>{
  */
 router.put(ROUTE_UPDATE_PRODUCT_CATEGORY+"/:id", adminAuth, (req, res)=>{
     const productController = new ProductController()
-    return productController.updateProduct(req, res)
+    return productController.updateProductCategory(req, res)
 })
 
 /**
@@ -644,7 +644,7 @@ router.put(ROUTE_UPDATE_PRODUCT_CATEGORY+"/:id", adminAuth, (req, res)=>{
  */
 router.delete(ROUTE_DELETE_PRODUCT_CATEGORY+"/:id", adminAuth, (req, res)=>{
     const productController = new ProductController()
-    return productController.deleteProduct(req, res)
+    return productController.deleteProductCategory(req, res)
 })
 
 /**

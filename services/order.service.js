@@ -199,6 +199,35 @@ class OrderService extends BaseService {
       });
     }
   }
+  async updateOrderStatus(req) {
+    try {
+      const userId = req.user.id;
+      const orderId = req.params.id;
+      const status = req.body.status;
+      if(!orderId){
+        return BaseService.sendFailedResponse({ error: "Order ID is required" });
+      }
+      const order =  await OrderModel.findOne({ _id: orderId, userId: userId });
+
+      if (!order) {
+        return BaseService.sendFailedResponse({ error: "Order not found" });
+      }
+      if(order.orderStatus === "pending" && status !== "processing"){
+        return BaseService.sendFailedResponse({ error: "Cannot update status of a delivered order" });
+      }
+
+      order.orderStatus = status;
+      await order.save();
+
+      return BaseService.sendSuccessResponse({
+        message: 'Order status updated successfully',
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
 }
 
 module.exports = OrderService;

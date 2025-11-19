@@ -1514,15 +1514,14 @@ class UserService extends BaseService {
   async getCoachApplications(req, res) {
     try {
       const { status } = req.query;
-      if (!status) {
-        return BaseService.sendFailedResponse({
-          error: "Status query parameter is required",
-        });
-      }
+      // if (!status) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Status query parameter is required",
+      //   });
+      // }
       const query = status
         ? { "coachVerification.status": status, userType: "coach" }
         : { userType: "coach" };
-      console.log(query);
 
       const coaches = await UserModel.find(query, {
         password: 0,

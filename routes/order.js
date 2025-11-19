@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const OrderController = require("../controllers/order.controller");
-const { ROUTE_CREATE_ORDER, ROUTE_GET_ALL_ORDERS, ROUTE_GET_ORDER, ROUTE_GET_USER_ORDER, ROUTE_CANCEL_ORDER } = require("../util/page-route");
+const { ROUTE_CREATE_ORDER, ROUTE_GET_ALL_ORDERS, ROUTE_GET_ORDER, ROUTE_GET_USER_ORDER, ROUTE_CANCEL_ORDER, ROUTE_UPDATE_ORDER } = require("../util/page-route");
 const auth = require("../middlewares/auth");
+const adminAuth = require("../middlewares/adminAuth");
 
 /**
  * @swagger
@@ -345,7 +346,7 @@ router.get(ROUTE_GET_ALL_ORDERS, auth, (req, res)=>{
 /**
  * @swagger
  * /order/cancel-order/{id}:
- *   patch:
+ *   put:
  *     summary: Cancel an order by its ID
  *     tags: [Order]
  *     security:
@@ -384,6 +385,50 @@ router.get(ROUTE_GET_ALL_ORDERS, auth, (req, res)=>{
 router.put(ROUTE_CANCEL_ORDER+"/:id", auth, (req, res)=>{
     const orderController = new OrderController();
     return orderController.cancelOrder(req, res);
+});
+
+/**
+ * @swagger
+ * /order/update-order/{id}:
+ *   put:
+ *     summary: update an order status by its ID
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the order status to update
+ *         schema:
+ *           type: string
+ *           example: 652dcb9b4ad2d58b9dfb6e9e
+ *     responses:
+ *       200:
+ *         description: Order status successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Order status successfully
+ *                 order:
+ *                   type: object
+ *                   description: The status order details
+ *       400:
+ *         description: Invalid order ID or order cannot be set to the status
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPDATE_ORDER+"/:id", adminAuth, (req, res)=>{
+    const orderController = new OrderController();
+    return orderController.updateOrderStatus(req, res);
 });
 
 
