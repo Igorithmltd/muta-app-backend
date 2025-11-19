@@ -55,6 +55,51 @@ router.post(ROUTE_REGISTER, (req, res)=>{
 
 /**
  * @swagger
+ * /auth/google-signup:
+ *   post:
+ *     summary: Register new user through google
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 format: text
+ *                 example: <your_id_token>
+ *               userType:
+ *                 type: string
+ *                 format: text
+ *                 example: (user | coach)
+ *     responses:
+ *       200:
+ *         description: Registration successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: <access_token>
+ *       400:
+ *         description: Missing or invalid email
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_GOOGLE_SIGNUP, (req, res)=>{
+    const userController = new UserController()
+    return userController.googleSignup(req, res)
+})
+
+/**
+ * @swagger
  * /auth/apple-signup:
  *   post:
  *     summary: Register new user through apple
@@ -81,51 +126,6 @@ router.post(ROUTE_REGISTER, (req, res)=>{
  *                 type: string
  *                 format: text
  *                 example: <your_authorization_code>
- *     responses:
- *       200:
- *         description: Registration successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: <access_token>
- *       400:
- *         description: Missing or invalid email
- *       500:
- *         description: Server error
- */
-router.post(ROUTE_GOOGLE_SIGNUP, (req, res)=>{
-    const userController = new UserController()
-    return userController.googleSignup(req, res)
-})
-
-/**
- * @swagger
- * /auth/google-signup:
- *   post:
- *     summary: Register new user through google
- *     tags:
- *       - Auth
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               idToken:
- *                 type: string
- *                 format: text
- *                 example: <your_id_token>
- *               userType:
- *                 type: string
- *                 format: text
- *                 example: (user | coach)
  *     responses:
  *       200:
  *         description: Registration successful
