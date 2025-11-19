@@ -391,7 +391,7 @@ router.put(ROUTE_CANCEL_ORDER+"/:id", auth, (req, res)=>{
  * @swagger
  * /order/update-order/{id}:
  *   put:
- *     summary: update an order status by its ID
+ *     summary: Update an order status by its ID
  *     tags: [Order]
  *     security:
  *       - bearerAuth: []
@@ -399,13 +399,27 @@ router.put(ROUTE_CANCEL_ORDER+"/:id", auth, (req, res)=>{
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the order status to update
+ *         description: The ID of the order to update
  *         schema:
  *           type: string
  *           example: 652dcb9b4ad2d58b9dfb6e9e
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 description: New status for the order
+ *                 enum: [pending, processing, shipped, delivered, cancelled]
+ *                 example: delivered
+ *             required:
+ *               - status
  *     responses:
  *       200:
- *         description: Order status successfully
+ *         description: Order status successfully updated
  *         content:
  *           application/json:
  *             schema:
@@ -416,7 +430,7 @@ router.put(ROUTE_CANCEL_ORDER+"/:id", auth, (req, res)=>{
  *                   example: Order status successfully
  *                 order:
  *                   type: object
- *                   description: The status order details
+ *                   description: The updated order details
  *       400:
  *         description: Invalid order ID or order cannot be set to the status
  *       401:
