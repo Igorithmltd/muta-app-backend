@@ -2493,10 +2493,11 @@ class UserService extends BaseService {
       });
 
       const formattedNotifications = notifications.map((notif) => ({
-        id: notif._id,
-        title: notif.title,
-        body: notif.body,
-        time: formatNotificationTime(notif.timestamp),
+        // id: notif._id,
+        // title: notif.title,
+        // body: notif.body,
+        time: formatNotificationTime(notif.createdAt),
+        ...notif._doc,
       }));
 
       return BaseService.sendSuccessResponse({
