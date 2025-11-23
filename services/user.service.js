@@ -410,10 +410,10 @@ class UserService extends BaseService {
   async loginUser(req, res) {
     try {
       const post = req.body;
-      const { email, password } = post;
+      const { email, password, phoneNumber } = post;
 
       const validateRule = {
-        email: "email|required",
+        userType: "string|required",
         password: "string|required",
       };
       const validateMessage = {
@@ -427,7 +427,11 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const userExists = await UserModel.findOne({ email });
+      if(!email && !phoneNumber){
+        return BaseService.sendFailedResponse({ error: "Please provide email or phone number to login" });
+      }
+
+      const userExists = await UserModel.findOne({ userType, $or: [{ email }, { phoneNumber }] });
 
       if (empty(userExists)) {
         return BaseService.sendFailedResponse({
@@ -985,6 +989,11 @@ class UserService extends BaseService {
       };
 
       await UserModel.findByIdAndUpdate(userId, onboardingData, { new: true });
+      await NotificationModel.create({
+        userId: userId,
+        title: "Welcome to Muta App!",
+        body: "Thank you for completing your onboarding process."
+      })
 
       return BaseService.sendSuccessResponse({
         message: "Onboarding completed successfully",
@@ -2013,7 +2022,10 @@ class UserService extends BaseService {
       }
 
       // Validate recipient
-      if (coupon.recipientEmail.toLowerCase() !== user.email.toLowerCase()) {
+      if (
+        coupon.recipientEmail?.toLowerCase() !== user.email?.toLowerCase() &&
+        coupon.phoneNumber !== user.phoneNumber
+      ) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
@@ -2035,7 +2047,7 @@ class UserService extends BaseService {
       const plan = await PlanModel.findOne({
         "categories.paystackSubscriptionId": coupon.planId,
       });
-      console.log({ plan, c: coupon.planId });
+
       if (!plan) {
         return BaseService.sendFailedResponse({
           error: "Associated plan not found",
@@ -2701,7 +2713,9 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const otpResult = await sendOTP(phoneNumber, otp);
+      const message = `Your verification code is ${otp}`
+
+      const otpResult = await sendOTP(phoneNumber, message);
       // console.log({otpResult: otpResult.data})
 
       if (otpResult.code == "ok") {
@@ -2765,6 +2779,7 @@ class UserService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: "Phone updated successfully",
       });
+
     } catch (error) {
       console.log(error);
       return BaseService.sendFailedResponse({

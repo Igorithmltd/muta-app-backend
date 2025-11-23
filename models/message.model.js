@@ -39,6 +39,10 @@ const MessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    file: {
+      imageurl: String,
+      publicId: String
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,

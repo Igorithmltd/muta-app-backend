@@ -2,7 +2,7 @@ const axios = require("axios");
 const TERMII_API_KEY = process.env.TERMII_API_KEY;
 const TERMII_SENDER_ID = process.env.TERMII_SENDER_ID;
 
-const sendOTP = async (phoneNumber, code) => {
+const sendOTP = async (phoneNumber, message) => {
   try {
     const phoneNo = formatPhoneNumber(phoneNumber);
     // console.log({phoneNo, code})
@@ -17,7 +17,7 @@ const sendOTP = async (phoneNumber, code) => {
         channel: "generic", // Options: generic, dnd, whatsapp
         type: "plain",
         //   sms: code,
-        sms: `Your verification code is ${code}`,
+        sms: message,
       }
     );
 

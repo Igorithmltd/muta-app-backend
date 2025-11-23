@@ -111,6 +111,7 @@ const webhookFunction = async (req, res) => {
 
         // Gift subscription flow
         const recipientEmail = metadata.recipientEmail;
+        const phoneNumber = metadata.phoneNumber;
         const duration = metadata.duration || "";
         const couponCode =
           "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -153,27 +154,39 @@ const webhookFunction = async (req, res) => {
           }
           const categoryDuration = matchedCategory.duration;
 
-
           // Generate coupon for gift recipient
 
-          await CouponModel.create({
+          const couponData = {
             code: couponCode,
             coachId,
             planId: paystackSubscriptionCode,
             giftedByUserId: user._id,
-            recipientEmail: metadata.recipientEmail || "",
             used: false,
             authorizationCode: authorizationCode,
             customerCode: customerCode,
+            recipientEmail: recipientEmail || user.email,
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days expiry
-          });
+          };
 
-          await sendEmail({
-            from: "Muta App <no-reply@fitnessapp.com>",
-            subject: `You've received a gift subscription!`,
-            to: metadata.recipientEmail || user.email,
-            html: giftMessage,
-          });
+          if (!metadata.isGiftEmail) {
+            couponData.phoneNumber = phoneNumber || "";
+          }
+
+          await CouponModel.create();
+
+          if (metadata.isGiftEmail) {
+            await sendEmail({
+              from: "Muta App <no-reply@fitnessapp.com>",
+              subject: `You've received a gift subscription!`,
+              to: metadata.recipientEmail || user.email,
+              html: giftMessage,
+            });
+          } else {
+            const message = `You've received a gift subscription from ${user.firstName}
+             on Muta App! Use the code ${couponCode} to redeem your gift. 
+             Time to get moving and stay fit!`;
+            await sendOTP(phoneNumber, message);
+          }
 
           // Create Payment record for gift subscription too
           await PaymentModel.create({
@@ -250,7 +263,7 @@ const webhookFunction = async (req, res) => {
             participants: { $all: [user._id, coachId] },
           });
 
-          if(!existingRoom){
+          if (!existingRoom) {
             await ChatRoomModel.create({
               type: "private",
               participants: [user._id, coachId],
