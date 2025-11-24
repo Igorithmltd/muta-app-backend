@@ -786,7 +786,7 @@ class UserService extends BaseService {
       const emailHtml = `
           <h1>Your password OTP has been verified</h1>
           <p>Hi <strong>${email}</strong>,</p>
-          <p>Please reset your password</p>
+          <p>You have successfully reset your password</p>
       `;
       await sendEmail({
         subject: "Password Reset Verification",
