@@ -544,7 +544,7 @@ class UserService extends BaseService {
       // Generate OTP
       const otp = generateOTP();
       userExists.otp = otp;
-      userExists.otp_expiry = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+      userExists.otpExpiresAt = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
       await userExists.save();
       // Send OTP email
       const emailHtml = `
