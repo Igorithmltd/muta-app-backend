@@ -425,13 +425,13 @@ class WorkoutplanService extends BaseService {
       type: "streak",
     });
 
-    // if (user && user.deviceToken) {
-    //   await sendPushNotification({
-    //     title: "You just joined a new workout plan",
-    //     body: `You have to rememeber that consistency is the key. Well done!`,
-    //     deviceToken: user.deviceToken,
-    //   });
-    // }
+    if (user && user.deviceToken) {
+      await sendPushNotification({
+        title: "You just joined a new workout plan",
+        body: `You have to rememeber that consistency is the key. Well done!`,
+        deviceToken: user.deviceToken,
+      });
+    }
 
     await newWorkoutplanAction.populate({
       path: "workoutPlanId",

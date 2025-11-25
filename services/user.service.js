@@ -410,7 +410,7 @@ class UserService extends BaseService {
   async loginUser(req, res) {
     try {
       const post = req.body;
-      const { email, password, phoneNumber } = post;
+      const { email, password, phoneNumber, userType } = post;
 
       const validateRule = {
         userType: "string|required",
@@ -994,6 +994,13 @@ class UserService extends BaseService {
         title: "Welcome to Muta App!",
         body: "Thank you for completing your onboarding process."
       })
+      if (user.deviceToken) {
+        sendPushNotification({
+          deviceToken: user.deviceToken,
+          title: "Welcome to Muta App!",
+          body: "Thank you for completeting your onboarding process.",
+        });
+      }
 
       return BaseService.sendSuccessResponse({
         message: "Onboarding completed successfully",
