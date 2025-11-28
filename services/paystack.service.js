@@ -40,7 +40,6 @@ class PaystackService extends BaseService {
         duration: "string|required",
         paystackSubscriptionCode: "string|required",
         isGift: "boolean|required",
-        isGiftEmail: "string|required",
       };
 
       const validateMessage = {
@@ -92,6 +91,7 @@ class PaystackService extends BaseService {
       // }
 
       const customerCode = user.customerCode || null;
+      const isGiftEmail = this.isInputEmail(recipientEmail) ? true : false;
 
       // if(!customerCode){
       //   return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
@@ -208,6 +208,11 @@ class PaystackService extends BaseService {
     );
     return resp.data;
   }
+  isInputEmail(input) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(input.trim());
+  }
+  
 }
 
 module.exports = PaystackService;
