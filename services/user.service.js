@@ -845,7 +845,7 @@ class UserService extends BaseService {
       }
 
       userExists.password = newPassword;
-      userExists.markModified("password");
+      // userExists.markModified("password");
       await userExists.save();
 
       // Send OTP email
