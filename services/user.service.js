@@ -2063,7 +2063,6 @@ class UserService extends BaseService {
 
       // Find category from coupon or fallback (assuming coupon stores categoryDuration)
       const paystackSubscriptionId = coupon.planId; // e.g., "monthly" or "yearly"
-      console.log({ plan: plan.categories, categoryDuration: coupon });
       const category = plan.categories.find(
         (cat) => cat.paystackSubscriptionId === paystackSubscriptionId
       );
@@ -2137,6 +2136,19 @@ class UserService extends BaseService {
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
+      await NotificationModel.create({
+        userId,
+        title: "Coupon Redeemed",
+        body: `You have successfully redeemed your coupon for a ${category.duration} subscription.`,
+        time: new Date(),
+        type: "subscription",
+      });
+
+      await NotificationModel.create({
+        userId: coupon.coachId,
+        title: "Subscription Gift Redeemed",
+        body: `Your gifted subscription coupon has been redeemed by ${user.firstName} ${user.lastName}.`,
+      });
       // coupon.usedAt = new Date();
       await coupon.save();
 

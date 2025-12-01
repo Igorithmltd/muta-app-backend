@@ -8,6 +8,7 @@ const orderModel = require("../models/order.model.js");
 const PaymentModel = require("../models/payment.model.js");
 const sendEmail = require("./emailService.js");
 const CouponModel = require("../models/coupon.model.js");
+const NotificationModel = require("../models/notification.model.js");
 // const WalletModel = require("../models/wallet.model.js");
 // const TransactionModel = require("../models/transaction.model.js");
 // const NotificationModel = require("../models/notification.model.js");
@@ -111,7 +112,6 @@ const webhookFunction = async (req, res) => {
 
         // Gift subscription flow
         const recipientEmail = metadata.recipientEmail;
-        const phoneNumber = metadata.phoneNumber;
         const duration = metadata.duration || "";
         const couponCode =
           "MutaG-" + Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -152,6 +152,7 @@ const webhookFunction = async (req, res) => {
               .status(200)
               .send("Category not found for gift subscription");
           }
+          
           const categoryDuration = matchedCategory.duration;
 
           // Generate coupon for gift recipient
@@ -168,25 +169,14 @@ const webhookFunction = async (req, res) => {
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days expiry
           };
 
-          if (!metadata.isGiftEmail) {
-            couponData.phoneNumber = phoneNumber || "";
-          }
+          await CouponModel.create(couponData);
 
-          await CouponModel.create();
-
-          if (metadata.isGiftEmail) {
             await sendEmail({
               from: "Muta App <no-reply@fitnessapp.com>",
               subject: `You've received a gift subscription!`,
               to: metadata.recipientEmail || user.email,
               html: giftMessage,
             });
-          } else {
-            const message = `You've received a gift subscription from ${user.firstName}
-             on Muta App! Use the code ${couponCode} to redeem your gift. 
-             Time to get moving and stay fit!`;
-            await sendOTP(phoneNumber, message);
-          }
 
           // Create Payment record for gift subscription too
           await PaymentModel.create({
@@ -315,6 +305,24 @@ const webhookFunction = async (req, res) => {
             paystackAuthorizationToken: authorizationCode,
             subscriptionCode: paystackSubscriptionId,
           });
+
+          // await NotificationModel.create({
+          //   userId,
+          //   title: "Your workout streak is alive",
+          //   body: `You have logged workouts for day ${dayNumber}. Keep it going - Consistency is your secret weapon.`,
+          //   createdAt: new Date(),
+          // });
+          await NotificationModel.create({
+            user: user._id,
+            title: "Subscription Activated",
+            body: `Your subscription is now active and will expire on ${newExpiryDate.toDateString()}. Time to crush those fitness goals!`,
+          })
+
+          await NotificationModel.create({
+            user: coachId,
+            title: "New Subscriber Alert!",
+            body: `${user.firstName} ${user.lastName} has just subscribed to your coaching plan. Time to inspire and guide them to greatness!`,
+          })
 
           await user.save();
           await subscription.save();

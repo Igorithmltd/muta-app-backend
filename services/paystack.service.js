@@ -91,7 +91,7 @@ class PaystackService extends BaseService {
       // }
 
       const customerCode = user.customerCode || null;
-      const isGiftEmail = this.isInputEmail(recipientEmail) ? true : false;
+      // const isGiftEmail = this.isInputEmail(recipientEmail) ? true : false;
 
       // if(!customerCode){
       //   return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
@@ -142,7 +142,7 @@ class PaystackService extends BaseService {
             coachId,
             type: "subscription",
             isGift,
-            isGiftEmail,
+            // isGiftEmail,
             ...(giftMessage && { giftMessage }),
             ...(recipientEmail && { recipientEmail }),
             ...(phoneNumber && { phoneNumber }),
