@@ -121,7 +121,10 @@ class WorkoutplanService extends BaseService {
       // return console.log('newChallenge')
 
       // Create a new challenge
-      const workoutplan = new WorkoutPlanModel({...post, durationInDays: post.planRounds.length});
+      const workoutplan = new WorkoutPlanModel({
+        ...post,
+        durationInDays: post.planRounds.length,
+      });
       // Save the workoutplan to the database
       const savedWorkoutplan = await workoutplan.save();
 
@@ -139,20 +142,22 @@ class WorkoutplanService extends BaseService {
       const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
       const limit = parseInt(req.query.limit, 10) || 10; // Default to limit 10 if not provided
       const skip = (page - 1) * limit; // Calculate skip based on current page and limit
-  
+
       // Create a filter for title if it's provided in the query params
-      const filter = {}
-      filter["title"] = new RegExp(title, "i"); // "i" makes it case-insensitive
-      if(categoryId){
+      const filter = {};
+      if (title) {
+        filter["title"] = new RegExp(title, "i"); // "i" makes it case-insensitive
+      }
+      if (categoryId) {
         if (!mongoose.isValidObjectId(categoryId)) {
           return BaseService.sendFailedResponse({
             error: "Category ID is required",
           });
         }
 
-        filter['category'] = categoryId;
+        filter["category"] = categoryId;
       }
-  
+
       // Fetch workout plans and total count in parallel
       const [workoutPlans, totalCount] = await Promise.all([
         WorkoutPlanModel.find(filter)
@@ -163,7 +168,7 @@ class WorkoutplanService extends BaseService {
           .lean(), // Use lean() to return plain JavaScript objects
         WorkoutPlanModel.countDocuments(filter), // Get the total count of documents that match the filter
       ]);
-  
+
       // Enrich each workout plan with user count and ratings
       const enrichedWorkoutPlans = await Promise.all(
         workoutPlans.map(async (plan) => {
@@ -171,30 +176,31 @@ class WorkoutplanService extends BaseService {
           const usersOnPlanCount = await WorkoutPlanActionModel.countDocuments({
             workoutPlanId: plan._id,
           });
-  
+
           // Get the total ratings count for the workout plan
-          const numberOfRatings = plan.totalRatings || (plan.ratings ? plan.ratings.length : 0);
-  
+          const numberOfRatings =
+            plan.totalRatings || (plan.ratings ? plan.ratings.length : 0);
+
           return {
             ...plan,
             usersOnPlanCount, // Add user count information
-            numberOfRatings,  // Add ratings information
+            numberOfRatings, // Add ratings information
           };
         })
       );
-  
+
       // Calculate total pages for pagination
       const totalPages = Math.ceil(totalCount / limit);
-  
+
       return BaseService.sendSuccessResponse({
         message: "Workout plans fetched successfully.",
         data: {
           workoutPlans: enrichedWorkoutPlans, // Array of enriched workout plans
           pagination: {
-            totalCount,     // Total number of workout plans
-            totalPages,     // Total pages available
-            currentPage: page,  // Current page
-            pageSize: limit,   // Items per page (limit)
+            totalCount, // Total number of workout plans
+            totalPages, // Total pages available
+            currentPage: page, // Current page
+            pageSize: limit, // Items per page (limit)
           },
         },
       });
@@ -204,7 +210,7 @@ class WorkoutplanService extends BaseService {
         error: "An error occurred while fetching workout plans.",
       });
     }
-  }  
+  }
   async getWorkoutplan(req) {
     try {
       const workoutplanId = req.params.id;
@@ -236,7 +242,7 @@ class WorkoutplanService extends BaseService {
   async updateWorkoutplan(req) {
     try {
       const workoutplanId = req.params.id;
-      const post = req.body
+      const post = req.body;
 
       const workoutplan = await WorkoutPlanModel.findById(workoutplanId);
       if (!workoutplan) {
@@ -346,7 +352,7 @@ class WorkoutplanService extends BaseService {
     });
 
     if (joinedWorkoutplan) {
-      if( joinedWorkoutplan.status === "in-progress" ) {
+      if (joinedWorkoutplan.status === "in-progress") {
         return BaseService.sendSuccessResponse({
           message: "You have already joined this Workout plan",
           workoutPlanAction: joinedWorkoutplan,
@@ -361,9 +367,7 @@ class WorkoutplanService extends BaseService {
       }
     }
 
-
     // Helper to format date strings like "Jul 23"
-   
 
     // Generate planRounds with dayLabel and dayDate based on roundsCount or planRounds length
     const planRounds = [];
@@ -561,42 +565,42 @@ class WorkoutplanService extends BaseService {
     const userId = req.user.id;
     const post = req.body;
     const { select } = req.query;
-  
+
     const validateRule = {
       workoutplanRoundId: "string|required", // used as either day._id or round._id
       workoutplanId: "string|required",
     };
-  
+
     const validateMessage = {
       required: ":attribute is required",
     };
-  
+
     const validateResult = validateData(post, validateRule, validateMessage);
-  
+
     if (!validateResult.success) {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
-  
+
     const user = await UserModel.findById(userId);
-  
+
     const workoutplan = await WorkoutPlanModel.findById(post.workoutplanId);
     if (!workoutplan) {
       return BaseService.sendFailedResponse({
         error: "Workout plan not found",
       });
     }
-  
+
     const workoutplanAction = await WorkoutPlanActionModel.findOne({
       userId,
       workoutPlanId: post.workoutplanId,
     });
-  
+
     if (!workoutplanAction) {
       return BaseService.sendFailedResponse({
         error: "You have not joined this workout plan",
       });
     }
-  
+
     // ──────────────────────────────────────────────
     // 👉 If select=all, treat workoutplanRoundId as day._id and mark all rounds in that day
     // ──────────────────────────────────────────────
@@ -604,13 +608,13 @@ class WorkoutplanService extends BaseService {
       const day = workoutplanAction.planRounds.find(
         (d) => d._id.toString() === post.workoutplanRoundId.toString()
       );
-  
+
       if (!day) {
         return BaseService.sendFailedResponse({
           error: "Workout day (parent round) not found",
         });
       }
-  
+
       // Mark all rounds in this day as completed
       for (const round of day.rounds) {
         round.status = "completed";
@@ -620,29 +624,29 @@ class WorkoutplanService extends BaseService {
       // 👉 Default: mark single round only using round._id
       // ──────────────────────────────────────────────
       let foundRound = null;
-  
+
       for (const day of workoutplanAction.planRounds) {
         foundRound = day.rounds.find(
           (round) => round._id.toString() === post.workoutplanRoundId.toString()
         );
         if (foundRound) break;
       }
-  
+
       if (!foundRound) {
         return BaseService.sendFailedResponse({
           error: "Workout round not found",
         });
       }
-  
+
       if (foundRound.status === "completed") {
         return BaseService.sendSuccessResponse({
           message: "You have already completed this round",
         });
       }
-  
+
       foundRound.status = "completed";
     }
-  
+
     // ──────────────────────────────────────────────
     // 👉 Check if all rounds in all days are completed
     // ──────────────────────────────────────────────
@@ -650,22 +654,22 @@ class WorkoutplanService extends BaseService {
     const completedRoundsCount = allRounds.filter(
       (r) => r.status === "completed"
     ).length;
-  
+
     if (completedRoundsCount === allRounds.length) {
       workoutplanAction.status = "completed";
     }
-  
+
     await workoutplanAction.save();
-  
+
     const dayNumber = completedRoundsCount;
-  
+
     await NotificationModel.create({
       userId,
       title: "Your workout streak is alive",
       body: `You have logged workouts for day ${dayNumber}. Keep it going - Consistency is your secret weapon.`,
       createdAt: new Date(),
     });
-  
+
     if (user.deviceToken) {
       await sendPushNotification({
         title: "Your workout streak is alive",
@@ -673,14 +677,14 @@ class WorkoutplanService extends BaseService {
         deviceToken: user.deviceToken,
       });
     }
-  
+
     return BaseService.sendSuccessResponse({
       message:
         select === "all"
           ? "All rounds in selected day marked as completed"
           : "Workout round marked as completed",
     });
-  }  
+  }
   async getWorkoutplanAction(req) {
     try {
       const workoutplanId = req.params.id;
@@ -737,7 +741,7 @@ class WorkoutplanService extends BaseService {
         });
       }
 
-      if( workoutplanAction.status == "not-started" ) {
+      if (workoutplanAction.status == "not-started") {
         return BaseService.sendFailedResponse({
           error: "Workout plan is reset already",
         });
@@ -874,7 +878,7 @@ class WorkoutplanService extends BaseService {
       })
         .populate({ path: "workoutPlanId", populate: { path: "category" } })
         .sort({ createdAt: -1 });
-  
+
       const plansWithDaysPassed = activeWorkoutplans.map((plan) => {
         // Count how many planRounds (days) are completed:
         // A day is completed only if all rounds in that day have status "completed"
@@ -886,14 +890,14 @@ class WorkoutplanService extends BaseService {
         }, 0);
         // admin- 6867ddd1d2db0056c5425cdc
         // jerry - 68e78088ce1244e5cc4f0f0b
-  
+
         // Convert plan to plain object and attach daysPassed as completed days count
         const planObj = plan.toObject();
         planObj.daysCompleted = completedDaysCount;
-  
+
         return planObj;
       });
-  
+
       return BaseService.sendSuccessResponse({
         message: plansWithDaysPassed,
       });
@@ -903,7 +907,7 @@ class WorkoutplanService extends BaseService {
       });
     }
   }
-  
+
   async popularWorkoutPlans() {
     try {
       const result = await WorkoutPlanActionModel.aggregate([
