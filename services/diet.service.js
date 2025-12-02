@@ -92,13 +92,24 @@ class DietServicee extends BaseService {
   }
   async getAllDiets(req) {
     try {
+      const { categoryId } = req.query;
+      if(!mongoose.isValidObjectId(categoryId)){
+        return BaseService.sendFailedResponse({error: 'Provide a valid id'})
+      }
+
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
+      
+      const filter = {}
+
+      if(categoryId){
+        filter.category = categoryId
+      }
 
       // Fetch diets and total count in parallel
       const [allDiet, totalCount] = await Promise.all([
-        DietModel.find({})
+        DietModel.find(filter)
           .populate("category")
           .sort({ createdAt: -1 })
           .skip(skip)
