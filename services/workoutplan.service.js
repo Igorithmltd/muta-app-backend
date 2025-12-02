@@ -135,13 +135,23 @@ class WorkoutplanService extends BaseService {
   }
   async getWorkoutplans(req) {
     try {
-      const { title } = req.query; // Destructure title if it's in the query params
+      const { title, id } = req.query; // Destructure title if it's in the query params
       const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
       const limit = parseInt(req.query.limit, 10) || 10; // Default to limit 10 if not provided
       const skip = (page - 1) * limit; // Calculate skip based on current page and limit
   
       // Create a filter for title if it's provided in the query params
-      const filter = title ? { title: new RegExp(title, "i") } : {}; // "i" makes it case-insensitive
+      const filter = {}
+      filter["title"] = new RegExp(title, "i"); // "i" makes it case-insensitive
+      if(id){
+        if (!mongoose.isValidObjectId(id)) {
+          return BaseService.sendFailedResponse({
+            error: "Category ID is required",
+          });
+        }
+
+        filter['category'] = id;
+      }
   
       // Fetch workout plans and total count in parallel
       const [workoutPlans, totalCount] = await Promise.all([
