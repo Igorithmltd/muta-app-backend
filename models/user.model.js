@@ -101,23 +101,23 @@ const UserSchema = new mongoose.Schema(
     //     ref: "Product",
     //   },
     // ],
-    coachVerification: {
-      status: {
-        type: String,
-        enum: ["pending", "approved", "rejected"],
-        default: "pending",
-      },
-      governmentIssuedId: {
-        imageUrl: { type: String },
-        publicId: { type: String },
-      },
-      coachCertificate: {
-        imageUrl: { type: String },
-        publicId: { type: String },
-      },
-      submittedAt: Date,
-      reviewedAt: Date,
-    },
+    // coachVerification: {
+    //   status: {
+    //     type: String,
+    //     enum: ["pending", "approved", "rejected"],
+    //     default: "pending",
+    //   },
+    //   governmentIssuedId: {
+    //     imageUrl: { type: String },
+    //     publicId: { type: String },
+    //   },
+    //   coachCertificate: {
+    //     imageUrl: { type: String },
+    //     publicId: { type: String },
+    //   },
+    //   submittedAt: Date,
+    //   reviewedAt: Date,
+    // },
   },
   { timestamps: true }
 );

@@ -3,7 +3,7 @@ const sendEmail = require("../util/emailService");
 const BaseService = require("./base");
 const UserModel = require("../models/user.model");
 const { empty } = require("../util");
-const jwt = require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
 const validateData = require("../util/validate");
 const {
   generateOTP,
@@ -33,6 +33,7 @@ const DietActionModel = require("../models/dietAction.model");
 const FavoriteProductModel = require("../models/favorite.model");
 const OrderModel = require("../models/order.model");
 const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
+const VerificationApplicationModel = require("../models/verification-applications.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -213,78 +214,103 @@ class UserService extends BaseService {
     try {
       const {
         authorizationCode, // The authorization code from Apple
-        idToken,          // The id_token from Apple (used to extract user info)
-        userType,          // The type of user (e.g., admin, regular)
+        idToken, // The id_token from Apple (used to extract user info)
+        userType, // The type of user (e.g., admin, regular)
       } = req.body;
-  
+
       // Replace with your Apple OAuth credentials
       const APPLE_CLIENT_ID = process.env.APPLE_CLIENT_ID; // Your Apple Service ID (client ID)
       const APPLE_CLIENT_SECRET = process.env.APPLE_CLIENT_SECRET; // Your Apple Client Secret (generated from Apple Developer Console)
       const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID; // Your Apple Team ID (from Apple Developer Console)
       const APPLE_KEY_ID = process.env.APPLE_KEY_ID; // Your Key ID from Apple (from the private key you uploaded in Apple Developer Console)
-      
+
       // 1. Validate the incoming data (similar to Google signup validation)
       const validateRule = {
-        authorizationCode: 'string|required',
-        idToken: 'string|required',
-        userType: 'string|required',
+        authorizationCode: "string|required",
+        idToken: "string|required",
+        userType: "string|required",
       };
-  
+
       const validateMessage = {
-        required: ':attribute is required',
+        required: ":attribute is required",
       };
-  
-      const validateResult = validateData(req.body, validateRule, validateMessage);
-  
+
+      const validateResult = validateData(
+        req.body,
+        validateRule,
+        validateMessage
+      );
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       // 2. Decode the ID Token (optional but useful for debugging)
       const decodedToken = jwt.decode(idToken, { complete: true });
-      console.log('Decoded Apple ID Token:', decodedToken);
-  
+      console.log("Decoded Apple ID Token:", decodedToken);
+
       // 3. Exchange authorization code for access and refresh tokens
-      const tokenResponse = await axios.post('https://appleid.apple.com/auth/token', null, {
-        params: {
-          client_id: APPLE_CLIENT_ID,
-          client_secret: APPLE_CLIENT_SECRET,
-          code: authorizationCode,
-          grant_type: 'authorization_code',
-          redirect_uri: 'https://yourdomain.com/auth/apple/callback', // Replace with your actual redirect URI
+      const tokenResponse = await axios.post(
+        "https://appleid.apple.com/auth/token",
+        null,
+        {
+          params: {
+            client_id: APPLE_CLIENT_ID,
+            client_secret: APPLE_CLIENT_SECRET,
+            code: authorizationCode,
+            grant_type: "authorization_code",
+            redirect_uri: "https://yourdomain.com/auth/apple/callback", // Replace with your actual redirect URI
+          },
         }
-      });
-  
-      const { access_token, refresh_token, id_token: newIdToken } = tokenResponse.data;
-  
+      );
+
+      const {
+        access_token,
+        refresh_token,
+        id_token: newIdToken,
+      } = tokenResponse.data;
+
       // 4. Decode the new ID token to get user information
       const payload = jwt.decode(newIdToken);
-      const { sub: appleId, email, given_name, family_name, name, picture } = payload;
-  
+      const {
+        sub: appleId,
+        email,
+        given_name,
+        family_name,
+        name,
+        picture,
+      } = payload;
+
       // 5. Generate a username based on email or name
-      const username = email ? email.split('@')[0] : name.replace(/\s+/g, '').toLowerCase();
-  
+      const username = email
+        ? email.split("@")[0]
+        : name.replace(/\s+/g, "").toLowerCase();
+
       // 6. Extract first and last names
-      const firstName = given_name || name.split(' ')[0];
-      const lastName = family_name || name.split(' ').slice(1).join(' ');
-  
+      const firstName = given_name || name.split(" ")[0];
+      const lastName = family_name || name.split(" ").slice(1).join(" ");
+
       // 7. Check if the user already exists in the database
       const userWithAppleId = await UserModel.findOne({
         $or: [{ appleId }, { email }],
       });
-  
+
       if (userWithAppleId) {
         // If the user already exists, generate JWT tokens
-        const accessToken = await userWithAppleId.generateAccessToken(process.env.ACCESS_TOKEN_SECRET || '');
-        const refreshToken = await userWithAppleId.generateRefreshToken(process.env.REFRESH_TOKEN_SECRET || '');
-  
+        const accessToken = await userWithAppleId.generateAccessToken(
+          process.env.ACCESS_TOKEN_SECRET || ""
+        );
+        const refreshToken = await userWithAppleId.generateRefreshToken(
+          process.env.REFRESH_TOKEN_SECRET || ""
+        );
+
         return BaseService.sendSuccessResponse({
           message: accessToken,
           user: userWithAppleId,
           refreshToken,
         });
       }
-  
+
       // 8. Create a new user if the user doesn't exist
       const userObject = {
         appleId,
@@ -292,21 +318,25 @@ class UserService extends BaseService {
         lastName,
         username,
         email,
-        image: { imageUrl: picture || '', publicId: '' }, // Apple profile image (optional)
+        image: { imageUrl: picture || "", publicId: "" }, // Apple profile image (optional)
         isVerified: true,
-        servicePlatform: 'apple', // Mark this user as using the "Apple" service for signup
+        servicePlatform: "apple", // Mark this user as using the "Apple" service for signup
         userType, // You can pass userType from the frontend (e.g., "admin", "regular")
       };
-  
+
       // 9. Create a new user in the database
       const newUser = new UserModel(userObject);
-  
+
       await newUser.save();
-  
+
       // 10. Generate JWT tokens for the newly created user
-      const accessToken = await newUser.generateAccessToken(process.env.ACCESS_TOKEN_SECRET || '');
-      const refreshToken = await newUser.generateRefreshToken(process.env.REFRESH_TOKEN_SECRET || '');
-  
+      const accessToken = await newUser.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET || ""
+      );
+      const refreshToken = await newUser.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET || ""
+      );
+
       // 11. Send a welcome email or confirmation email to the user
       const emailHtml = `
         <h1>Registration successful</h1>
@@ -314,22 +344,21 @@ class UserService extends BaseService {
         <p>You have successfully signed up with Apple.</p>
       `;
       await sendEmail({
-        subject: 'Welcome to Muta App',
+        subject: "Welcome to Muta App",
         to: newUser.email,
         html: emailHtml,
       });
-  
+
       // 12. Send the success response with the access token, user info, and refresh token
       return BaseService.sendSuccessResponse({
         message: accessToken,
         user: newUser,
         refreshToken,
       });
-  
     } catch (error) {
-      console.error('Apple Sign-Up Error:', error);
+      console.error("Apple Sign-Up Error:", error);
       return BaseService.sendFailedResponse({
-        error: 'Something went wrong with the Apple Sign-Up process.',
+        error: "Something went wrong with the Apple Sign-Up process.",
       });
     }
   }
@@ -427,11 +456,16 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      if(!email && !phoneNumber){
-        return BaseService.sendFailedResponse({ error: "Please provide email or phone number to login" });
+      if (!email && !phoneNumber) {
+        return BaseService.sendFailedResponse({
+          error: "Please provide email or phone number to login",
+        });
       }
 
-      const userExists = await UserModel.findOne({ userType, $or: [{ email }, { phoneNumber }] });
+      const userExists = await UserModel.findOne({
+        userType,
+        $or: [{ email }, { phoneNumber }],
+      });
 
       if (empty(userExists)) {
         return BaseService.sendFailedResponse({
@@ -992,8 +1026,8 @@ class UserService extends BaseService {
       await NotificationModel.create({
         userId: userId,
         title: "Welcome to Muta App!",
-        body: "Thank you for completing your onboarding process."
-      })
+        body: "Thank you for completing your onboarding process.",
+      });
       if (user.deviceToken) {
         sendPushNotification({
           deviceToken: user.deviceToken,
@@ -1335,15 +1369,12 @@ class UserService extends BaseService {
       const userId = req.user.id;
       const post = req.body;
       const validateRule = {
-        firstName: "string|required",
-        lastName: "string|required",
         governmentIssuedId: "object|required",
         "governmentIssuedId.imageUrl": "string|required",
         "governmentIssuedId.publicId": "string|required",
         coachCertificate: "object|required",
         "coachCertificate.imageUrl": "string|required",
         "coachCertificate.publicId": "string|required",
-        yearsOfExperience: "integer|required",
       };
       const validateMessage = {
         required: ":attribute is required",
@@ -1359,19 +1390,30 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      user.coachVerification = {
+      if (user.userType !== "coach") {
+        return BaseService.sendFailedResponse({
+          error: "Unauthorized access. Only coach can access.",
+        });
+      }
+
+      const verificationApplicationExists =
+        await VerificationApplicationModel.findOne({ userId });
+
+      if (verificationApplicationExists) {
+        return BaseService.sendFailedResponse({
+          error: "Application in process. Please reach out to the admin",
+        });
+      }
+
+      coachVerificationData = {
         status: "pending",
-        firstName: post.firstName,
-        lastName: post.lastName,
         governmentIssuedId: post.governmentIssuedId,
         coachCertificate: post.coachCertificate,
-        yearsOfExperience: post.yearsOfExperience,
         submittedAt: new Date(),
-        reviewedAt: null,
-        reviewedBy: null,
+        // reviewedAt: null,
       };
 
-      await user.save();
+      await VerificationApplicationModel.create(coachVerificationData);
 
       return BaseService.sendSuccessResponse({
         message: "Coach verification application submitted successfully",
@@ -1383,7 +1425,7 @@ class UserService extends BaseService {
       });
     }
   }
-  async logUserWeight(req, res) {
+  async logUserWeight(req) {
     try {
       const userId = req.user.id;
 
@@ -1486,7 +1528,7 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse("Internal server error");
     }
   }
-  async logUserHeight(req, res) {
+  async logUserHeight(req) {
     try {
       const userId = req.user.id;
 
@@ -1527,7 +1569,7 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse("Internal server error");
     }
   }
-  async getCoachApplications(req, res) {
+  async getCoachApplications(req) {
     try {
       const { status } = req.query;
       // if (!status) {
@@ -1535,13 +1577,11 @@ class UserService extends BaseService {
       //     error: "Status query parameter is required",
       //   });
       // }
-      const query = status
-        ? { "coachVerification.status": status, userType: "coach" }
-        : { userType: "coach" };
+      const filter = status ? { status } : {};
 
-      const coaches = await UserModel.find(query, {
-        password: 0,
-      }).sort({ "coachVerification.submittedAt": -1 });
+      const coaches = await VerificationApplicationModel.find(filter).sort({
+        submittedAt: -1,
+      });
 
       return BaseService.sendSuccessResponse({ data: coaches });
     } catch (error) {
@@ -1557,17 +1597,26 @@ class UserService extends BaseService {
       const { userId } = req.params;
 
       const user = await UserModel.findById(userId);
-      if (!user || !user.coachVerification) {
+      if (!user) {
         return BaseService.sendFailedResponse({
-          error: "User or application not found",
+          error: "User not found",
         });
       }
 
-      user.coachVerification.status = "approved";
-      user.coachVerification.reviewedAt = new Date();
-      // user.coachVerification.reviewedBy = adminId;
+      const coachApplicationExists = await VerificationApplicationModel.findOne(
+        { userId }
+      );
 
-      await user.save();
+      if (!coachApplicationExists) {
+        return BaseService.sendFailedResponse({
+          error: "Coach application does not exist",
+        });
+      }
+
+      coachApplicationExists.status = "approved";
+      coachApplicationExists.reviewedAt = new Date();
+      // user.coachVerification.reviewedBy = adminId;
+      await coachApplicationExists.save();
 
       return BaseService.sendSuccessResponse({
         message: "Coach application approved successfully",
@@ -1585,17 +1634,26 @@ class UserService extends BaseService {
       const { userId } = req.params;
 
       const user = await UserModel.findById(userId);
-      if (!user || !user.coachVerification) {
+      if (!user) {
         return BaseService.sendFailedResponse({
-          error: "User or application not found",
+          error: "User not found",
         });
       }
 
-      user.coachVerification.status = "rejected";
-      user.coachVerification.reviewedAt = new Date();
-      // user.coachVerification.reviewedBy = adminId;
+      const coachApplicationExists = await VerificationApplicationModel.findOne(
+        { userId }
+      );
 
-      await user.save();
+      if (!coachApplicationExists) {
+        return BaseService.sendFailedResponse({
+          error: "Coach application does not exist",
+        });
+      }
+
+      coachApplicationExists.status = "rejected";
+      coachApplicationExists.reviewedAt = new Date();
+      // user.coachVerification.reviewedBy = adminId;
+      await coachApplicationExists.save();
 
       return BaseService.sendSuccessResponse({
         message: "Coach application rejected successfully",
@@ -1658,12 +1716,18 @@ class UserService extends BaseService {
   // }
   async getAllVerfiedCoach(req) {
     try {
-      const query = {
-        userType: "coach",
-        // isVerifiedCoach: true
-      };
+      const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
+      const limit = parseInt(req.query.limit, 10) || 10; // Default to limit 10 if not provided
+      const skip = (page - 1) * limit; // Calculate skip based on current page and limit
 
-      const coaches = await UserModel.find(query);
+      const coaches = await VerificationApplicationModel.find({
+        status: "approved",
+      })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("userId")
+        .lean();
 
       return BaseService.sendSuccessResponse({
         message: coaches || [],
@@ -2732,7 +2796,7 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const message = `Your verification code is ${otp}`
+      const message = `Your verification code is ${otp}`;
 
       const otpResult = await sendOTP(phoneNumber, message);
       // console.log({otpResult: otpResult.data})
@@ -2798,7 +2862,6 @@ class UserService extends BaseService {
       return BaseService.sendSuccessResponse({
         message: "Phone updated successfully",
       });
-
     } catch (error) {
       console.log(error);
       return BaseService.sendFailedResponse({
@@ -2883,15 +2946,17 @@ class UserService extends BaseService {
   }
   async customerSupport(req) {
     try {
-      const whatsappNumber = process.env.SUPPORT_WHATSAPP || "+2347074237297"
-      const supportEmail = process.env.SUPPORT_EMAIL || "mutaapp8@gmail.com"
-      const supportCall = process.env.SUPPORT_CALL || "+2347074237297"
+      const whatsappNumber = process.env.SUPPORT_WHATSAPP || "+2347074237297";
+      const supportEmail = process.env.SUPPORT_EMAIL || "mutaapp8@gmail.com";
+      const supportCall = process.env.SUPPORT_CALL || "+2347074237297";
 
-      return BaseService.sendSuccessResponse({ message: {
-        whatsappNumber,
-        supportEmail,
-        supportCall
-      } });
+      return BaseService.sendSuccessResponse({
+        message: {
+          whatsappNumber,
+          supportEmail,
+          supportCall,
+        },
+      });
     } catch (error) {
       console.log(error);
       return BaseService.sendFailedResponse({

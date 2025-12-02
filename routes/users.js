@@ -924,18 +924,9 @@ router.post(ROUTE_LOG_HEIGHT, auth, (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - firstName
- *               - lastName
  *               - governmentIssuedId
  *               - coachCertificate
- *               - yearsOfExperience
  *             properties:
- *               firstName:
- *                 type: string
- *                 example: John
- *               lastName:
- *                 type: string
- *                 example: Doe
  *               governmentIssuedId:
  *                 type: object
  *                 properties:
@@ -954,9 +945,6 @@ router.post(ROUTE_LOG_HEIGHT, auth, (req, res) => {
  *                   publicId:
  *                     type: string
  *                     example: cert_456
- *               yearsOfExperience:
- *                 type: integer
- *                 example: 5
  *     responses:
  *       200:
  *         description: Application submitted successfully
