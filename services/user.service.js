@@ -1581,7 +1581,8 @@ class UserService extends BaseService {
 
       const coaches = await VerificationApplicationModel.find(filter).sort({
         submittedAt: -1,
-      });
+      })
+      .populate("userId");
 
       return BaseService.sendSuccessResponse({ data: coaches });
     } catch (error) {
