@@ -51,6 +51,12 @@ const {
   ROUTE_GET_UNREAD_NOTIFICATIONS_COUNT,
   ROUTE_DELETE_USER,
   ROUTE_CUSTOMER_SUPPORT,
+  ROUTE_POST_COACH_GUIDANCE,
+  ROUTE_CONTACT_US_ACTION,
+  ROUTE_UPDATE_COACH_GUIDANCE,
+  ROUTE_UPDATE_COACH_GUIDANCE_AS_SEEN,
+  ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE,
+  ROUTE_SET_ACTIVITY_REMINDER,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2601,6 +2607,325 @@ router.delete(ROUTE_DELETE_USER, auth, (req, res) => {
 router.get(ROUTE_CUSTOMER_SUPPORT, [auth], (req, res) => {
   const userController = new UserController();
   return userController.customerSupport(req, res);
+});
+
+/**
+ * @swagger
+ * /users/contact-us-action:
+ *   get:
+ *     summary: Send contact us email
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: The contact us details object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                   description: User's name
+ *                   example: "john doe"
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                   description: User's email address
+ *                   example: johndoe@example.com
+ *                 phoneNumber:
+ *                   type: string
+ *                   description: user's phone number
+ *                   example: 08151128383
+ *                 message:
+ *                   type: string
+ *                   description: message of the email
+ *                   example: "Hello, I am john doe"
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_CONTACT_US_ACTION, (req, res) => {
+  const userController = new UserController();
+  return userController.contactUsAction(req, res);
+});
+
+/**
+ * @swagger
+ * /coach-guidance:
+ *   post:
+ *     summary: Create a new coach guidance entry
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: The guidance text provided by the coach
+ *                 example: "Increase your protein intake and follow this workout routine."
+ *               coachId:
+ *                 type: string
+ *                 description: The ID of the coach creating the guidance
+ *                 example: "65fa3c4b92b7f62c9c34a801"
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user receiving the guidance
+ *                 example: "65fa3c4b92b7f62c9c34a802"
+ *               status:
+ *                 type: string
+ *                 description: Status of the guidance
+ *                 enum: ["pending", "done", "seen"]
+ *                 example: "pending | seen | done"
+ *               planType:
+ *                 type: string
+ *                 description: Type of plan the guidance belongs to
+ *                 enum: ["diet", "workout"]
+ *                 example: "workout | diet"
+ *     responses:
+ *       201:
+ *         description: The created coach guidance object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   example: "67af4b2c93d2f73a0fe3c199"
+ *                 text:
+ *                   type: string
+ *                   example: "Increase your protein intake and follow this workout routine."
+ *                 coachId:
+ *                   type: string
+ *                   example: "65fa3c4b92b7f62c9c34a801"
+ *                 userId:
+ *                   type: string
+ *                   example: "65fa3c4b92b7f62c9c34a802"
+ *                 status:
+ *                   type: string
+ *                   example: "pending"
+ *                 planType:
+ *                   type: string
+ *                   example: "workout"
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-01-24T14:32:00.123Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-01-24T14:32:00.123Z"
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_POST_COACH_GUIDANCE, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.postCoachGuidance(req, res);
+});
+
+/**
+ * @swagger
+ * /update-coach-guidance/{id}:
+ *   put:
+ *     summary: Update coach guidance details
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the guidance to update
+ *         schema:
+ *           type: string
+ *           example: "67af4b2c93d2f73a0fe3c199"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: Updated guidance text
+ *                 example: "Updated workout plan with new cardio schedule."
+ *               planType:
+ *                 type: string
+ *                 enum: ["diet", "workout"]
+ *                 description: Updated plan type
+ *                 example: "diet"
+ *     responses:
+ *       200:
+ *         description: Guidance successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Guidance updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "67af4b2c93d2f73a0fe3c199"
+ *                     text:
+ *                       type: string
+ *                       example: "Updated workout plan with new cardio schedule."
+ *                     planType:
+ *                       type: string
+ *                       example: "diet"
+ *                     status:
+ *                       type: string
+ *                       example: "pending"
+ *       404:
+ *         description: Guidance not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPDATE_COACH_GUIDANCE+"/:id", [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.updateCoachGuidance(req, res);
+});
+
+/**
+ * @swagger
+ * /update-coach-guidance-as-done/{id}:
+ *   put:
+ *     summary: Mark a coach guidance as done
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the guidance to mark as done
+ *         schema:
+ *           type: string
+ *           example: "67af4b2c93d2f73a0fe3c199"
+ *     responses:
+ *       200:
+ *         description: Guidance successfully marked as done
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Guidance marked as done"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "67af4b2c93d2f73a0fe3c199"
+ *                     status:
+ *                       type: string
+ *                       example: "done"
+ *       404:
+ *         description: Guidance not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE+"/:id", [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.updateCoachGuidanceAsDone(req, res);
+});
+
+/**
+ * @swagger
+ * /update-coach-guidance-as-seen/{id}:
+ *   put:
+ *     summary: Mark a coach guidance as seen
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the guidance to mark as seen
+ *         schema:
+ *           type: string
+ *           example: "67af4b2c93d2f73a0fe3c199"
+ *     responses:
+ *       200:
+ *         description: Guidance successfully marked as seen
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Guidance marked as seen"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "67af4b2c93d2f73a0fe3c199"
+ *                     status:
+ *                       type: string
+ *                       example: "seen"
+ *       404:
+ *         description: Guidance not found
+ *       500:
+ *         description: Server error
+ */
+router.put(ROUTE_UPDATE_COACH_GUIDANCE_AS_SEEN+"/:id", [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.updateCoachGuidanceAsSeen(req, res);
+});
+
+/**
+ * @swagger
+ * /users/set-activity-reminder:
+ *   post:
+ *     summary: Create a reminder for a user
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dayOfWeek:
+ *                 type: string
+ *                 description: The day of the week for the reminder
+ *                 enum: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+ *                 example: "monday"
+ *               time:
+ *                 type: string
+ *                 description: Time of the reminder in HH:MM format (24-hour)
+ *                 example: "08:30"
+ *     responses:
+ *       201:
+ *         description: Reminder successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Reminder set successfully"
+ *       400:
+ *         description: Invalid input data
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_SET_ACTIVITY_REMINDER, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.setActivityReminder(req, res);
 });
 
 

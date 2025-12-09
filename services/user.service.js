@@ -34,6 +34,7 @@ const FavoriteProductModel = require("../models/favorite.model");
 const OrderModel = require("../models/order.model");
 const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const VerificationApplicationModel = require("../models/verification-applications.model");
+const CoachGuidanceModel = require("../models/coach-guidance.model");
 
 class UserService extends BaseService {
   async createUser(req, res) {
@@ -1579,10 +1580,11 @@ class UserService extends BaseService {
       // }
       const filter = status ? { status } : {};
 
-      const coaches = await VerificationApplicationModel.find(filter).sort({
-        submittedAt: -1,
-      })
-      .populate("userId");
+      const coaches = await VerificationApplicationModel.find(filter)
+        .sort({
+          submittedAt: -1,
+        })
+        .populate("userId");
 
       return BaseService.sendSuccessResponse({ data: coaches });
     } catch (error) {
@@ -2999,6 +3001,196 @@ class UserService extends BaseService {
       session.endSession();
       return BaseService.sendFailedResponse({
         error: "Failed to fetch sleep hours",
+      });
+    }
+  }
+  async contactUsAction(req) {
+    try {
+      const { message, name, email, phoneNumber } = req.body;
+      if (!message || !email || phoneNumber || name) {
+        return BaseService.sendFailedResponse({
+          error: "Please provide the required fields",
+        });
+      }
+
+      const emailHtml = `
+         <h1>Message from ${name}</h1>
+      <p>${message}</p>
+      `;
+      await sendEmail({
+        subject: subject,
+        to: email,
+        html: emailHtml,
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: entry,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to send email to the admin",
+      });
+    }
+  }
+  async postCoachGuidance(req) {
+    try {
+      const post = req.body;
+      const coachId = req.user.id;
+
+      const validateRule = {
+        text: "string|required",
+        userId: "string|required",
+        planType: "string|required"
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "string": ":attribute must be a :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      if(req.user.userType !== 'coach'){
+        return BaseService.sendFailedResponse({ error: "Only coaches can post guidance" });
+      }
+
+      await CoachGuidanceModel.create({
+        coachId,
+        text: post.text,
+        userId: post.userId,
+        planType: post.planType
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: "coach guidance created successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to send email to the admin",
+      });
+    }
+  }
+  async updateCoachGuidance(req) {
+    try {
+      const post = req.body;
+      const coachGuidanceId = req.params.id;
+
+      if(req.user.userType !== 'coach'){
+        return BaseService.sendFailedResponse({ error: "Only coaches can post guidance" });
+      }
+
+      const coachGuidanceIdExists = await CoachGuidanceModel.findById(coachGuidanceId);
+
+      if(!coachGuidanceIdExists){
+        return BaseService.sendFailedResponse({ error: "coach guidance not found" });
+      }
+
+      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, post);
+
+      return BaseService.sendSuccessResponse({
+        message: "coach guidance updated successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to send email to the admin",
+      });
+    }
+  }
+  async updateCoachGuidanceAsSeen(req) {
+    try {
+      const coachGuidanceId = req.params.id;
+      const userId = req.user.id;
+
+      const coachGuidanceIdExists = await CoachGuidanceModel.findById(coachGuidanceId);
+
+      if(!coachGuidanceIdExists){
+        return BaseService.sendFailedResponse({ error: "coach guidance not found" });
+      }
+
+      if(userId !== coachGuidanceIdExists.userId.toString()){
+        return BaseService.sendFailedResponse({ error: "You are not authorized to update this guidance" });
+      }
+
+      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, {status: 'seen'});
+
+      return BaseService.sendSuccessResponse({
+        message: "coach guidance marked as seen",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to send email to the admin",
+      });
+    }
+  }
+  async updateCoachGuidanceAsDone(req) {
+    try {
+      const coachGuidanceId = req.params.id;
+      const userId = req.user.id;
+
+      const coachGuidanceIdExists = await CoachGuidanceModel.findById(coachGuidanceId);
+
+      if(!coachGuidanceIdExists){
+        return BaseService.sendFailedResponse({ error: "coach guidance not found" });
+      }
+
+      if(userId !== coachGuidanceIdExists.userId.toString()){
+        return BaseService.sendFailedResponse({ error: "You are not authorized to update this guidance" });
+      }
+
+      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, {status: 'done'});
+
+      return BaseService.sendSuccessResponse({
+        message: "coach guidance marked as done",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to send email to the admin",
+      });
+    }
+  }
+  async setActivityReminder(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        dayOfWeek: "string|required",
+        time: "string|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "string": ":attribute must be a :attribute.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const user = await UserModel.findById(req.user.id);
+
+      if(!user){
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      user.reminders = {
+        dayOfWeek: post.dayOfWeek,
+        time: post.time,
+      }
+
+      await user.save();
+
+      return BaseService.sendSuccessResponse({
+        message: "reminder set successfully",
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to send email to the admin",
       });
     }
   }

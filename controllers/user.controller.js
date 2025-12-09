@@ -475,6 +475,54 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, customerSupport.data)
     }
+    async contactUsAction(req, res){
+        const userService = new UserService()
+        const contactUsAction = await userService.contactUsAction(req, res)
+        if(!contactUsAction.success){
+            return BaseController.sendFailedResponse(res, contactUsAction.data)
+        }
+        return BaseController.sendSuccessResponse(res, contactUsAction.data)
+    }
+    async postCoachGuidance(req, res){
+        const userService = new UserService()
+        const postCoachGuidance = await userService.postCoachGuidance(req, res)
+        if(!postCoachGuidance.success){
+            return BaseController.sendFailedResponse(res, postCoachGuidance.data)
+        }
+        return BaseController.sendSuccessResponse(res, postCoachGuidance.data)
+    }
+    async updateCoachGuidance(req, res){
+        const userService = new UserService()
+        const updateCoachGuidance = await userService.updateCoachGuidance(req, res)
+        if(!updateCoachGuidance.success){
+            return BaseController.sendFailedResponse(res, updateCoachGuidance.data)
+        }
+        return BaseController.sendSuccessResponse(res, updateCoachGuidance.data)
+    }
+    async updateCoachGuidanceAsSeen(req, res){
+        const userService = new UserService()
+        const updateCoachGuidanceAsSeen = await userService.updateCoachGuidanceAsSeen(req, res)
+        if(!updateCoachGuidanceAsSeen.success){
+            return BaseController.sendFailedResponse(res, updateCoachGuidanceAsSeen.data)
+        }
+        return BaseController.sendSuccessResponse(res, updateCoachGuidanceAsSeen.data)
+    }
+    async updateCoachGuidanceAsDone(req, res){
+        const userService = new UserService()
+        const updateCoachGuidanceAsDone = await userService.updateCoachGuidanceAsDone(req, res)
+        if(!updateCoachGuidanceAsDone.success){
+            return BaseController.sendFailedResponse(res, updateCoachGuidanceAsDone.data)
+        }
+        return BaseController.sendSuccessResponse(res, updateCoachGuidanceAsDone.data)
+    }
+    async setActivityReminder(req, res){
+        const userService = new UserService()
+        const setActivityReminder = await userService.setActivityReminder(req, res)
+        if(!setActivityReminder.success){
+            return BaseController.sendFailedResponse(res, setActivityReminder.data)
+        }
+        return BaseController.sendSuccessResponse(res, setActivityReminder.data)
+    }
 }
 
 module.exports = UserController

@@ -3,6 +3,27 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const ReminderSchema = new mongoose.Schema({
+  dayOfWeek: {
+    type: String,
+    enum: [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ],
+    required: true
+  },
+  time: {
+    type: String, // HH:MM format
+    required: true,
+    match: [/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time format"]
+  }
+});
+
 const UserSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, trim: true, unique: true },
@@ -95,6 +116,10 @@ const UserSchema = new mongoose.Schema(
     weeklyStreak: { type: Number, default: 0 },
     lastWeeklyStreakWeek: { type: Number },
     location: { type: String, trim: true },
+    reminders: {
+      type: [ReminderSchema],
+      default: []
+    }
     // favorites: [
     //   {
     //     type: mongoose.Schema.Types.ObjectId,
