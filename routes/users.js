@@ -57,6 +57,7 @@ const {
   ROUTE_UPDATE_COACH_GUIDANCE_AS_SEEN,
   ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE,
   ROUTE_SET_ACTIVITY_REMINDER,
+  ROUTE_GET_USER_COACH_GUIDANCE,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2651,7 +2652,7 @@ router.get(ROUTE_CONTACT_US_ACTION, (req, res) => {
 
 /**
  * @swagger
- * /coach-guidance:
+ * /users/coach-guidance:
  *   post:
  *     summary: Create a new coach guidance entry
  *     tags:
@@ -2729,7 +2730,7 @@ router.post(ROUTE_POST_COACH_GUIDANCE, [auth], (req, res) => {
 
 /**
  * @swagger
- * /update-coach-guidance/{id}:
+ * /users/update-coach-guidance/{id}:
  *   put:
  *     summary: Update coach guidance details
  *     tags:
@@ -2796,7 +2797,7 @@ router.put(ROUTE_UPDATE_COACH_GUIDANCE+"/:id", [auth], (req, res) => {
 
 /**
  * @swagger
- * /update-coach-guidance-as-done/{id}:
+ * /users/update-coach-guidance-as-done/{id}:
  *   put:
  *     summary: Mark a coach guidance as done
  *     tags:
@@ -2841,7 +2842,7 @@ router.put(ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE+"/:id", [auth], (req, res) => {
 
 /**
  * @swagger
- * /update-coach-guidance-as-seen/{id}:
+ * /users/update-coach-guidance-as-seen/{id}:
  *   put:
  *     summary: Mark a coach guidance as seen
  *     tags:
@@ -2882,6 +2883,57 @@ router.put(ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE+"/:id", [auth], (req, res) => {
 router.put(ROUTE_UPDATE_COACH_GUIDANCE_AS_SEEN+"/:id", [auth], (req, res) => {
   const userController = new UserController();
   return userController.updateCoachGuidanceAsSeen(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-user-coach-guidance:
+ *   get:
+ *     summary: Retrieve all coach guidance entries
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: A list of all coach guidance entries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: "67af4b2c93d2f73a0fe3c199"
+ *                   text:
+ *                     type: string
+ *                     example: "Increase your protein intake and follow this workout routine."
+ *                   coachId:
+ *                     type: string
+ *                     example: "65fa3c4b92b7f62c9c34a801"
+ *                   userId:
+ *                     type: string
+ *                     example: "65fa3c4b92b7f62c9c34a802"
+ *                   status:
+ *                     type: string
+ *                     example: "pending"
+ *                   planType:
+ *                     type: string
+ *                     example: "workout"
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-01-24T14:32:00.123Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-01-24T14:32:00.123Z"
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_USER_COACH_GUIDANCE, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.getUserCoachGuidance(req, res);
 });
 
 /**

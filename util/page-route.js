@@ -47,7 +47,7 @@ exports.ROUTE_COACH_DASHBOARD = '/coach-dashboard'
 exports.ROUTE_DELETE_USER = '/delete-user'
 exports.ROUTE_POST_COACH_GUIDANCE = '/coach-guidance'
 exports.ROUTE_UPDATE_COACH_GUIDANCE = '/update-coach-guidance'
-exports.ROUTE_UPDATE_COACH_GUIDANCE_AS_SEEN = '/update-coach-guidance-as-seen'
+exports.ROUTE_GET_USER_COACH_GUIDANCE = '/get-user-coach-guidance'
 exports.ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE = '/update-coach-guidance-as-done'
 exports.ROUTE_SET_ACTIVITY_REMINDER = '/set-activity-reminder'
 

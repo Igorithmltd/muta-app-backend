@@ -515,6 +515,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, updateCoachGuidanceAsDone.data)
     }
+    async getUserCoachGuidance(req, res){
+        const userService = new UserService()
+        const getUserCoachGuidance = await userService.getUserCoachGuidance(req, res)
+        if(!getUserCoachGuidance.success){
+            return BaseController.sendFailedResponse(res, getUserCoachGuidance.data)
+        }
+        return BaseController.sendSuccessResponse(res, getUserCoachGuidance.data)
+    }
     async setActivityReminder(req, res){
         const userService = new UserService()
         const setActivityReminder = await userService.setActivityReminder(req, res)

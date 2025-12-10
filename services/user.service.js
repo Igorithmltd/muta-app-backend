@@ -3152,6 +3152,22 @@ class UserService extends BaseService {
       });
     }
   }
+  async getUserCoachGuidance(req) {
+    try {
+      const userId = req.user.id;
+
+      const allCoachGuidances = await CoachGuidanceModel.findOne({userId});
+
+
+      return BaseService.sendSuccessResponse({
+        message: allCoachGuidances,
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Failed to get coach guidance",
+      });
+    }
+  }
   async setActivityReminder(req) {
     try {
       const post = req.body;
