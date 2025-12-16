@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const ChatRoomModel = require("../models/chatModel");
 const CallLogModel = require("../models/call-log.model");
 const MessageModel = require("../models/message.model");
+const { sendPushNotification } = require("../services/firebase.service");
 
 let io;
 function setupSocket(httpServer) {
@@ -153,7 +154,67 @@ function setupSocket(httpServer) {
         //   type,
         // });
         message.readBy = [userId];
+
         await message.save();
+        const room = await ChatRoomModel.findById(roomId).populate("participants");
+        if(room !== null) {
+          if(room.type === "private") {
+            // Send push notification to receiver
+            const receiver = room.participants.find(
+              (participantId) => participantId._id.toString() !== userId.toString()
+            );
+            const user = room.participants.find(
+              (participantId) => participantId._id.toString() === userId.toString()
+            );
+            // Fetch receiver's device token from your User model or another source
+            // const receiver = await UserModel.findById(receiverId);
+            // const receiverDeviceToken = receiver.deviceToken;
+
+            const receiverData = {
+              senderId: userId.toString(),
+              senderName: user.firstName,
+              roomId: roomId.toString(),
+              senderImage: user.image.imageUrl,
+              message: message,
+              // notificationType: "chat",
+            };
+            sendPushNotification({
+              deviceToken: receiver.deviceToken,
+              title: "Incoming Chat Message",
+              body: `You have a new message`,
+              data: receiverData,
+              notificationType: "chat",
+            });
+          }else{
+            const sender = room.participants.find(
+              (participantId) => participantId._id.toString() === userId.toString()
+            );
+
+            const receivers = room.participants.filter(
+              (participantId) => participantId._id.toString() !== userId.toString()
+            );
+
+            receivers.forEach((receiver) => {
+              const receiverData = {
+                senderId: userId.toString(),
+                senderName: sender.firstName,
+                roomId: roomId.toString(),
+                senderImage: sender.image.imageUrl,
+                message: message,
+                // notificationType: "chat",
+              };
+  
+              sendPushNotification({
+                deviceToken: receiver.deviceToken,
+                title: "New Forum message",
+                body: `${sender.firstName} sent a message in the forum`,
+                data: receiverData,
+                notificationType: "forum",
+              });
+            });
+          }
+
+        }
 
         socket.to(roomId).emit("receiveMessage", data);
       } catch (error) {
@@ -265,6 +326,17 @@ function setupSocket(httpServer) {
         const targetSocketId = users[targetUserId];
         if (targetSocketId) {
           io.to(targetSocketId).emit("missedCall", { callLog });
+          sendPushNotification({
+            deviceToken: callLog.receiverDeviceToken,
+            title: "Missed Call",
+            body: `You have a missed call from ${callLog.callerName}`,
+            data: {
+              caller: callLog.callerId.toString(),
+              receiver: callLog.receiverId.toString(),
+              sessionId: callLog.sessionId,
+            },
+            notificationType: "call",
+          });
         }
       } catch (error) {
         console.error("Error handling missed call:", error);
