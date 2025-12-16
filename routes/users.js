@@ -2681,11 +2681,6 @@ router.get(ROUTE_CONTACT_US_ACTION, (req, res) => {
  *                 description: Status of the guidance
  *                 enum: ["pending", "done", "seen"]
  *                 example: "pending | seen | done"
- *               planType:
- *                 type: string
- *                 description: Type of plan the guidance belongs to
- *                 enum: ["diet", "workout"]
- *                 example: "workout | diet"
  *     responses:
  *       201:
  *         description: The created coach guidance object

@@ -3040,7 +3040,7 @@ class UserService extends BaseService {
       const validateRule = {
         text: "string|required",
         userId: "string|required",
-        planType: "string|required"
+        // planType: "string|required"
       };
 
       const validateMessage = {
@@ -3062,7 +3062,7 @@ class UserService extends BaseService {
         coachId,
         text: post.text,
         userId: post.userId,
-        planType: post.planType
+        // planType: post.planType
       });
 
       return BaseService.sendSuccessResponse({

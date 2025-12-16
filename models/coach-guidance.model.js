@@ -21,11 +21,11 @@ const CoachGuidanceSchema = new mongoose.Schema(
         enum: ["pending", "done", "seen"],
         default: "pending",
       },
-      planType:{
-        type: String,
-        enum: ["diet", "workout"],
-        default: "diet",
-      }
+      // planType:{
+      //   type: String,
+      //   enum: ["diet", "workout"],
+      //   default: "diet",
+      // }
   },
   { timestamps: true }
 );
