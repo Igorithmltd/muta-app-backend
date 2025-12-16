@@ -326,17 +326,6 @@ function setupSocket(httpServer) {
         const targetSocketId = users[targetUserId];
         if (targetSocketId) {
           io.to(targetSocketId).emit("missedCall", { callLog });
-          sendPushNotification({
-            deviceToken: callLog.receiverDeviceToken,
-            title: "Missed Call",
-            body: `You have a missed call from ${callLog.callerName}`,
-            data: {
-              caller: callLog.callerId.toString(),
-              receiver: callLog.receiverId.toString(),
-              sessionId: callLog.sessionId,
-            },
-            notificationType: "call",
-          });
         }
       } catch (error) {
         console.error("Error handling missed call:", error);
