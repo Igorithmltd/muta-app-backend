@@ -9,7 +9,7 @@ const SubscriptionSchema = new mongoose.Schema(
     // reference: { type: String, required: true },
     status: {
       type: String,
-      enum: ["active", "pending", "cancelled"],
+      enum: ["active", "pending", "cancelled", "expired"],
       default: "pending",
     },
     startDate: { type: Date, default: Date.now },
