@@ -40,6 +40,16 @@ const UserSchema = new mongoose.Schema(
       value: { type: Number },
       unit: { type: String, enum: ["kg", "lbs"], default: "kg" },
     },
+    weights: {
+      type: [
+        {
+          value: { type: Number, required: true },
+          unit: { type: String, enum: ["kg", "lbs"], default: "kg" },
+          recordedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },    
     bmi: { type: Number },
     height: {
       value: Number,

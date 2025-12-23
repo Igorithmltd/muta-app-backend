@@ -1481,6 +1481,21 @@ class UserService extends BaseService {
         unit: unit || "kg",
       };
 
+      if (!Array.isArray(user.weights)) {
+        user.weights = [];
+      }
+
+      if (user.weights.length >= 5) {
+        user.weights.shift();
+      }
+
+      user.weights.push({
+        value: newWeightValue,
+        unit: unit || "kg",
+        recordedAt: new Date(),
+      });      
+      
+
       await user.save();
 
       // Prepare notification message
@@ -3156,7 +3171,9 @@ class UserService extends BaseService {
     try {
       const userId = req.user.id;
 
-      const allCoachGuidances = await CoachGuidanceModel.findOne({userId});
+      const allCoachGuidances = await CoachGuidanceModel.find({
+        $or: [{ userId }, { coachId: userId }],
+      });
 
 
       return BaseService.sendSuccessResponse({
