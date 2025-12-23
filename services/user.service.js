@@ -1406,7 +1406,7 @@ class UserService extends BaseService {
         });
       }
 
-      coachVerificationData = {
+      const coachVerificationData = {
         status: "pending",
         governmentIssuedId: post.governmentIssuedId,
         coachCertificate: post.coachCertificate,
