@@ -1416,6 +1416,7 @@ class UserService extends BaseService {
         governmentIssuedId: post.governmentIssuedId,
         coachCertificate: post.coachCertificate,
         submittedAt: new Date(),
+        userId: userId
         // reviewedAt: null,
       };
 
