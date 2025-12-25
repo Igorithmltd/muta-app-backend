@@ -1297,9 +1297,6 @@ router.put(ROUTE_CHANGE_PASSWORD, auth, (req, res) => {
  *                   userType:
  *                     type: string
  *                     example: coach
- *                   isVerifiedCoach:
- *                     type: boolean
- *                     example: true
  *                   image:
  *                     type: object
  *                     properties:
@@ -1353,9 +1350,6 @@ router.get(ROUTE_GET_COACHES_BY_SPECIALTY, auth, (req, res) => {
  *                   userType:
  *                     type: string
  *                     example: coach
- *                   isVerifiedCoach:
- *                     type: boolean
- *                     example: true
  *                   image:
  *                     type: object
  *                     properties:

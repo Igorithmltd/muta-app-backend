@@ -89,10 +89,10 @@ const UserSchema = new mongoose.Schema(
     emailToken: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
-    isVerifiedCoach: {
-      type: Boolean,
-      default: false,
-    },
+    // isVerifiedCoach: {
+    //   type: Boolean,
+    //   default: false,
+    // },
     servicePlatform: {
       type: String,
       // default: "local",
@@ -165,9 +165,9 @@ UserSchema.pre("save", async function (next) {
       this.password = hashPassword;
     }
 
-    if (this.userType !== "coach") {
-      this.isVerifiedCoach = undefined;
-    }
+    // if (this.userType !== "coach") {
+    //   this.isVerifiedCoach = undefined;
+    // }
 
     next();
   } catch (error) {

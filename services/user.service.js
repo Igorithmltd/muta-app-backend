@@ -465,10 +465,10 @@ class UserService extends BaseService {
 
       const userExists = await UserModel.findOne({
         userType,
-        $or: [{ email }, { phoneNumber }],
+        $or: [{ email: email }, { phoneNumber: email }],
       });
 
-      if (empty(userExists)) {
+      if (!userExists) {
         return BaseService.sendFailedResponse({
           error: "User not found. Please register as a new user",
         });
@@ -629,11 +629,15 @@ class UserService extends BaseService {
         });
       }
 
-      if (await userExists.comparePassword(password)) {
-        return BaseService.sendFailedResponse({
-          error: "New password cannot be the same as the old password",
-        });
+      if(userExists.otpExpiresAt < new Date()){
+        return BaseService.sendFailedResponse({ error: "OTP expired" });
       }
+
+      // if (await userExists.comparePassword(password)) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "New password cannot be the same as the old password",
+      //   });
+      // }
 
       userExists.password = password;
       // userExists.markModified("password");
@@ -655,6 +659,7 @@ class UserService extends BaseService {
         message: "Password reset successfullly",
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({ error });
     }
   }
@@ -1348,7 +1353,7 @@ class UserService extends BaseService {
       const totalWorkoutPlans = await WorkoutPlanModel.countDocuments();
       const totalVerifiedCoaches = await UserModel.find({
         userType: "coach",
-        isVerifiedCoach: true,
+        // isVerifiedCoach: true,
       }).countDocuments();
       // const totalPendingOrders = await OrderModel.find({status: 'pending'}).countDocuments();
       response["totalUsers"] = totalUsers;
@@ -3073,7 +3078,7 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "Only coaches can post guidance" });
       }
 
-      await CoachGuidanceModel.create({
+      const coachGuidance = await CoachGuidanceModel.create({
         coachId,
         text: post.text,
         userId: post.userId,
@@ -3081,7 +3086,7 @@ class UserService extends BaseService {
       });
 
       return BaseService.sendSuccessResponse({
-        message: "coach guidance created successfully",
+        message: coachGuidance,
       });
     } catch (error) {
       return BaseService.sendFailedResponse({
