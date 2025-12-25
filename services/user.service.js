@@ -1744,14 +1744,23 @@ class UserService extends BaseService {
       const limit = parseInt(req.query.limit, 10) || 10; // Default to limit 10 if not provided
       const skip = (page - 1) * limit; // Calculate skip based on current page and limit
 
-      const coaches = await VerificationApplicationModel.find({
-        status: "approved",
+      const coaches = await UserModel.find({
+        userType: "coach",
       })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("userId")
+        // .populate("userId")
         .lean();
+
+      // const coaches = await VerificationApplicationModel.find({
+      //   status: "approved",
+      // })
+      //   .sort({ createdAt: -1 })
+      //   .skip(skip)
+      //   .limit(limit)
+      //   .populate("userId")
+      //   .lean();
 
       return BaseService.sendSuccessResponse({
         message: coaches || [],
