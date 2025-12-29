@@ -629,7 +629,7 @@ class UserService extends BaseService {
         });
       }
 
-      if(userExists.otpExpiresAt < new Date()){
+      if (userExists.otpExpiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "OTP expired" });
       }
 
@@ -659,7 +659,7 @@ class UserService extends BaseService {
         message: "Password reset successfullly",
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({ error });
     }
   }
@@ -1416,7 +1416,7 @@ class UserService extends BaseService {
         governmentIssuedId: post.governmentIssuedId,
         coachCertificate: post.coachCertificate,
         submittedAt: new Date(),
-        userId: userId
+        userId: userId,
         // reviewedAt: null,
       };
 
@@ -1457,6 +1457,22 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found." });
       }
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // 🔒 Prevent duplicate same-day weight logging
+      const alreadyLoggedToday = user.weights?.some((w) => {
+        const loggedDate = new Date(w.recordedAt);
+        loggedDate.setHours(0, 0, 0, 0);
+        return loggedDate.getTime() === today.getTime();
+      });
+
+      // if (alreadyLoggedToday) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "You have already logged your weight today.",
+      //   });
+      // }
+
       const oldWeight = user.weight?.value ? Number(user.weight.value) : null;
       const oldUnit = user.weight?.unit || "kg";
 
@@ -1491,7 +1507,7 @@ class UserService extends BaseService {
         user.weights = [];
       }
 
-      if (user.weights.length >= 5) {
+      if (user.weights.length >= 31) {
         user.weights.shift();
       }
 
@@ -1499,8 +1515,7 @@ class UserService extends BaseService {
         value: newWeightValue,
         unit: unit || "kg",
         recordedAt: new Date(),
-      });      
-      
+      });
 
       await user.save();
 
@@ -3075,7 +3090,7 @@ class UserService extends BaseService {
 
       const validateMessage = {
         required: ":attribute is required",
-        "string": ":attribute must be a :attribute.",
+        string: ":attribute must be a :attribute.",
       };
 
       const validateResult = validateData(post, validateRule, validateMessage);
@@ -3084,8 +3099,10 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      if(req.user.userType !== 'coach'){
-        return BaseService.sendFailedResponse({ error: "Only coaches can post guidance" });
+      if (req.user.userType !== "coach") {
+        return BaseService.sendFailedResponse({
+          error: "Only coaches can post guidance",
+        });
       }
 
       const coachGuidance = await CoachGuidanceModel.create({
@@ -3109,14 +3126,20 @@ class UserService extends BaseService {
       const post = req.body;
       const coachGuidanceId = req.params.id;
 
-      if(req.user.userType !== 'coach'){
-        return BaseService.sendFailedResponse({ error: "Only coaches can post guidance" });
+      if (req.user.userType !== "coach") {
+        return BaseService.sendFailedResponse({
+          error: "Only coaches can post guidance",
+        });
       }
 
-      const coachGuidanceIdExists = await CoachGuidanceModel.findById(coachGuidanceId);
+      const coachGuidanceIdExists = await CoachGuidanceModel.findById(
+        coachGuidanceId
+      );
 
-      if(!coachGuidanceIdExists){
-        return BaseService.sendFailedResponse({ error: "coach guidance not found" });
+      if (!coachGuidanceIdExists) {
+        return BaseService.sendFailedResponse({
+          error: "coach guidance not found",
+        });
       }
 
       await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, post);
@@ -3135,17 +3158,25 @@ class UserService extends BaseService {
       const coachGuidanceId = req.params.id;
       const userId = req.user.id;
 
-      const coachGuidanceIdExists = await CoachGuidanceModel.findById(coachGuidanceId);
+      const coachGuidanceIdExists = await CoachGuidanceModel.findById(
+        coachGuidanceId
+      );
 
-      if(!coachGuidanceIdExists){
-        return BaseService.sendFailedResponse({ error: "coach guidance not found" });
+      if (!coachGuidanceIdExists) {
+        return BaseService.sendFailedResponse({
+          error: "coach guidance not found",
+        });
       }
 
-      if(userId !== coachGuidanceIdExists.userId.toString()){
-        return BaseService.sendFailedResponse({ error: "You are not authorized to update this guidance" });
+      if (userId !== coachGuidanceIdExists.userId.toString()) {
+        return BaseService.sendFailedResponse({
+          error: "You are not authorized to update this guidance",
+        });
       }
 
-      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, {status: 'seen'});
+      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, {
+        status: "seen",
+      });
 
       return BaseService.sendSuccessResponse({
         message: "coach guidance marked as seen",
@@ -3161,17 +3192,25 @@ class UserService extends BaseService {
       const coachGuidanceId = req.params.id;
       const userId = req.user.id;
 
-      const coachGuidanceIdExists = await CoachGuidanceModel.findById(coachGuidanceId);
+      const coachGuidanceIdExists = await CoachGuidanceModel.findById(
+        coachGuidanceId
+      );
 
-      if(!coachGuidanceIdExists){
-        return BaseService.sendFailedResponse({ error: "coach guidance not found" });
+      if (!coachGuidanceIdExists) {
+        return BaseService.sendFailedResponse({
+          error: "coach guidance not found",
+        });
       }
 
-      if(userId !== coachGuidanceIdExists.userId.toString()){
-        return BaseService.sendFailedResponse({ error: "You are not authorized to update this guidance" });
+      if (userId !== coachGuidanceIdExists.userId.toString()) {
+        return BaseService.sendFailedResponse({
+          error: "You are not authorized to update this guidance",
+        });
       }
 
-      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, {status: 'done'});
+      await CoachGuidanceModel.findByIdAndUpdate(coachGuidanceId, {
+        status: "done",
+      });
 
       return BaseService.sendSuccessResponse({
         message: "coach guidance marked as done",
@@ -3189,7 +3228,6 @@ class UserService extends BaseService {
       const allCoachGuidances = await CoachGuidanceModel.find({
         $or: [{ userId }, { coachId: userId }],
       });
-
 
       return BaseService.sendSuccessResponse({
         message: allCoachGuidances,
@@ -3211,7 +3249,7 @@ class UserService extends BaseService {
 
       const validateMessage = {
         required: ":attribute is required",
-        "string": ":attribute must be a :attribute.",
+        string: ":attribute must be a :attribute.",
       };
 
       const validateResult = validateData(post, validateRule, validateMessage);
@@ -3222,14 +3260,14 @@ class UserService extends BaseService {
 
       const user = await UserModel.findById(req.user.id);
 
-      if(!user){
+      if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
       user.reminders = {
         dayOfWeek: post.dayOfWeek,
         time: post.time,
-      }
+      };
 
       await user.save();
 
@@ -3239,6 +3277,64 @@ class UserService extends BaseService {
     } catch (error) {
       return BaseService.sendFailedResponse({
         error: "Failed to send email to the admin",
+      });
+    }
+  }
+  async weightAnalysis(req) {
+    try {
+      const userId = req.user.id;
+      const monthQuery = req.query.month; // Expected format: 'YYYY-MM'
+      const yearQuery = req.query.year
+
+      const now = new Date();
+      const month = monthQuery ? monthQuery : now.getMonth() + 1;
+      const year = yearQuery ? yearQuery : now.getFullYear();
+
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 1);
+
+      const graphData = await UserModel.aggregate([
+        // { $match: { _id: userId } },
+        { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+        { $unwind: "$weights" },
+        {
+          $match: {
+            "weights.recordedAt": { $gte: start, $lt: end },
+          },
+        },
+        {
+          $project: {
+            day: { $dayOfMonth: "$weights.recordedAt" },
+            weightKg: {
+              $cond: [
+                { $eq: ["$weights.unit", "lbs"] },
+                { $multiply: ["$weights.value", 0.453592] },
+                "$weights.value",
+              ],
+            },
+          },
+        },
+        { $sort: { day: 1 } },
+      ]);
+
+
+      const daysInMonth = new Date(year, month, 0).getDate();
+
+      const filledData = Array.from({ length: daysInMonth }, (_, i) => {
+        const found = graphData.find((d) => d.day === i + 1);
+        return {
+          day: i + 1,
+          weightKg: found ? Number(found.weightKg.toFixed(1)) : 0,
+        };
+      });
+
+      return BaseService.sendSuccessResponse({
+        message: filledData,
+      });
+    } catch (error) {
+      console.log(error)
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
       });
     }
   }

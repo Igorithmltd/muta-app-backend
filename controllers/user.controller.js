@@ -531,6 +531,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, setActivityReminder.data)
     }
+    async weightAnalysis(req, res){
+        const userService = new UserService()
+        const weightAnalysis = await userService.weightAnalysis(req, res)
+        if(!weightAnalysis.success){
+            return BaseController.sendFailedResponse(res, weightAnalysis.data)
+        }
+        return BaseController.sendSuccessResponse(res, weightAnalysis.data)
+    }
 }
 
 module.exports = UserController

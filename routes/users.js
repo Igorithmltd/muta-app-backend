@@ -58,6 +58,7 @@ const {
   ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE,
   ROUTE_SET_ACTIVITY_REMINDER,
   ROUTE_GET_USER_COACH_GUIDANCE,
+  ROUTE_WEIGHT_ANALYSIS,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2967,6 +2968,62 @@ router.get(ROUTE_GET_USER_COACH_GUIDANCE, [auth], (req, res) => {
 router.post(ROUTE_SET_ACTIVITY_REMINDER, [auth], (req, res) => {
   const userController = new UserController();
   return userController.setActivityReminder(req, res);
+});
+
+/**
+ * @swagger
+ * /users/weight-analysis:
+ *   get:
+ *     summary: Retrieve monthly weight graph data
+ *     tags:
+ *       - Users
+ *     description: >
+ *       Returns weight values (in kg) plotted against days of the selected month (1–31).
+ *       Days without a logged weight will return `null`.
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 2025
+ *         description: Year for which to retrieve weight data (defaults to current year)
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 1
+ *         description: Month for which to retrieve weight data (1 = January, defaults to current month)
+ *     responses:
+ *       200:
+ *         description: Monthly weight graph data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   day:
+ *                     type: integer
+ *                     example: 15
+ *                     description: Day of the month (1–31)
+ *                   weightKg:
+ *                     type: number
+ *                     nullable: true
+ *                     example: 72.4
+ *                     description: Weight in kilograms. Null if no weight was logged for the day.
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_WEIGHT_ANALYSIS, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.weightAnalysis(req, res);
 });
 
 
