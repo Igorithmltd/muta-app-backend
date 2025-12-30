@@ -12,7 +12,7 @@ const {
   formatNotificationTime,
   getWeightImprovementTipsByWeight,
 } = require("../util/helper");
-const { EXPIRES_AT } = require("../util/constants");
+const { EXPIRES_AT, ANALYSIS_RANGES } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
 const DietModel = require("../models/diet.model");
 const WorkoutPlanModel = require("../models/workoutPlan.model");
@@ -3283,28 +3283,54 @@ class UserService extends BaseService {
   async weightAnalysis(req) {
     try {
       const userId = req.user.id;
-      const monthQuery = req.query.month; // Expected format: 'YYYY-MM'
-      const yearQuery = req.query.year
 
-      const now = new Date();
-      const month = monthQuery ? monthQuery : now.getMonth() + 1;
-      const year = yearQuery ? yearQuery : now.getFullYear();
+      const rangeKey = req.query.range || "1W";
+      const config = ANALYSIS_RANGES[rangeKey];
 
-      const start = new Date(year, month - 1, 1);
-      const end = new Date(year, month, 1);
+
+      const endDate = new Date();
+      let startDate = new Date(endDate); // CLONE
+
+      if (!config) {
+        return BaseService.sendFailedResponse({ error: "Invalid range" });
+      }
+
+      if (config.days) {
+        startDate.setDate(startDate.getDate() - config.days);
+      } else {
+        startDate = new Date(0); // ALL
+      }
+
+      // const graphData = await UserModel.aggregate([
+      //   // { $match: { _id: userId } },
+      //   { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+      //   { $unwind: "$weights" },
+      //   {
+      //     $match: {
+      //       "weights.recordedAt": { $gte: start, $lt: end },
+      //     },
+      //   },
+      //   {
+      //     $project: {
+      //       day: { $dayOfMonth: "$weights.recordedAt" },
+      //       weightKg: {
+      //         $cond: [
+      //           { $eq: ["$weights.unit", "lbs"] },
+      //           { $multiply: ["$weights.value", 0.453592] },
+      //           "$weights.value",
+      //         ],
+      //       },
+      //     },
+      //   },
+      //   { $sort: { day: 1 } },
+      // ]);
 
       const graphData = await UserModel.aggregate([
-        // { $match: { _id: userId } },
         { $match: { _id: new mongoose.Types.ObjectId(userId) } },
         { $unwind: "$weights" },
         {
-          $match: {
-            "weights.recordedAt": { $gte: start, $lt: end },
-          },
-        },
-        {
           $project: {
-            day: { $dayOfMonth: "$weights.recordedAt" },
+            date: "$weights.recordedAt",
             weightKg: {
               $cond: [
                 { $eq: ["$weights.unit", "lbs"] },
@@ -3314,25 +3340,98 @@ class UserService extends BaseService {
             },
           },
         },
-        { $sort: { day: 1 } },
+        { $match: { date: { $gte: startDate, $lte: endDate } } },
+        // { $sort: { date: 1 } },
       ]);
 
+      if (!graphData.length) {
+        return BaseService.sendSuccessResponse({
+          meta: { range: rangeKey, unit: "kg" },
+          summary: null,
+          graph_data: [],
+        });
+      }
 
-      const daysInMonth = new Date(year, month, 0).getDate();
+      // console.log({data: graphData.length})
 
-      const filledData = Array.from({ length: daysInMonth }, (_, i) => {
-        const found = graphData.find((d) => d.day === i + 1);
-        return {
-          day: i + 1,
-          weightKg: found ? Number(found.weightKg.toFixed(1)) : 0,
-        };
+      // const daysInMonth = new Date(year, month, 0).getDate();
+
+      // const filledData = Array.from({ length: daysInMonth }, (_, i) => {
+      //   const found = graphData.find((d) => d.day === i + 1);
+      //   return {
+      //     day: i + 1,
+      //     weightKg: found ? Number(found.weightKg.toFixed(1)) : 0,
+      //   };
+      // });
+
+      const buckets = [];
+      let cursor = new Date(startDate);
+
+      while (cursor <= endDate) {
+        buckets.push({
+          date: new Date(cursor),
+          weight: null,
+        });
+
+        if (config.interval === "day") cursor.setDate(cursor.getDate() + 1);
+        if (config.interval === "week") cursor.setDate(cursor.getDate() + 7);
+        if (config.interval === "month") cursor.setMonth(cursor.getMonth() + 1);
+      }
+
+      // 3️⃣ Map records → buckets (average per bucket)
+      buckets.forEach((bucket) => {
+        const matched = graphData.filter((r) =>
+          UserService.isSameInterval(r.date, bucket.date, config.interval)
+        );
+
+        if (matched.length) {
+          bucket.weight =
+            matched.reduce((s, r) => s + r.weightKg, 0) / matched.length;
+        }
       });
+
+      // 4️⃣ Carry-forward gaps
+      let lastKnown = null;
+      buckets.forEach((b) => {
+        if (b.weight !== null) lastKnown = b.weight;
+        else b.weight = lastKnown;
+      });
+
+      // 5️⃣ Summary
+      const previous = buckets[0]?.weight;
+      const current = buckets[buckets.length - 1]?.weight;
+
+      let growth = null;
+      let trend = "stable";
+
+      if (previous && current) {
+        growth = ((current - previous) / previous) * 100;
+        trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
+      }
 
       return BaseService.sendSuccessResponse({
-        message: filledData,
+        meta: {
+          range: rangeKey,
+          unit: "kg"
+        },
+        summary: {
+          current_weight: UserService.round(current, 1),
+          previous_weight: UserService.round(previous, 1),
+          growth_percentage: UserService.round(growth, 1),
+          trend_direction: trend
+        },
+        graph_data: buckets.map(b => ({
+          date: b.date.toISOString().split("T")[0],
+          weight: UserService.round(b.weight, 1),
+          label: UserService.formatLabel(b.date, config.interval)
+        }))
       });
+
+      // return BaseService.sendSuccessResponse({
+      //   message: filledData,
+      // });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
@@ -3348,6 +3447,76 @@ class UserService extends BaseService {
     }
     return now;
   }
+
+  static isSameInterval(date1, date2, interval) {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+  
+    if (interval === "day") {
+      return (
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate()
+      );
+    }
+  
+    if (interval === "week") {
+      const startOfWeek = (d) => {
+        const date = new Date(d);
+        const day = date.getDay() || 7; // Sunday fix
+        date.setDate(date.getDate() - day + 1);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      };
+  
+      return (
+        startOfWeek(d1).getTime() === startOfWeek(d2).getTime()
+      );
+    }
+  
+    if (interval === "month") {
+      return (
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth()
+      );
+    }
+  
+    return false;
+  }
+  static round(value, decimals = 0) {
+    if (value === null || value === undefined || isNaN(value)) return null;
+    return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
+  }
+
+  static formatLabel(date, interval) {
+    const d = new Date(date);
+  
+    if (interval === "day") {
+      // Mon, Tue, Wed
+      return d.toLocaleDateString("en-US", { weekday: "short" });
+    }
+  
+    if (interval === "week") {
+      // Sep 1
+      return d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+  
+    if (interval === "month") {
+      // Sep 2024
+      return d.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
+    }
+  
+    return "";
+  }
+  
+  
+  
 }
 
 module.exports = UserService;
