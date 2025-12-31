@@ -2974,48 +2974,80 @@ router.post(ROUTE_SET_ACTIVITY_REMINDER, [auth], (req, res) => {
  * @swagger
  * /users/weight-analysis:
  *   get:
- *     summary: Retrieve monthly weight graph data
+ *     summary: Retrieve weight trend analysis
  *     tags:
  *       - Users
  *     description: >
- *       Returns weight values (in kg) plotted against days of the selected month (1–31).
- *       Days without a logged weight will return `null`.
+ *       Returns a weight analysis including trend summary and graph data
+ *       based on the selected time range (e.g. 1W, 1M, 6M, 1Y, ALL).
+ *       Weights are normalized to kilograms (kg).
+ *
  *     parameters:
  *       - in: query
- *         name: year
+ *         name: range
  *         required: false
  *         schema:
- *           type: integer
- *           example: 2025
- *         description: Year for which to retrieve weight data (defaults to current year)
- *       - in: query
- *         name: month
- *         required: false
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 12
- *           example: 1
- *         description: Month for which to retrieve weight data (1 = January, defaults to current month)
+ *           type: string
+ *           enum: [1W, 1M, 6M, 1Y, ALL]
+ *           example: 1W
+ *         description: Time range for weight analysis (defaults to 1W)
+ *
  *     responses:
  *       200:
- *         description: Monthly weight graph data
+ *         description: Weight analysis data
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   day:
- *                     type: integer
- *                     example: 15
- *                     description: Day of the month (1–31)
- *                   weightKg:
- *                     type: number
- *                     nullable: true
- *                     example: 72.4
- *                     description: Weight in kilograms. Null if no weight was logged for the day.
+ *               type: object
+ *               properties:
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     range:
+ *                       type: string
+ *                       example: 1W
+ *                     unit:
+ *                       type: string
+ *                       example: kg
+ *
+ *                 summary:
+ *                   type: object
+ *                   nullable: true
+ *                   properties:
+ *                     current_weight:
+ *                       type: number
+ *                       example: 72.4
+ *                     previous_weight:
+ *                       type: number
+ *                       example: 71.2
+ *                     growth_percentage:
+ *                       type: number
+ *                       example: 1.7
+ *                     trend_direction:
+ *                       type: string
+ *                       enum: [up, down, stable]
+ *                       example: up
+ *
+ *                 graph_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-01-03"
+ *                         description: ISO date for the data point
+ *                       weight:
+ *                         type: number
+ *                         nullable: true
+ *                         example: 72.1
+ *                         description: Weight value in kg (carried forward if missing)
+ *                       label:
+ *                         type: string
+ *                         example: Mon
+ *                         description: Formatted label for graph display
+ *
  *       401:
  *         description: Unauthorized
  *       500:
