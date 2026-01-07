@@ -7,7 +7,7 @@ const ANALYSIS_RANGES = {
     "1M": { days: 30, interval: "day" },
     "6M": { days: 180, interval: "week" },
     "1Y": { days: 365, interval: "month" },
-    "ALL": { days: null, interval: "month" }
+    "ALL": { days: 0, interval: "day" }
   };
 
 module.exports = {

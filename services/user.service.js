@@ -1762,6 +1762,7 @@ class UserService extends BaseService {
       const coaches = await UserModel.find({
         userType: "coach",
       })
+        .select("-password -otp -otpExpiresAt")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -3287,44 +3288,48 @@ class UserService extends BaseService {
       const rangeKey = req.query.range || "1W";
       const config = ANALYSIS_RANGES[rangeKey];
 
-
-      const endDate = new Date();
-      let startDate = new Date(endDate); // CLONE
-
       if (!config) {
         return BaseService.sendFailedResponse({ error: "Invalid range" });
       }
 
-      if (config.days) {
-        startDate.setDate(startDate.getDate() - config.days);
-      } else {
-        startDate = new Date(0); // ALL
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      // const graphData = await UserModel.aggregate([
-      //   // { $match: { _id: userId } },
-      //   { $match: { _id: new mongoose.Types.ObjectId(userId) } },
-      //   { $unwind: "$weights" },
-      //   {
-      //     $match: {
-      //       "weights.recordedAt": { $gte: start, $lt: end },
-      //     },
-      //   },
-      //   {
-      //     $project: {
-      //       day: { $dayOfMonth: "$weights.recordedAt" },
-      //       weightKg: {
-      //         $cond: [
-      //           { $eq: ["$weights.unit", "lbs"] },
-      //           { $multiply: ["$weights.value", 0.453592] },
-      //           "$weights.value",
-      //         ],
-      //       },
-      //     },
-      //   },
-      //   { $sort: { day: 1 } },
-      // ]);
+      if (!user.weights.length) {
+        return BaseService.sendSuccessResponse({
+          meta: { range: rangeKey, unit: "kg" },
+          summary: null,
+          graph_data: [],
+        });
+      }
 
+      /* ------------------------------------
+       * 1️⃣ Determine startDate & endDate
+       * ----------------------------------*/
+      let startDate, endDate;
+
+      if (rangeKey === "ALL") {
+        startDate = new Date(
+          Math.min(...user.weights.map((w) => new Date(w.recordedAt)))
+        );
+        endDate = new Date(
+          Math.max(...user.weights.map((w) => new Date(w.recordedAt)))
+        );
+      } else if (config.days) {
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - config.days);
+      }
+
+      // 🔥 ALWAYS normalize to DAY boundaries
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+
+      /* ------------------------------------
+       * 2️⃣ Fetch weights
+       * ----------------------------------*/
       const graphData = await UserModel.aggregate([
         { $match: { _id: new mongoose.Types.ObjectId(userId) } },
         { $unwind: "$weights" },
@@ -3332,16 +3337,25 @@ class UserService extends BaseService {
           $project: {
             date: "$weights.recordedAt",
             weightKg: {
-              $cond: [
-                { $eq: ["$weights.unit", "lbs"] },
-                { $multiply: ["$weights.value", 0.453592] },
-                "$weights.value",
-              ],
+              $toDouble: {
+                $cond: [
+                  { $eq: ["$weights.unit", "lbs"] },
+                  { $multiply: ["$weights.value", 0.453592] },
+                  "$weights.value",
+                ],
+              },
             },
           },
         },
-        { $match: { date: { $gte: startDate, $lte: endDate } } },
-        // { $sort: { date: 1 } },
+        {
+          $match: {
+            date: {
+              $gte: startDate,
+              $lte: new Date(endDate.getTime() + 86400000),
+            },
+          },
+        },
+        { $sort: { date: 1 } },
       ]);
 
       if (!graphData.length) {
@@ -3352,18 +3366,9 @@ class UserService extends BaseService {
         });
       }
 
-      // console.log({data: graphData.length})
-
-      // const daysInMonth = new Date(year, month, 0).getDate();
-
-      // const filledData = Array.from({ length: daysInMonth }, (_, i) => {
-      //   const found = graphData.find((d) => d.day === i + 1);
-      //   return {
-      //     day: i + 1,
-      //     weightKg: found ? Number(found.weightKg.toFixed(1)) : 0,
-      //   };
-      // });
-
+      /* ------------------------------------
+       * 3️⃣ Build DAILY buckets
+       * ----------------------------------*/
       const buckets = [];
       let cursor = new Date(startDate);
 
@@ -3372,34 +3377,37 @@ class UserService extends BaseService {
           date: new Date(cursor),
           weight: null,
         });
-
-        if (config.interval === "day") cursor.setDate(cursor.getDate() + 1);
-        if (config.interval === "week") cursor.setDate(cursor.getDate() + 7);
-        if (config.interval === "month") cursor.setMonth(cursor.getMonth() + 1);
+        cursor.setDate(cursor.getDate() + 1);
       }
 
-      // 3️⃣ Map records → buckets (average per bucket)
+      /* ------------------------------------
+       * 4️⃣ Map weights to buckets (daily)
+       * ----------------------------------*/
       buckets.forEach((bucket) => {
-        const matched = graphData.filter((r) =>
-          UserService.isSameInterval(r.date, bucket.date, config.interval)
+        const sameDay = graphData.filter((r) =>
+          UserService.isSameInterval(r.date, bucket.date, "day")
         );
 
-        if (matched.length) {
-          bucket.weight =
-            matched.reduce((s, r) => s + r.weightKg, 0) / matched.length;
+        if (sameDay.length) {
+          // take LAST weight of the day (deterministic)
+          bucket.weight = sameDay[sameDay.length - 1].weightKg;
         }
       });
 
-      // 4️⃣ Carry-forward gaps
+      /* ------------------------------------
+       * 5️⃣ Carry forward gaps (ALL included)
+       * ----------------------------------*/
       let lastKnown = null;
       buckets.forEach((b) => {
         if (b.weight !== null) lastKnown = b.weight;
         else b.weight = lastKnown;
       });
 
-      // 5️⃣ Summary
-      const previous = buckets[0]?.weight;
-      const current = buckets[buckets.length - 1]?.weight;
+      /* ------------------------------------
+       * 6️⃣ Summary
+       * ----------------------------------*/
+      const previous = buckets[0]?.weight ?? null;
+      const current = buckets[buckets.length - 1]?.weight ?? null;
 
       let growth = null;
       let trend = "stable";
@@ -3409,29 +3417,25 @@ class UserService extends BaseService {
         trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
       }
 
+      /* ------------------------------------
+       * 7️⃣ Response
+       * ----------------------------------*/
       return BaseService.sendSuccessResponse({
-        meta: {
-          range: rangeKey,
-          unit: "kg"
-        },
+        meta: { range: rangeKey, unit: "kg" },
         summary: {
           current_weight: UserService.round(current, 1),
           previous_weight: UserService.round(previous, 1),
           growth_percentage: UserService.round(growth, 1),
-          trend_direction: trend
+          trend_direction: trend,
         },
-        graph_data: buckets.map(b => ({
+        graph_data: buckets.map((b) => ({
           date: b.date.toISOString().split("T")[0],
-          weight: UserService.round(b.weight, 1),
-          label: UserService.formatLabel(b.date, config.interval)
-        }))
+          weight: b.weight !== null ? UserService.round(b.weight, 1) : null,
+          label: UserService.formatLabel(b.date, "day"), // Mon, Tue, ...
+        })),
       });
-
-      // return BaseService.sendSuccessResponse({
-      //   message: filledData,
-      // });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });
@@ -3451,7 +3455,7 @@ class UserService extends BaseService {
   static isSameInterval(date1, date2, interval) {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
-  
+
     if (interval === "day") {
       return (
         d1.getFullYear() === d2.getFullYear() &&
@@ -3459,7 +3463,7 @@ class UserService extends BaseService {
         d1.getDate() === d2.getDate()
       );
     }
-  
+
     if (interval === "week") {
       const startOfWeek = (d) => {
         const date = new Date(d);
@@ -3468,19 +3472,16 @@ class UserService extends BaseService {
         date.setHours(0, 0, 0, 0);
         return date;
       };
-  
-      return (
-        startOfWeek(d1).getTime() === startOfWeek(d2).getTime()
-      );
+
+      return startOfWeek(d1).getTime() === startOfWeek(d2).getTime();
     }
-  
+
     if (interval === "month") {
       return (
-        d1.getFullYear() === d2.getFullYear() &&
-        d1.getMonth() === d2.getMonth()
+        d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth()
       );
     }
-  
+
     return false;
   }
   static round(value, decimals = 0) {
@@ -3490,12 +3491,12 @@ class UserService extends BaseService {
 
   static formatLabel(date, interval) {
     const d = new Date(date);
-  
+
     if (interval === "day") {
       // Mon, Tue, Wed
       return d.toLocaleDateString("en-US", { weekday: "short" });
     }
-  
+
     if (interval === "week") {
       // Sep 1
       return d.toLocaleDateString("en-US", {
@@ -3503,7 +3504,7 @@ class UserService extends BaseService {
         day: "numeric",
       });
     }
-  
+
     if (interval === "month") {
       // Sep 2024
       return d.toLocaleDateString("en-US", {
@@ -3511,12 +3512,9 @@ class UserService extends BaseService {
         year: "numeric",
       });
     }
-  
+
     return "";
   }
-  
-  
-  
 }
 
 module.exports = UserService;
