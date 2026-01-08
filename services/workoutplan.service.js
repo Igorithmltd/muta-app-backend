@@ -7,6 +7,7 @@ const validateData = require("../util/validate");
 const BaseService = require("./base");
 const { sendPushNotification } = require("./firebase.service");
 const UserModel = require("../models/user.model");
+const CoachRecommendModel = require("../models/coach-recommend");
 
 class WorkoutplanService extends BaseService {
   static formatDate(date) {
@@ -1168,6 +1169,72 @@ class WorkoutplanService extends BaseService {
       });
     } catch (error) {
       console.error("Error in getDietByCategory:", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async coachRecommendWorkoutplan(req){
+    try {
+      const post = req.body;
+      const userId = req.user.id
+
+      const validateRule = {
+        workoutplanId: "string|required",
+        userId: "string|required",
+      };
+      const validateMessage = {
+        required: ":attribute is required",
+      };
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+      const user = await UserModel.findById(userId);
+      const workoutplan = await WorkoutPlanModel.findById(post.workoutplanId);
+
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+      if (!workoutplan) {
+        return BaseService.sendFailedResponse({ error: "Workoutplan not found" });
+      }
+
+      const coachRecommend = new CoachRecommendModel({
+        coachId: userId,
+        userId: post.userId,
+        workoutplanId: post.workoutplanId,
+        type: 'workoutplan',
+      });
+      await coachRecommend.save();
+
+      return BaseService.sendSuccessResponse({
+        message: coachRecommend
+      });
+      
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getCoachRecommendWorkoutplan(req){
+    try {
+      const userId = req.user.id
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      const coachRecommends = await CoachRecommendModel.find({userId: userId, type: 'workoutplan'})
+
+      return BaseService.sendSuccessResponse({
+        message: coachRecommends
+      });
+
+    } catch (error) {
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });

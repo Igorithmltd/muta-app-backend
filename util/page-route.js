@@ -105,6 +105,8 @@ exports.ROUTE_TOTAL_COMPLETED_WORKOUTPLANS = 'total-completed-workoutplans'
 exports.ROUTE_RATE_WORKOUTPLAN = '/rate-workoutplan'
 exports.ROUTE_SEARCH_WORKOUTPLAN_TITLE = '/search-workoutplan-title'
 exports.ROUTE_GET_WORKOUTPLAN_BY_CATEGORY = '/get-workoutplan-by-category'
+exports.ROUTE_CREATE_COACH_RECOMMEND_WORKOUTPLAN = '/create-coach-recommend-workoutplan'
+exports.ROUTE_COACH_RECOMMENDED_WORKOUTPLANS = '/coach-recommended-workoutplans'
 
 
 
@@ -128,6 +130,8 @@ exports.ROUTE_TOTAL_COMPLETED_DIET_PLANS = '/total-completed-diet-plans'
 exports.ROUTE_GET_DIET_PLAN_MEALS = '/get-diet-plan-meals'
 exports.ROUTE_RATE_DIET_PLAN = '/rate-diet-plan'
 exports.ROUTE_POPULAR_DIET_PLANS = '/popular-diet-plans'
+exports.ROUTE_CREATE_COACH_RECOMMEND_DIET = '/create-coach-recommend-diet'
+exports.ROUTE_COACH_RECOMMENDED_DIETS = '/coach-recommended-diets'
 
 
 

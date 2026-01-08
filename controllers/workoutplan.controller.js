@@ -138,6 +138,22 @@ class WorkoutplanController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, searchWorkoutplanByTitle.data)
     }
+    async coachRecommendWorkoutplan(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const coachRecommendWorkoutplan = await workoutplanService.coachRecommendWorkoutplan(req)
+        if(!coachRecommendWorkoutplan.success){
+            return BaseController.sendFailedResponse(res, coachRecommendWorkoutplan.data)
+        }
+        return BaseController.sendSuccessResponse(res, coachRecommendWorkoutplan.data)
+    }
+    async getCoachRecommendWorkoutplan(req, res){
+        const workoutplanService = new WorkoutplanService()
+        const getCoachRecommendWorkoutplan = await workoutplanService.getCoachRecommendWorkoutplan(req)
+        if(!getCoachRecommendWorkoutplan.success){
+            return BaseController.sendFailedResponse(res, getCoachRecommendWorkoutplan.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCoachRecommendWorkoutplan.data)
+    }
 }
 
 module.exports = WorkoutplanController

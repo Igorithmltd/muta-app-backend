@@ -2,6 +2,7 @@ const router = require("express").Router();
 const DietController = require("../controllers/diet.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
+const coachAuth = require("../middlewares/coachAuth");
 const {
   ROUTE_CREATE_DIET,
   ROUTE_GET_DIET,
@@ -22,6 +23,8 @@ const {
   ROUTE_RATE_DIET_PLAN,
   ROUTE_POPULAR_DIET_PLANS,
   ROUTE_TOTAL_COMPLETED_DIET_PLANS,
+  ROUTE_CREATE_COACH_RECOMMEND_DIET,
+  ROUTE_COACH_RECOMMENDED_DIETS,
 } = require("../util/page-route");
 
 /**
@@ -2102,6 +2105,136 @@ router.get(ROUTE_GET_DIET_PLAN_MEALS+"/:id", [auth], (req, res) => {
 router.post(ROUTE_RATE_DIET_PLAN, [auth], (req, res) => {
   const dietController = new DietController();
   return dietController.rateDietPlan(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/create-coach-recommend-diet:
+ *   post:
+ *     summary: Coach recommends a diet plan to a user
+ *     tags:
+ *       - Diets
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dietId
+ *               - userId
+ *             properties:
+ *               dietId:
+ *                 type: string
+ *                 description: The ID of the diet plan being recommended
+ *                 example: 64fa12b8a4b7c91234567890
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user receiving the recommendation
+ *                 example: 64fa12b8a4b7c91234567891
+ *     responses:
+ *       200:
+ *         description: Diet recommendation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567892
+ *                     coachId:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567893
+ *                     userId:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567891
+ *                     dietId:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567890
+ *                     type:
+ *                       type: string
+ *                       example: diet
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Validation error or bad request
+ *       404:
+ *         description: User or diet not found
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_CREATE_COACH_RECOMMEND_DIET, [coachAuth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.coachRecommendDiet(req, res);
+});
+
+/**
+ * @swagger
+ * /diet/coach-recommended-diets:
+ *   get:
+ *     summary: Get all diet recommendations for the logged-in user
+ *     tags:
+ *       - Diets
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of diet recommendations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567892
+ *                       coachId:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567893
+ *                       userId:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567891
+ *                       dietId:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567890
+ *                       type:
+ *                         type: string
+ *                         example: diet
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_COACH_RECOMMENDED_DIETS, [auth], (req, res) => {
+  const dietController = new DietController();
+  return dietController.getCoachRecommendDiet(req, res);
 });
 
 module.exports = router;

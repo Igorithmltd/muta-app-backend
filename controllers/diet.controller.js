@@ -155,6 +155,22 @@ class DietController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, rateDietPlan.data)
     }
+    async getCoachRecommendDiet(req, res){
+        const dietService = new DietService()
+        const getCoachRecommendDiet = await dietService.getCoachRecommendDiet(req)
+        if(!getCoachRecommendDiet.success){
+            return BaseController.sendFailedResponse(res, getCoachRecommendDiet.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCoachRecommendDiet.data)
+    }
+    async coachRecommendDiet(req, res){
+        const dietService = new DietService()
+        const coachRecommendDiet = await dietService.coachRecommendDiet(req)
+        if(!coachRecommendDiet.success){
+            return BaseController.sendFailedResponse(res, coachRecommendDiet.data)
+        }
+        return BaseController.sendSuccessResponse(res, coachRecommendDiet.data)
+    }
 }
 
 module.exports = DietController;

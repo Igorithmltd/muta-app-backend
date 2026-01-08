@@ -6,6 +6,7 @@ const { empty } = require("../util");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 const moment = require("moment");
+const CoachRecommendModel = require("../models/coach-recommend");
 
 class DietServicee extends BaseService {
   async createDiet(req) {
@@ -966,6 +967,72 @@ class DietServicee extends BaseService {
     } catch (error) {
       console.error("Error fetching completed plans:", error);
       return BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async coachRecommendDiet(req){
+    try {
+      const post = req.body;
+      const userId = req.user.id
+
+      const validateRule = {
+        dietId: "string|required",
+        userId: "string|required",
+      };
+      const validateMessage = {
+        required: ":attribute is required",
+      };
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+      const user = await UserModel.findById(userId);
+      const diet = await DietModel.findById(post.dietId);
+
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+      if (!diet) {
+        return BaseService.sendFailedResponse({ error: "Diet not found" });
+      }
+
+      const coachRecommend = new CoachRecommendModel({
+        coachId: userId,
+        userId: post.userId,
+        dietId: post.dietId,
+        type: 'diet',
+      });
+      await coachRecommend.save();
+
+      return BaseService.sendSuccessResponse({
+        message: coachRecommend
+      });
+      
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  async getCoachRecommendDiet(req){
+    try {
+      const userId = req.user.id
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      const coachRecommends = await CoachRecommendModel.find({userId: userId, type: 'diet'})
+
+      return BaseService.sendSuccessResponse({
+        message: coachRecommends
+      });
+
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
 }

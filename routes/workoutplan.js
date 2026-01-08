@@ -1,6 +1,7 @@
 const WorkoutplanController = require("../controllers/workoutplan.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
+const coachAuth = require("../middlewares/coachAuth");
 const {
   ROUTE_CREATE_WORKOUTPLAN,
   ROUTE_GET_ALL_WORKOUTPLANS,
@@ -19,6 +20,8 @@ const {
   ROUTE_SEARCH_WORKOUTPLAN_TITLE,
   ROUTE_GET_WORKOUTPLAN_BY_CATEGORY,
   ROUTE_TOTAL_COMPLETED_WORKOUTPLANS,
+  ROUTE_CREATE_COACH_RECOMMEND_WORKOUTPLAN,
+  ROUTE_COACH_RECOMMENDED_WORKOUTPLANS,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2221,6 +2224,136 @@ router.get(ROUTE_SEARCH_WORKOUTPLAN_TITLE, auth, (req, res) => {
  *         description: Server error
  */
 router.get(ROUTE_GET_WORKOUTPLAN_BY_CATEGORY, auth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.getWorkoutplanByCategory(req, res);
+});
+
+/**
+ * @swagger
+ * /workoutplan/create-coach-recommend-workoutplan:
+ *   post:
+ *     summary: Coach recommends a workoutplan plan to a user
+ *     tags:
+ *       - Workoutplan
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - workoutplanId
+ *               - userId
+ *             properties:
+ *               workoutplanId:
+ *                 type: string
+ *                 description: The ID of the workoutplan plan being recommended
+ *                 example: 64fa12b8a4b7c91234567890
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user receiving the recommendation
+ *                 example: 64fa12b8a4b7c91234567891
+ *     responses:
+ *       200:
+ *         description: Workoutplan recommendation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567892
+ *                     coachId:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567893
+ *                     userId:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567891
+ *                     workoutplanId:
+ *                       type: string
+ *                       example: 64fa12b8a4b7c91234567890
+ *                     type:
+ *                       type: string
+ *                       example: workoutplan
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Validation error or bad request
+ *       404:
+ *         description: User or workoutplan not found
+ *       500:
+ *         description: Server error
+ */
+router.post(ROUTE_CREATE_COACH_RECOMMEND_WORKOUTPLAN, coachAuth, (req, res) => {
+  const workoutplanController = new WorkoutplanController();
+  return workoutplanController.coachRecommendWorkoutplan(req, res);
+});
+
+/**
+ * @swagger
+ * /workoutplan/coach-recommended-workoutplans:
+ *   get:
+ *     summary: Get all workoutplan recommendations for the logged-in user
+ *     tags:
+ *       - Workoutplan
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of workoutplan recommendations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567892
+ *                       coachId:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567893
+ *                       userId:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567891
+ *                       workoutplanId:
+ *                         type: string
+ *                         example: 64fa12b8a4b7c91234567890
+ *                       type:
+ *                         type: string
+ *                         example: workoutplan
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_COACH_RECOMMENDED_WORKOUTPLANS, auth, (req, res) => {
   const workoutplanController = new WorkoutplanController();
   return workoutplanController.getWorkoutplanByCategory(req, res);
 });
