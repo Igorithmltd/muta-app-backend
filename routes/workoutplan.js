@@ -2311,6 +2311,13 @@ router.post(ROUTE_CREATE_COACH_RECOMMEND_WORKOUTPLAN, coachAuth, (req, res) => {
  *       - Workoutplan
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: coachId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Filter workoutplan recommendations by coach ID
  *     responses:
  *       200:
  *         description: List of workoutplan recommendations
@@ -2337,8 +2344,153 @@ router.post(ROUTE_CREATE_COACH_RECOMMEND_WORKOUTPLAN, coachAuth, (req, res) => {
  *                         type: string
  *                         example: 64fa12b8a4b7c91234567891
  *                       workoutplanId:
- *                         type: string
- *                         example: 64fa12b8a4b7c91234567890
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 64fa12b8a4b7c91234567890
+ *                           title:
+ *                             type: string
+ *                             example: Full Body Workout
+ *                           description:
+ *                             type: string
+ *                             example: Complete full body workout plan
+ *                           status:
+ *                             type: string
+ *                             enum: [active, inactive]
+ *                             example: active
+ *                           recommended:
+ *                             type: string
+ *                             enum: [YES, NO]
+ *                             example: YES
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: https://cdn.example.com/workouts/fullbody.png
+ *                               publicId:
+ *                                 type: string
+ *                                 example: workouts/fullbody
+ *                           category:
+ *                             type: string
+ *                             example: 64fa12b8a4b7c91230000001
+ *                           calories:
+ *                             type: number
+ *                             example: 450
+ *                           roundsCount:
+ *                             type: number
+ *                             example: 5
+ *                           duration:
+ *                             type: number
+ *                             example: 45
+ *                           level:
+ *                             type: string
+ *                             enum: [beginner, intermediate, advanced]
+ *                             example: beginner
+ *                           durationInDays:
+ *                             type: number
+ *                             example: 30
+ *                           numberOfUsers:
+ *                             type: number
+ *                             example: 1200
+ *                           planRounds:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 rounds:
+ *                                   type: array
+ *                                   items:
+ *                                     type: object
+ *                                     properties:
+ *                                       title:
+ *                                         type: string
+ *                                         example: Push Ups
+ *                                       duration:
+ *                                         type: number
+ *                                         example: 60
+ *                                       set:
+ *                                         type: number
+ *                                         example: 3
+ *                                       reps:
+ *                                         type: number
+ *                                         example: 15
+ *                                       animation:
+ *                                         type: string
+ *                                         example: pushup.gif
+ *                                       restBetweenSet:
+ *                                         type: number
+ *                                         example: 30
+ *                                       instruction:
+ *                                         type: string
+ *                                         example: Keep your back straight
+ *                                       commonMistakesToAvoid:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                       youtubeLink:
+ *                                         type: string
+ *                                         example: https://youtube.com/example
+ *                                       image:
+ *                                         type: object
+ *                                         properties:
+ *                                           imageUrl:
+ *                                             type: string
+ *                                           publicId:
+ *                                             type: string
+ *                                       workoutExerciseType:
+ *                                         type: string
+ *                                         enum: [time, set-reps]
+ *                                         example: set-reps
+ *                                       breathingTips:
+ *                                         type: array
+ *                                         items:
+ *                                           type: string
+ *                                       focusArea:
+ *                                         type: array
+ *                                         items:
+ *                                           type: object
+ *                                           properties:
+ *                                             value:
+ *                                               type: string
+ *                                               example: Chest
+ *                                             impact:
+ *                                               type: string
+ *                                               example: Strength
+ *                                       status:
+ *                                         type: string
+ *                                         enum: [completed, in-progress, not-started]
+ *                                         example: in-progress
+ *                           ratings:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 userId:
+ *                                   type: string
+ *                                   example: 64fa12b8a4b7c91239999999
+ *                                 rating:
+ *                                   type: number
+ *                                   example: 5
+ *                                 review:
+ *                                   type: string
+ *                                   example: Excellent workout plan
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                           averageRating:
+ *                             type: number
+ *                             example: 4.8
+ *                           totalRatings:
+ *                             type: number
+ *                             example: 200
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
  *                       type:
  *                         type: string
  *                         example: workoutplan

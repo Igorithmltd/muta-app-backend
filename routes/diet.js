@@ -2190,6 +2190,13 @@ router.post(ROUTE_CREATE_COACH_RECOMMEND_DIET, [coachAuth], (req, res) => {
  *       - Diets
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: coachId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Filter diet recommendations by coach ID
  *     responses:
  *       200:
  *         description: List of diet recommendations
@@ -2216,8 +2223,119 @@ router.post(ROUTE_CREATE_COACH_RECOMMEND_DIET, [coachAuth], (req, res) => {
  *                         type: string
  *                         example: 64fa12b8a4b7c91234567891
  *                       dietId:
- *                         type: string
- *                         example: 64fa12b8a4b7c91234567890
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 64fa12b8a4b7c91234567890
+ *                           title:
+ *                             type: string
+ *                             example: Keto Diet Plan
+ *                           description:
+ *                             type: string
+ *                             example: Low carb, high fat diet plan
+ *                           status:
+ *                             type: string
+ *                             enum: [active, inactive]
+ *                             example: active
+ *                           recommended:
+ *                             type: string
+ *                             enum: [YES, NO]
+ *                             example: YES
+ *                           image:
+ *                             type: object
+ *                             properties:
+ *                               imageUrl:
+ *                                 type: string
+ *                                 example: https://cdn.example.com/diets/keto.png
+ *                               publicId:
+ *                                 type: string
+ *                                 example: diets/keto
+ *                           category:
+ *                             type: string
+ *                             example: 64fa12b8a4b7c91230000001
+ *                           calories:
+ *                             type: number
+ *                             example: 1800
+ *                           tags:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: [keto, weight-loss]
+ *                           duration:
+ *                             type: number
+ *                             example: 30
+ *                           dailyMealBreakdown:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 dayLabel:
+ *                                   type: string
+ *                                   example: Day 1
+ *                                 meals:
+ *                                   type: array
+ *                                   items:
+ *                                     type: object
+ *                                     properties:
+ *                                       mealTitle:
+ *                                         type: string
+ *                                         example: Breakfast
+ *                                       carbs:
+ *                                         type: number
+ *                                         example: 20
+ *                                       protein:
+ *                                         type: number
+ *                                         example: 30
+ *                                       fats:
+ *                                         type: number
+ *                                         example: 40
+ *                                       calories:
+ *                                         type: number
+ *                                         example: 500
+ *                                       recommendedTime:
+ *                                         type: string
+ *                                         example: 08:00 AM
+ *                                       missedBy:
+ *                                         type: string
+ *                                         example: 30 minutes
+ *                                       mealType:
+ *                                         type: string
+ *                                         enum: [breakfast, lunch, dinner, snack]
+ *                                         example: breakfast
+ *                                       status:
+ *                                         type: string
+ *                                         enum: [completed, in-progress, missed, not-started]
+ *                                         example: in-progress
+ *                           ratings:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 userId:
+ *                                   type: string
+ *                                   example: 64fa12b8a4b7c91239999999
+ *                                 rating:
+ *                                   type: number
+ *                                   example: 5
+ *                                 review:
+ *                                   type: string
+ *                                   example: Very effective diet
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                           averageRating:
+ *                             type: number
+ *                             example: 4.6
+ *                           totalRatings:
+ *                             type: number
+ *                             example: 120
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
  *                       type:
  *                         type: string
  *                         example: diet

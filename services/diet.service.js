@@ -1016,6 +1016,7 @@ class DietServicee extends BaseService {
   async getCoachRecommendDiet(req){
     try {
       const userId = req.user.id
+      const coachId = req.query.coachId
 
       const user = await UserModel.findById(userId);
 
@@ -1023,7 +1024,12 @@ class DietServicee extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const coachRecommends = await CoachRecommendModel.find({userId: userId, type: 'diet'})
+      if (!coachId) {
+        return BaseService.sendFailedResponse({ error: "Please provide a coach id" });
+      }
+
+      const coachRecommends = await CoachRecommendModel.find({userId: userId, type: 'diet', coachId: coachId})
+      .populate('dietId')
 
       return BaseService.sendSuccessResponse({
         message: coachRecommends

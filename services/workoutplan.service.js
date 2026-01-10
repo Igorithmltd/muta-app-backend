@@ -1221,6 +1221,7 @@ class WorkoutplanService extends BaseService {
   async getCoachRecommendWorkoutplan(req){
     try {
       const userId = req.user.id
+      const coachId = req.query.coachId
 
       const user = await UserModel.findById(userId);
 
@@ -1228,7 +1229,12 @@ class WorkoutplanService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const coachRecommends = await CoachRecommendModel.find({userId: userId, type: 'workoutplan'})
+      if (!coachId) {
+        return BaseService.sendFailedResponse({ error: "Please provide a coach id" });
+      }
+
+      const coachRecommends = await CoachRecommendModel.find({userId: userId, type: 'workoutplan', coachId: coachId})
+      .populate('workoutplanId')
 
       return BaseService.sendSuccessResponse({
         message: coachRecommends
