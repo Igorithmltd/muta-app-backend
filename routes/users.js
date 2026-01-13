@@ -59,6 +59,7 @@ const {
   ROUTE_SET_ACTIVITY_REMINDER,
   ROUTE_GET_USER_COACH_GUIDANCE,
   ROUTE_WEIGHT_ANALYSIS,
+  ROUTE_BMI_ANALYSIS
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -3054,6 +3055,11 @@ router.post(ROUTE_SET_ACTIVITY_REMINDER, [auth], (req, res) => {
  *         description: Server error
  */
 router.get(ROUTE_WEIGHT_ANALYSIS, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.weightAnalysis(req, res);
+});
+
+router.get(ROUTE_BMI_ANALYSIS, [auth], (req, res) => {
   const userController = new UserController();
   return userController.weightAnalysis(req, res);
 });

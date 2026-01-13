@@ -3596,7 +3596,7 @@ class UserService extends BaseService {
         },
         graph_data: buckets.map((b) => ({
           date: b.date.toISOString().split("T")[0],
-          weight: b.weight !== null ? UserService.round(b.weight, 1) : null,
+          bmi: b.weight !== null ? UserService.round(b.weight, 1) : null,
           label: UserService.formatLabel(b.date, "day"),
         })),
       });
@@ -3607,6 +3607,192 @@ class UserService extends BaseService {
       });
     }
   }  
+
+  async bmiAnalysis(req) {
+    try {
+      const userId = req.user.id;
+  
+      const rangeKey = req.query.range || "1W";
+      const config = ANALYSIS_RANGES[rangeKey];
+  
+      if (!config) {
+        return BaseService.sendFailedResponse({ error: "Invalid range" });
+      }
+  
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+  
+      if (!user.weights.length || !user.height?.value) {
+        return BaseService.sendSuccessResponse({
+          meta: { range: rangeKey },
+          summary: null,
+          graph_data: [],
+        });
+      }
+  
+      /* ------------------------------------
+       * 1️⃣ Convert height to meters
+       * ----------------------------------*/
+      let heightInMeters;
+  
+      if (user.height.unit === "cm") {
+        heightInMeters = user.height.value / 100;
+      } else {
+        // ft → meters
+        heightInMeters = user.height.value * 0.3048;
+      }
+  
+      if (!heightInMeters || heightInMeters <= 0) {
+        return BaseService.sendFailedResponse({
+          error: "Invalid height value",
+        });
+      }
+  
+      /* ------------------------------------
+       * 2️⃣ Determine startDate & endDate
+       * ----------------------------------*/
+      let startDate, endDate;
+  
+      if (rangeKey === "ALL") {
+        startDate = new Date(
+          Math.min(...user.weights.map((w) => new Date(w.recordedAt)))
+        );
+        endDate = new Date(
+          Math.max(...user.weights.map((w) => new Date(w.recordedAt)))
+        );
+      } else if (config.days) {
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - config.days);
+      }
+  
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+  
+      /* ------------------------------------
+       * 3️⃣ Fetch weights & calculate BMI
+       * ----------------------------------*/
+      const graphData = await UserModel.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+        { $unwind: "$weights" },
+        {
+          $project: {
+            date: "$weights.recordedAt",
+            weightKg: {
+              $toDouble: {
+                $cond: [
+                  { $eq: ["$weights.unit", "lbs"] },
+                  { $multiply: ["$weights.value", 0.453592] },
+                  "$weights.value",
+                ],
+              },
+            },
+          },
+        },
+        {
+          $match: {
+            date: {
+              $gte: startDate,
+              $lte: new Date(endDate.getTime() + 86400000),
+            },
+          },
+        },
+        { $sort: { date: 1 } },
+      ]);
+  
+      if (!graphData.length) {
+        return BaseService.sendSuccessResponse({
+          meta: { range: rangeKey },
+          summary: null,
+          graph_data: [],
+        });
+      }
+  
+      /* ------------------------------------
+       * 4️⃣ Build DAILY buckets
+       * ----------------------------------*/
+      const buckets = [];
+      let cursor = new Date(startDate);
+  
+      while (cursor <= endDate) {
+        buckets.push({
+          date: new Date(cursor),
+          bmi: null,
+        });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+  
+      /* ------------------------------------
+       * 5️⃣ Map BMI to buckets
+       * ----------------------------------*/
+      buckets.forEach((bucket) => {
+        const sameDay = graphData.filter((r) =>
+          UserService.isSameInterval(r.date, bucket.date, "day")
+        );
+  
+        if (sameDay.length) {
+          const lastWeight = sameDay[sameDay.length - 1].weightKg;
+          bucket.bmi = lastWeight / (heightInMeters * heightInMeters);
+        }
+      });
+  
+      /* ------------------------------------
+       * 6️⃣ Carry forward gaps
+       * ----------------------------------*/
+      let lastKnown = null;
+      buckets.forEach((b) => {
+        if (b.bmi !== null) lastKnown = b.bmi;
+        else b.bmi = lastKnown;
+      });
+  
+      /* ------------------------------------
+       * 7️⃣ Summary
+       * ----------------------------------*/
+      const nonNullBuckets = buckets.filter((b) => b.bmi !== null);
+  
+      const previous = nonNullBuckets.length
+        ? nonNullBuckets[0].bmi
+        : null;
+  
+      const current = nonNullBuckets.length
+        ? nonNullBuckets[nonNullBuckets.length - 1].bmi
+        : null;
+  
+      let growth = null;
+      let trend = "stable";
+  
+      if (previous !== null && current !== null && previous !== 0) {
+        growth = ((current - previous) / previous) * 100;
+        trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
+      }
+  
+      /* ------------------------------------
+       * 8️⃣ Response
+       * ----------------------------------*/
+      return BaseService.sendSuccessResponse({
+        meta: { range: rangeKey },
+        summary: {
+          current_bmi: UserService.round(current, 1),
+          previous_bmi: UserService.round(previous, 1),
+          growth_percentage: UserService.round(growth, 1),
+          trend_direction: trend,
+        },
+        graph_data: buckets.map((b) => ({
+          date: b.date.toISOString().split("T")[0],
+          bmi: b.bmi !== null ? UserService.round(b.bmi, 1) : null,
+          label: UserService.formatLabel(b.date, "day"),
+        })),
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  
 
   static calculateExpiryDateBasedOnPlan(paystackPlanCode) {
     const now = new Date();

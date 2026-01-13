@@ -539,6 +539,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, weightAnalysis.data)
     }
+    async bmiAnalysis(req, res){
+        const userService = new UserService()
+        const bmiAnalysis = await userService.bmiAnalysis(req, res)
+        if(!bmiAnalysis.success){
+            return BaseController.sendFailedResponse(res, bmiAnalysis.data)
+        }
+        return BaseController.sendSuccessResponse(res, bmiAnalysis.data)
+    }
 }
 
 module.exports = UserController
