@@ -13,19 +13,23 @@ const ScheduledCallSchema = new mongoose.Schema(
       required: true,
     },
 
-    startAt: {
+    callDate: {
       type: Date,
       required: true,
     },
 
-    endAt: {
-      type: Date,
+    startTime: {
+      type: String,
+      required: true,
+    },
+    endTime: {
+      type: String,
       required: true,
     },
 
     callType: {
       type: String,
-      enum: ["video", "voice"],
+      enum: ["video", "audio"],
       required: true,
     },
 

@@ -2507,7 +2507,7 @@ router.post(ROUTE_CREATE_COACH_RECOMMEND_WORKOUTPLAN, coachAuth, (req, res) => {
  */
 router.get(ROUTE_COACH_RECOMMENDED_WORKOUTPLANS, auth, (req, res) => {
   const workoutplanController = new WorkoutplanController();
-  return workoutplanController.getWorkoutplanByCategory(req, res);
+  return workoutplanController.getCoachRecommendWorkoutplan(req, res);
 });
 
 module.exports = router;

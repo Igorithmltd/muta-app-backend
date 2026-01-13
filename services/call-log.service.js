@@ -7,6 +7,7 @@ const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
 const { getIO } = require("../config/socket");
 const ChatRoomModel = require("../models/chatModel");
+const ScheduledCallModel = require("../models/scheduledCall.model");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder;
 class CallLogService extends BaseService {
   async initiateCall(req) {
@@ -486,10 +487,12 @@ class CallLogService extends BaseService {
       const post = req.body;
 
       const validateRule = {
-        callerId: "string|required",
-        receiverId: "string|required",
-        callType: "string|required",
-        scheduledTime: "date|required",
+        coachId: "string|required",
+        userId: "string|required",
+        callType: "string|required:in:audio,video",
+        callDate: "date|required",
+        startTime: "string|required",
+        endTime: "string|required",
       };
 
       const validateMessage = {
@@ -501,11 +504,22 @@ class CallLogService extends BaseService {
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-      const { callerId, receiverId, callType, scheduledTime } = post;
-      
+      const { coachId, userId, callType, callDate, startTime, endTime } = post;
 
+      const scheduleCallData = {
+        coachId,
+        userId,
+        callType,
+        callDate,
+        startTime,
+        endTime,
+        ...post
+      }
+
+      const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
+    
       return BaseService.sendSuccessResponse({
-        message: "Call marked as read",
+        message: scheduledCall,
       });
     } catch (error) {
       console.log(error, "the error");
