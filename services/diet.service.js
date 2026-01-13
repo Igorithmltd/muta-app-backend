@@ -7,6 +7,7 @@ const validateData = require("../util/validate");
 const BaseService = require("./base");
 const moment = require("moment");
 const CoachRecommendModel = require("../models/coach-recommend");
+const UserModel = require("../models/user.model");
 
 class DietServicee extends BaseService {
   async createDiet(req) {
@@ -1008,6 +1009,7 @@ class DietServicee extends BaseService {
       });
       
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
       });

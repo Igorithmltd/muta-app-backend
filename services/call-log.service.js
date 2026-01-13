@@ -481,6 +481,37 @@ class CallLogService extends BaseService {
       BaseService.sendFailedResponse(this.server_error_message);
     }
   }
+  async scheduleCall(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        callerId: "string|required",
+        receiverId: "string|required",
+        callType: "string|required",
+        scheduledTime: "date|required",
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "string.string": ":attribute must be a string.",
+        "date.date": ":attribute must be a valid date.",
+      };
+      const validateResult = validateData(post, validateRule, validateMessage);
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+      const { callerId, receiverId, callType, scheduledTime } = post;
+      
+
+      return BaseService.sendSuccessResponse({
+        message: "Call marked as read",
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
   // async getAgoraToken(req) {
   async getAgoraToken({ channelName, uid }) {
     try {
