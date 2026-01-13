@@ -506,6 +506,25 @@ class CallLogService extends BaseService {
       }
       const { coachId, userId, callType, callDate, startTime, endTime } = post;
 
+      const receiver = await UserModel.findById(userId);
+      const sender = await UserModel.findById(coachId);
+
+      // const receiverDeviceToken = receiver.deviceToken;
+
+      // if (!receiverDeviceToken) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Receiver cannot be reached at the moment",
+      //   });
+      // }
+
+      // const receiverData = {
+      //   ...callObject,
+      //   callStatus: "incoming",
+      //   token: receiverAgoraToken,
+      //   agoraUid: receiverUid,
+      //   jwtToken: receiverJwtToken
+      // };
+
       const scheduleCallData = {
         coachId,
         userId,
@@ -517,6 +536,14 @@ class CallLogService extends BaseService {
       }
 
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
+
+      // sendPushNotification({
+      //   deviceToken: receiverDeviceToken,
+      //   title: "Incoming Scheduled call",
+      //   body: `${sender.firstName} scheduled an ${callType} call with you`,
+      //   data: receiverData,
+      //   notificationType: "call",
+      // });
     
       return BaseService.sendSuccessResponse({
         message: scheduledCall,

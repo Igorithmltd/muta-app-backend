@@ -82,6 +82,14 @@ class CallLogController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getAgoraToken.data)
     }
+    async scheduleCall(req, res){
+        const callLogService = new CallLogService()
+        const scheduleCall = await callLogService.scheduleCall(req)
+        if(!scheduleCall.success){
+            return BaseController.sendFailedResponse(res, scheduleCall.data)
+        }
+        return BaseController.sendSuccessResponse(res, scheduleCall.data)
+    }
 }
 
 module.exports = CallLogController

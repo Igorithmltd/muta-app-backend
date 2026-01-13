@@ -1,6 +1,7 @@
 const CallController = require('../controllers/call-log.controller')
 const auth = require('../middlewares/auth')
-const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ } = require('../util/page-route')
+const coachAuth = require('../middlewares/coachAuth')
+const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ, ROUTE_SCHEDULE_CALL } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -423,6 +424,11 @@ router.put(ROUTE_MARK_CALL_AS_READ, [auth], (req, res)=>{
 router.get(ROUTE_GET_AGORA_TOKEN, [auth], (req, res)=>{
     const callController = new CallController()
     return callController.getAgoraToken(req, res)
+})
+
+router.post(ROUTE_SCHEDULE_CALL, [coachAuth], (req, res)=>{
+    const callController = new CallController()
+    return callController.scheduleCall(req, res)
 })
 
 module.exports = router
