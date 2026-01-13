@@ -90,6 +90,38 @@ class CallLogController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, scheduleCall.data)
     }
+    async getScheduledCalls(req, res){
+        const callLogService = new CallLogService()
+        const getScheduledCalls = await callLogService.getScheduledCalls(req)
+        if(!getScheduledCalls.success){
+            return BaseController.sendFailedResponse(res, getScheduledCalls.data)
+        }
+        return BaseController.sendSuccessResponse(res, getScheduledCalls.data)
+    }
+    async getScheduledCall(req, res){
+        const callLogService = new CallLogService()
+        const getScheduledCall = await callLogService.getScheduledCall(req)
+        if(!getScheduledCall.success){
+            return BaseController.sendFailedResponse(res, getScheduledCall.data)
+        }
+        return BaseController.sendSuccessResponse(res, getScheduledCall.data)
+    }
+    async deleteScheduledCall(req, res){
+        const callLogService = new CallLogService()
+        const deleteScheduledCall = await callLogService.deleteScheduledCall(req)
+        if(!deleteScheduledCall.success){
+            return BaseController.sendFailedResponse(res, deleteScheduledCall.data)
+        }
+        return BaseController.sendSuccessResponse(res, deleteScheduledCall.data)
+    }
+    async modifyScheduleCall(req, res){
+        const callLogService = new CallLogService()
+        const modifyScheduleCall = await callLogService.modifyScheduleCall(req)
+        if(!modifyScheduleCall.success){
+            return BaseController.sendFailedResponse(res, modifyScheduleCall.data)
+        }
+        return BaseController.sendSuccessResponse(res, modifyScheduleCall.data)
+    }
 }
 
 module.exports = CallLogController

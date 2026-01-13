@@ -211,6 +211,10 @@ exports.ROUTE_GET_USER_MISSED_CALLS = '/get-user-missed-calls'
 exports.ROUTE_MARK_CALL_AS_READ = '/mark-call-as-read'
 exports.ROUTE_GET_AGORA_TOKEN = '/get-agora-token'
 exports.ROUTE_SCHEDULE_CALL = '/schedule-call'
+exports.ROUTE_GET_SCHEDULED_CALLS = '/get-scheduled-calls'
+exports.ROUTE_GET_SCHEDULED_CALL = '/get-scheduled-call'
+exports.ROUTE_DELETE_SCHEDULED_CALL = '/delete-scheduled-call'
+exports.ROUTE_UPDATE_SCHEDULED_CALL = '/update-scheduled-call'
 
 //sleeps
 exports.ROUTE_LOG_SLEEP = '/log-sleep'

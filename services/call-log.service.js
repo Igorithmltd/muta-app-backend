@@ -535,6 +535,18 @@ class CallLogService extends BaseService {
         ...post
       }
 
+      const conflict = await ScheduledCallModel.findOne({
+        coachId,
+        status: "scheduled",
+        $or: [
+          { startAt: { $lt: endAt }, endAt: { $gt: startAt } }
+        ]
+      });
+      
+      if (conflict) {
+        return BaseService.sendFailedResponse({error: 'You have another call scheduled during this time. Please choose a different time slot.'});
+      }
+
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
 
       // sendPushNotification({
@@ -544,9 +556,82 @@ class CallLogService extends BaseService {
       //   data: receiverData,
       //   notificationType: "call",
       // });
-    
       return BaseService.sendSuccessResponse({
         message: scheduledCall,
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async getScheduledCalls(req) {
+    try {
+      const userId = req.user.id;
+
+      const scheduledCalls = await ScheduledCallModel.find({
+        $or: [{ coachId: userId }, { userId: userId }],
+        status: { $in: ["scheduled", "completed"] },
+      })
+      
+      return BaseService.sendSuccessResponse({
+        message: scheduledCalls,
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async getScheduledCall(req) {
+    try {
+      const userId = req.user.id;
+      const callId = req.params.id
+
+      const scheduledCall = await ScheduledCallModel.findOne({
+        $or: [{ coachId: userId }, { userId: userId }],
+        _id: callId,
+        status: { $in: ["scheduled", "completed"] },
+      })
+      
+      return BaseService.sendSuccessResponse({
+        message: scheduledCall,
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async deleteScheduledCall(req) {
+    try {
+      const userId = req.user.id;
+      const callId = req.params.id
+
+      const scheduledCall = await ScheduledCallModel.findOneAndDelete({
+        $or: [{ coachId: userId }, { userId: userId }],
+        _id: callId,
+      })
+      
+      return BaseService.sendSuccessResponse({
+        message: "Call schedule deleted",
+      });
+    } catch (error) {
+      console.log(error, "the error");
+      BaseService.sendFailedResponse(this.server_error_message);
+    }
+  }
+  async modifyScheduleCall(req) {
+    try {
+      const userId = req.user.id;
+      const callId = req.params.id
+
+      const scheduledCall = await ScheduledCallModel.findByIdAndUpdate({
+        $or: [{ coachId: userId }, { userId: userId }],
+        _id: callId,
+      }, {
+        ...req.body
+      }, {new: true})
+      
+      return BaseService.sendSuccessResponse({
+        message: "Call schedule updated successfully",
       });
     } catch (error) {
       console.log(error, "the error");

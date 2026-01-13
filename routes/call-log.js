@@ -1,7 +1,7 @@
 const CallController = require('../controllers/call-log.controller')
 const auth = require('../middlewares/auth')
 const coachAuth = require('../middlewares/coachAuth')
-const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ, ROUTE_SCHEDULE_CALL } = require('../util/page-route')
+const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ, ROUTE_SCHEDULE_CALL, ROUTE_GET_SCHEDULED_CALLS, ROUTE_GET_SCHEDULED_CALL, ROUTE_DELETE_SCHEDULED_CALL, ROUTE_UPDATE_SCHEDULED_CALL } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -426,9 +426,254 @@ router.get(ROUTE_GET_AGORA_TOKEN, [auth], (req, res)=>{
     return callController.getAgoraToken(req, res)
 })
 
+/**
+ * @swagger
+ * /calls/schedule-call:
+ *   post:
+ *     summary: Schedule a new call between a coach and a user
+ *     tags: [Calls]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - coachId
+ *               - userId
+ *               - callDate
+ *               - startTime
+ *               - endTime
+ *               - callType
+ *             properties:
+ *               coachId:
+ *                 type: string
+ *                 description: Coach user ID
+ *                 example: "68ea489cb3d9204f03bb39b6"
+ *               userId:
+ *                 type: string
+ *                 description: Client user ID
+ *                 example: "68ea489cb3d9204f03bb39b6"
+ *               callDate:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2026-01-20T10:00:00.000Z"
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "09:30am"
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "10:00am"
+ *               callType:
+ *                 type: string
+ *                 enum: [voice, video]
+ *               description:
+ *                 type: string
+ *                 example: Weekly fitness progress check-in
+ *     responses:
+ *       201:
+ *         description: Scheduled call created successfully
+ *       400:
+ *         description: Invalid input or scheduling conflict
+ */
 router.post(ROUTE_SCHEDULE_CALL, [coachAuth], (req, res)=>{
     const callController = new CallController()
     return callController.scheduleCall(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/get-scheduled-calls:
+ *   get:
+ *     summary: Get scheduled calls
+ *     tags: [Calls]
+ *     responses:
+ *       200:
+ *         description: List of scheduled calls
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 65cfa1a2b3c4d5e6f7g8h9
+ *                   coachId:
+ *                     type: string
+ *                     example: 65bf123abc456def789012
+ *                   userId:
+ *                     type: string
+ *                     example: 65aa123abc456def789012
+ *                   callDate:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2026-01-20T10:00:00.000Z"
+ *                   startTime:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "09:30am"
+ *                   endTime:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "10:00am"
+ *                   callType:
+ *                     type: string
+ *                     enum: [audio, video]
+ *                     example: video
+ *                   description:
+ *                     type: string
+ *                     example: Weekly fitness progress check-in
+ *                   status:
+ *                     type: string
+ *                     enum: [scheduled, completed, cancelled]
+ *                     example: scheduled
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2026-01-13T08:00:00.000Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2026-01-13T08:00:00.000Z"
+ */
+router.get(ROUTE_GET_SCHEDULED_CALLS, [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.getScheduledCalls(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/get-scheduled-call/{id}:
+ *   get:
+ *     summary: Get a scheduled call by ID
+ *     tags: [Calls]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Scheduled call retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   example: 65cfa1a2b3c4d5e6f7g8h9
+ *                 coachId:
+ *                   type: string
+ *                   example: 65bf123abc456def789012
+ *                 userId:
+ *                   type: string
+ *                   example: 65aa123abc45ydef789016
+ *                 callDate:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2026-01-20T10:00:00.000Z"
+ *                 startTime:
+ *                   type: string
+ *                   example: "09:30am"
+ *                 endTime:
+ *                   type: string
+ *                   example: "10:00am"
+ *                 callType:
+ *                   type: string
+ *                   enum: [audio, video]
+ *                   example: video
+ *                 description:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   example: scheduled
+ *                   enum: [scheduled, completed, cancelled]
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *       404:
+ *         description: Call not found
+ */
+router.get(ROUTE_GET_SCHEDULED_CALL+"/:id", [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.getScheduledCall(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/update-scheduled-call{id}:
+ *   put:
+ *     summary: Update a scheduled call
+ *     tags: [Calls]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Scheduled call ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [scheduled, completed, cancelled]
+ *     responses:
+ *       200:
+ *         description: Scheduled call updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: scheduled call updated successfully
+ *       400:
+ *         description: Invalid input or scheduling conflict
+ *       404:
+ *         description: Scheduled call not found
+ */
+router.put(ROUTE_UPDATE_SCHEDULED_CALL+"/:id", [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.modifyScheduleCall(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/delete-scheduled-call/{id}:
+ *   delete:
+ *     summary: Delete a scheduled call
+ *     tags: [Calls]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Scheduled call ID
+ *     responses:
+ *       200:
+ *         description: Scheduled call deleted successfully
+ *       404:
+ *         description: Call not found
+ */
+router.delete(ROUTE_DELETE_SCHEDULED_CALL+"/:id", [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.deleteScheduledCall(req, res)
 })
 
 module.exports = router
