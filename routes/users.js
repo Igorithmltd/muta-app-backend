@@ -1,6 +1,7 @@
 const UserController = require("../controllers/user.controller");
 const adminAuth = require("../middlewares/adminAuth");
 const auth = require("../middlewares/auth");
+const coachAuth = require("../middlewares/coachAuth");
 const {
   ROUTE_GET_ACCOUNT,
   ROUTE_PROFILE_IMAGE_UPLOAD,
@@ -59,7 +60,8 @@ const {
   ROUTE_SET_ACTIVITY_REMINDER,
   ROUTE_GET_USER_COACH_GUIDANCE,
   ROUTE_WEIGHT_ANALYSIS,
-  ROUTE_BMI_ANALYSIS
+  ROUTE_BMI_ANALYSIS,
+  ROUTE_GET_COACH_SUBSCRIBED_USERS
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -3059,9 +3061,145 @@ router.get(ROUTE_WEIGHT_ANALYSIS, [auth], (req, res) => {
   return userController.weightAnalysis(req, res);
 });
 
+/**
+ * @swagger
+ * /users/bmi-analysis:
+ *   get:
+ *     summary: Retrieve bmi trend analysis
+ *     tags:
+ *       - Users
+ *     description: >
+ *       Returns a bmi analysis including trend summary and graph data
+ *       based on the selected time range (e.g. 1W, 1M, 6M, 1Y, ALL).
+ *       Weights are normalized to kilograms (kg).
+ *
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [1W, 1M, 6M, 1Y, ALL]
+ *           example: 1W
+ *         description: Time range for weight analysis (defaults to 1W)
+ *
+ *     responses:
+ *       200:
+ *         description: Weight analysis data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     range:
+ *                       type: string
+ *                       example: 1W
+ *                     unit:
+ *                       type: string
+ *                       example: kg
+ *
+ *                 summary:
+ *                   type: object
+ *                   nullable: true
+ *                   properties:
+ *                     current_weight:
+ *                       type: number
+ *                       example: 72.4
+ *                     previous_weight:
+ *                       type: number
+ *                       example: 71.2
+ *                     growth_percentage:
+ *                       type: number
+ *                       example: 1.7
+ *                     trend_direction:
+ *                       type: string
+ *                       enum: [up, down, stable]
+ *                       example: up
+ *
+ *                 graph_data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-01-03"
+ *                         description: ISO date for the data point
+ *                       bmi:
+ *                         type: number
+ *                         nullable: true
+ *                         example: 72.1
+ *                         description: Weight value in kg (carried forward if missing)
+ *                       label:
+ *                         type: string
+ *                         example: Mon
+ *                         description: Formatted label for graph display
+ *
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get(ROUTE_BMI_ANALYSIS, [auth], (req, res) => {
   const userController = new UserController();
   return userController.weightAnalysis(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-coach-subscribed-users:
+ *   get:
+ *     summary: Get list of users subscribed to a coach
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: List of users subscribed to a coach
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 60d21b4667d0d8992e610c85
+ *                   firstName:
+ *                     type: string
+ *                     example: Jane
+ *                   lastName:
+ *                     type: string
+ *                     example: Doe
+ *                   specialty:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["yoga", "meditation"]
+ *                   userType:
+ *                     type: string
+ *                     example: coach
+ *                   image:
+ *                     type: object
+ *                     properties:
+ *                       imageUrl:
+ *                         type: string
+ *                         example: https://example.com/jane.jpg
+ *                       publicId:
+ *                         type: string
+ *                         example: abc123
+ *       400:
+ *         description: Invalid query parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_GET_COACH_SUBSCRIBED_USERS, [coachAuth], (req, res) => {
+  const userController = new UserController();
+  return userController.getCoachSubscribedUser(req, res);
 });
 
 

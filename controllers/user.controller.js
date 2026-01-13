@@ -547,6 +547,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, bmiAnalysis.data)
     }
+    async getCoachSubscribedUser(req, res){
+        const userService = new UserService()
+        const getCoachSubscribedUser = await userService.getCoachSubscribedUser(req, res)
+        if(!getCoachSubscribedUser.success){
+            return BaseController.sendFailedResponse(res, getCoachSubscribedUser.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCoachSubscribedUser.data)
+    }
 }
 
 module.exports = UserController

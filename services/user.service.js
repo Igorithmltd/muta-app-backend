@@ -3792,6 +3792,38 @@ class UserService extends BaseService {
       });
     }
   }
+
+  async getCoachSubscribedUser(req) {
+    try {
+      const coachId = req.user.id;
+      const now = new Date();
+  
+      const subscriptions = await SubscriptionModel.find({
+        coachId: coachId,
+        status: "active",
+        expiryDate: { $gte: now },
+      })
+        .populate({
+          path: "user",
+          select: "-password -otp -emailToken", // remove sensitive fields
+        })
+        .lean();
+  
+      const users = subscriptions
+        .map(sub => sub.user)
+        .filter(Boolean);
+  
+      return BaseService.sendSuccessResponse({
+        message: users,
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  
   
 
   static calculateExpiryDateBasedOnPlan(paystackPlanCode) {
@@ -3867,6 +3899,7 @@ class UserService extends BaseService {
 
     return "";
   }
+
 }
 
 module.exports = UserService;

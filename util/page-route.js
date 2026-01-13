@@ -52,6 +52,7 @@ exports.ROUTE_UPDATE_COACH_GUIDANCE_AS_DONE = '/update-coach-guidance-as-done'
 exports.ROUTE_SET_ACTIVITY_REMINDER = '/set-activity-reminder'
 exports.ROUTE_WEIGHT_ANALYSIS = '/weight-analysis'
 exports.ROUTE_BMI_ANALYSIS = '/bmi-analysis'
+exports.ROUTE_GET_COACH_SUBSCRIBED_USERS = '/get-coach-subscribed-users'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'
