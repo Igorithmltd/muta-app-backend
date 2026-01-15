@@ -555,6 +555,22 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getCoachSubscribedUser.data)
     }
+    async getClientGrowthStats(req, res){
+        const userService = new UserService()
+        const getClientGrowthStats = await userService.getClientGrowthStats(req, res)
+        if(!getClientGrowthStats.success){
+            return BaseController.sendFailedResponse(res, getClientGrowthStats.data)
+        }
+        return BaseController.sendSuccessResponse(res, getClientGrowthStats.data)
+    }
+    async getCoachWeeklyPerformanceGraph(req, res){
+        const userService = new UserService()
+        const getCoachWeeklyPerformanceGraph = await userService.getCoachWeeklyPerformanceGraph(req, res)
+        if(!getCoachWeeklyPerformanceGraph.success){
+            return BaseController.sendFailedResponse(res, getCoachWeeklyPerformanceGraph.data)
+        }
+        return BaseController.sendSuccessResponse(res, getCoachWeeklyPerformanceGraph.data)
+    }
 }
 
 module.exports = UserController

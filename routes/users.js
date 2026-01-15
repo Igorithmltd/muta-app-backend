@@ -61,7 +61,9 @@ const {
   ROUTE_GET_USER_COACH_GUIDANCE,
   ROUTE_WEIGHT_ANALYSIS,
   ROUTE_BMI_ANALYSIS,
-  ROUTE_GET_COACH_SUBSCRIBED_USERS
+  ROUTE_GET_COACH_SUBSCRIBED_USERS,
+  ROUTE_GET_CLIENT_GROWTH_STATS,
+  ROUTE_GET_COACH_PERFORMANCE_GRAPH
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -3072,7 +3074,6 @@ router.get(ROUTE_WEIGHT_ANALYSIS, [auth], (req, res) => {
  *       Returns a bmi analysis including trend summary and graph data
  *       based on the selected time range (e.g. 1W, 1M, 6M, 1Y, ALL).
  *       Weights are normalized to kilograms (kg).
- *
  *     parameters:
  *       - in: query
  *         name: range
@@ -3082,7 +3083,6 @@ router.get(ROUTE_WEIGHT_ANALYSIS, [auth], (req, res) => {
  *           enum: [1W, 1M, 6M, 1Y, ALL]
  *           example: 1W
  *         description: Time range for weight analysis (defaults to 1W)
- *
  *     responses:
  *       200:
  *         description: Weight analysis data
@@ -3200,6 +3200,165 @@ router.get(ROUTE_BMI_ANALYSIS, [auth], (req, res) => {
 router.get(ROUTE_GET_COACH_SUBSCRIBED_USERS, [coachAuth], (req, res) => {
   const userController = new UserController();
   return userController.getCoachSubscribedUser(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-client-growth-stats:
+ *   get:
+ *     summary: Get client, chat, and call growth statistics for a coach
+ *     tags:
+ *       - Users
+ *     description: >
+ *       Returns total and daily growth statistics (clients, chats, audio calls,
+ *       video calls, and subscriptions) for the logged-in coach.
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [today, yesterday, last7days, last30days]
+ *           example: today
+ *         description: range for the coach growth analysis (defaults to today)
+ *     responses:
+ *       200:
+ *         description: Growth statistics fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: object
+ *                       properties:
+ *                         totalChats:
+ *                           type: integer
+ *                           example: 66
+ *                         totalAudioCalls:
+ *                           type: integer
+ *                           example: 31
+ *                         totalVideoCalls:
+ *                           type: integer
+ *                           example: 3
+ *                         totalSubs:
+ *                           type: integer
+ *                           example: 0
+ *                         today:
+ *                           type: object
+ *                           properties:
+ *                             clients:
+ *                               type: integer
+ *                               example: 0
+ *                             chats:
+ *                               type: integer
+ *                               example: 0
+ *                             audioCalls:
+ *                               type: integer
+ *                               example: 0
+ *                             videoCalls:
+ *                               type: integer
+ *                               example: 0
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_CLIENT_GROWTH_STATS, [coachAuth], (req, res) => {
+  const userController = new UserController();
+  return userController.getClientGrowthStats(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-coach-performance-graph:
+ *   get:
+ *     summary: Get weekly performance statistics for a coach
+ *     tags:
+ *       - Users
+ *     description: >
+ *       Returns weekly performance statistics (total chats, calls, and subscriptions)
+ *       grouped by day (Monday to Sunday) for this week and last week
+ *       for the logged-in coach.
+ *     responses:
+ *       200:
+ *         description: Weekly performance statistics fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: object
+ *                       properties:
+ *                         thisWeek:
+ *                           type: object
+ *                           properties:
+ *                             monday:
+ *                               type: integer
+ *                               example: 0
+ *                             tuesday:
+ *                               type: integer
+ *                               example: 0
+ *                             wednesday:
+ *                               type: integer
+ *                               example: 0
+ *                             thursday:
+ *                               type: integer
+ *                               example: 0
+ *                             friday:
+ *                               type: integer
+ *                               example: 0
+ *                             saturday:
+ *                               type: integer
+ *                               example: 0
+ *                             sunday:
+ *                               type: integer
+ *                               example: 0
+ *                         lastWeek:
+ *                           type: object
+ *                           properties:
+ *                             monday:
+ *                               type: integer
+ *                               example: 0
+ *                             tuesday:
+ *                               type: integer
+ *                               example: 0
+ *                             wednesday:
+ *                               type: integer
+ *                               example: 0
+ *                             thursday:
+ *                               type: integer
+ *                               example: 0
+ *                             friday:
+ *                               type: integer
+ *                               example: 0
+ *                             saturday:
+ *                               type: integer
+ *                               example: 0
+ *                             sunday:
+ *                               type: integer
+ *                               example: 0
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_COACH_PERFORMANCE_GRAPH, [coachAuth], (req, res) => {
+  const userController = new UserController();
+  return userController.getCoachWeeklyPerformanceGraph(req, res);
 });
 
 

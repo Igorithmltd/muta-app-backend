@@ -222,6 +222,7 @@ UserSchema.pre(/^find/, function (next) {
   }
   next();
 });
+UserSchema.index({ createdAt: 1 });
 
 const UserModel = mongoose.model("User", UserSchema);
 module.exports = UserModel;

@@ -53,6 +53,8 @@ exports.ROUTE_SET_ACTIVITY_REMINDER = '/set-activity-reminder'
 exports.ROUTE_WEIGHT_ANALYSIS = '/weight-analysis'
 exports.ROUTE_BMI_ANALYSIS = '/bmi-analysis'
 exports.ROUTE_GET_COACH_SUBSCRIBED_USERS = '/get-coach-subscribed-users'
+exports.ROUTE_GET_CLIENT_GROWTH_STATS = '/get-client-growth-stats'
+exports.ROUTE_GET_COACH_PERFORMANCE_GRAPH = '/get-coach-performance-graph'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'

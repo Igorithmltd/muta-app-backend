@@ -31,5 +31,8 @@ const CallLogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+CallLogSchema.index({ createdAt: 1, callType: 1 });
+
+
 const CallLogModel = mongoose.model("CallLog", CallLogSchema);
 module.exports = CallLogModel;

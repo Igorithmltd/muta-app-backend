@@ -11,6 +11,8 @@ const {
   signAccessToken,
   formatNotificationTime,
   getWeightImprovementTipsByWeight,
+  getClientGrowthDateRanges,
+  getWeekRange,
 } = require("../util/helper");
 const { EXPIRES_AT, ANALYSIS_RANGES } = require("../util/constants");
 const NuggetModel = require("../models/nugget.model");
@@ -3445,19 +3447,19 @@ class UserService extends BaseService {
   async weightAnalysis(req) {
     try {
       const userId = req.user.id;
-  
+
       const rangeKey = req.query.range || "1W";
       const config = ANALYSIS_RANGES[rangeKey];
-  
+
       if (!config) {
         return BaseService.sendFailedResponse({ error: "Invalid range" });
       }
-  
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-  
+
       if (!user.weights.length) {
         return BaseService.sendSuccessResponse({
           meta: { range: rangeKey, unit: "kg" },
@@ -3465,12 +3467,12 @@ class UserService extends BaseService {
           graph_data: [],
         });
       }
-  
+
       /* ------------------------------------
        * 1️⃣ Determine startDate & endDate
        * ----------------------------------*/
       let startDate, endDate;
-  
+
       if (rangeKey === "ALL") {
         startDate = new Date(
           Math.min(...user.weights.map((w) => new Date(w.recordedAt)))
@@ -3483,10 +3485,10 @@ class UserService extends BaseService {
         startDate = new Date();
         startDate.setDate(startDate.getDate() - config.days);
       }
-  
+
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
-  
+
       /* ------------------------------------
        * 2️⃣ Fetch weights
        * ----------------------------------*/
@@ -3517,7 +3519,7 @@ class UserService extends BaseService {
         },
         { $sort: { date: 1 } },
       ]);
-  
+
       if (!graphData.length) {
         return BaseService.sendSuccessResponse({
           meta: { range: rangeKey, unit: "kg" },
@@ -3525,13 +3527,13 @@ class UserService extends BaseService {
           graph_data: [],
         });
       }
-  
+
       /* ------------------------------------
        * 3️⃣ Build DAILY buckets
        * ----------------------------------*/
       const buckets = [];
       let cursor = new Date(startDate);
-  
+
       while (cursor <= endDate) {
         buckets.push({
           date: new Date(cursor),
@@ -3539,7 +3541,7 @@ class UserService extends BaseService {
         });
         cursor.setDate(cursor.getDate() + 1);
       }
-  
+
       /* ------------------------------------
        * 4️⃣ Map weights to buckets (daily)
        * ----------------------------------*/
@@ -3547,12 +3549,12 @@ class UserService extends BaseService {
         const sameDay = graphData.filter((r) =>
           UserService.isSameInterval(r.date, bucket.date, "day")
         );
-  
+
         if (sameDay.length) {
           bucket.weight = sameDay[sameDay.length - 1].weightKg;
         }
       });
-  
+
       /* ------------------------------------
        * 5️⃣ Carry forward gaps
        * ----------------------------------*/
@@ -3561,28 +3563,26 @@ class UserService extends BaseService {
         if (b.weight !== null) lastKnown = b.weight;
         else b.weight = lastKnown;
       });
-  
+
       /* ------------------------------------
        * 6️⃣ Summary (FIXED)
        * ----------------------------------*/
       const nonNullBuckets = buckets.filter((b) => b.weight !== null);
-  
-      const previous = nonNullBuckets.length
-        ? nonNullBuckets[0].weight
-        : null;
-  
+
+      const previous = nonNullBuckets.length ? nonNullBuckets[0].weight : null;
+
       const current = nonNullBuckets.length
         ? nonNullBuckets[nonNullBuckets.length - 1].weight
         : null;
-  
+
       let growth = null;
       let trend = "stable";
-  
+
       if (previous !== null && current !== null && previous !== 0) {
         growth = ((current - previous) / previous) * 100;
         trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
       }
-  
+
       /* ------------------------------------
        * 7️⃣ Response
        * ----------------------------------*/
@@ -3606,24 +3606,24 @@ class UserService extends BaseService {
         error: this.server_error_message,
       });
     }
-  }  
+  }
 
   async bmiAnalysis(req) {
     try {
       const userId = req.user.id;
-  
+
       const rangeKey = req.query.range || "1W";
       const config = ANALYSIS_RANGES[rangeKey];
-  
+
       if (!config) {
         return BaseService.sendFailedResponse({ error: "Invalid range" });
       }
-  
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-  
+
       if (!user.weights.length || !user.height?.value) {
         return BaseService.sendSuccessResponse({
           meta: { range: rangeKey },
@@ -3631,30 +3631,30 @@ class UserService extends BaseService {
           graph_data: [],
         });
       }
-  
+
       /* ------------------------------------
        * 1️⃣ Convert height to meters
        * ----------------------------------*/
       let heightInMeters;
-  
+
       if (user.height.unit === "cm") {
         heightInMeters = user.height.value / 100;
       } else {
         // ft → meters
         heightInMeters = user.height.value * 0.3048;
       }
-  
+
       if (!heightInMeters || heightInMeters <= 0) {
         return BaseService.sendFailedResponse({
           error: "Invalid height value",
         });
       }
-  
+
       /* ------------------------------------
        * 2️⃣ Determine startDate & endDate
        * ----------------------------------*/
       let startDate, endDate;
-  
+
       if (rangeKey === "ALL") {
         startDate = new Date(
           Math.min(...user.weights.map((w) => new Date(w.recordedAt)))
@@ -3667,10 +3667,10 @@ class UserService extends BaseService {
         startDate = new Date();
         startDate.setDate(startDate.getDate() - config.days);
       }
-  
+
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
-  
+
       /* ------------------------------------
        * 3️⃣ Fetch weights & calculate BMI
        * ----------------------------------*/
@@ -3701,7 +3701,7 @@ class UserService extends BaseService {
         },
         { $sort: { date: 1 } },
       ]);
-  
+
       if (!graphData.length) {
         return BaseService.sendSuccessResponse({
           meta: { range: rangeKey },
@@ -3709,13 +3709,13 @@ class UserService extends BaseService {
           graph_data: [],
         });
       }
-  
+
       /* ------------------------------------
        * 4️⃣ Build DAILY buckets
        * ----------------------------------*/
       const buckets = [];
       let cursor = new Date(startDate);
-  
+
       while (cursor <= endDate) {
         buckets.push({
           date: new Date(cursor),
@@ -3723,7 +3723,7 @@ class UserService extends BaseService {
         });
         cursor.setDate(cursor.getDate() + 1);
       }
-  
+
       /* ------------------------------------
        * 5️⃣ Map BMI to buckets
        * ----------------------------------*/
@@ -3731,13 +3731,13 @@ class UserService extends BaseService {
         const sameDay = graphData.filter((r) =>
           UserService.isSameInterval(r.date, bucket.date, "day")
         );
-  
+
         if (sameDay.length) {
           const lastWeight = sameDay[sameDay.length - 1].weightKg;
           bucket.bmi = lastWeight / (heightInMeters * heightInMeters);
         }
       });
-  
+
       /* ------------------------------------
        * 6️⃣ Carry forward gaps
        * ----------------------------------*/
@@ -3746,28 +3746,26 @@ class UserService extends BaseService {
         if (b.bmi !== null) lastKnown = b.bmi;
         else b.bmi = lastKnown;
       });
-  
+
       /* ------------------------------------
        * 7️⃣ Summary
        * ----------------------------------*/
       const nonNullBuckets = buckets.filter((b) => b.bmi !== null);
-  
-      const previous = nonNullBuckets.length
-        ? nonNullBuckets[0].bmi
-        : null;
-  
+
+      const previous = nonNullBuckets.length ? nonNullBuckets[0].bmi : null;
+
       const current = nonNullBuckets.length
         ? nonNullBuckets[nonNullBuckets.length - 1].bmi
         : null;
-  
+
       let growth = null;
       let trend = "stable";
-  
+
       if (previous !== null && current !== null && previous !== 0) {
         growth = ((current - previous) / previous) * 100;
         trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
       }
-  
+
       /* ------------------------------------
        * 8️⃣ Response
        * ----------------------------------*/
@@ -3797,7 +3795,7 @@ class UserService extends BaseService {
     try {
       const coachId = req.user.id;
       const now = new Date();
-  
+
       const subscriptions = await SubscriptionModel.find({
         coachId: coachId,
         status: "active",
@@ -3808,11 +3806,9 @@ class UserService extends BaseService {
           select: "-password -otp -emailToken", // remove sensitive fields
         })
         .lean();
-  
-      const users = subscriptions
-        .map(sub => sub.user)
-        .filter(Boolean);
-  
+
+      const users = subscriptions.map((sub) => sub.user).filter(Boolean);
+
       return BaseService.sendSuccessResponse({
         message: users,
       });
@@ -3823,8 +3819,121 @@ class UserService extends BaseService {
       });
     }
   }
+
+  async getClientGrowthStats(req) {
+    const ranges = getClientGrowthDateRanges();
+
+    const rangeEqui = ['today', 'yesterday', 'last7Days', 'last30Days'];
+    const range = req.query.range && rangeEqui.includes(req.query.range) ? req.query.range : 'today';
+
+    let result = {};
+    const coachId = req.user.id;
+
+    const [totalChats, totalAudioCalls, totalVideoCalls, totalSubs] =
+      await Promise.all([
+        MessageModel.countDocuments({
+          // createdAt: { $gte: range.from, $lt: range.to },
+          $or: [{ senderId: coachId }, { receiverId: coachId }],
+        }),
+
+        CallLogModel.countDocuments({
+          callType: "audio",
+          // createdAt: { $gte: range.from, $lt: range.to },
+          $or: [{ callerId: coachId }, { receiverId: coachId }],
+        }),
+
+        CallLogModel.countDocuments({
+          callType: "video",
+          // createdAt: { $gte: range.from, $lt: range.to },
+          $or: [{ callerId: coachId }, { receiverId: coachId }],
+        }),
+
+        SubscriptionModel.aggregate([
+          {
+            $match: {
+              coachId: new mongoose.Types.ObjectId(coachId),
+              status: "active",
+              // createdAt: { $gte: range.from, $lt: range.to },
+            },
+          },
+          { $group: { _id: "$user" } },
+          { $count: "total" },
+        ]),
+      ]);
+
+    const totals = {};
+    totals.totalChats = totalChats;
+    totals.totalAudioCalls = totalAudioCalls;
+    totals.totalVideoCalls = totalVideoCalls;
+    totals.totalSubs = totalSubs[0]?.total || 0;
+
+    for (const [key, range] of Object.entries(ranges)) {
+      const [chats, audioCalls, videoCalls, coachSubAgg] = await Promise.all([
+        MessageModel.countDocuments({
+          createdAt: { $gte: range.from, $lt: range.to },
+          $or: [{ senderId: coachId }, { receiverId: coachId }],
+        }),
+
+        CallLogModel.countDocuments({
+          callType: "audio",
+          createdAt: { $gte: range.from, $lt: range.to },
+          $or: [{ callerId: coachId }, { receiverId: coachId }],
+        }),
+
+        CallLogModel.countDocuments({
+          callType: "video",
+          createdAt: { $gte: range.from, $lt: range.to },
+          $or: [{ callerId: coachId }, { receiverId: coachId }],
+        }),
+
+        SubscriptionModel.aggregate([
+          {
+            $match: {
+              coachId: new mongoose.Types.ObjectId(coachId),
+              status: "active",
+              createdAt: { $gte: range.from, $lt: range.to },
+            },
+          },
+          { $group: { _id: "$user" } },
+          { $count: "total" },
+        ]),
+      ]);
+
+      result[key] = {
+        clients: coachSubAgg[0]?.total || 0,
+        chats,
+        audioCalls,
+        videoCalls,
+      };
+    }
+
+    const selectedRange = result[range]
+
+    result = { ...totals, [range]: selectedRange };
+
+    return BaseService.sendSuccessResponse({ message: result });
+  }
+
+  async getCoachWeeklyPerformanceGraph(req) {
+  const coachId = req.user.id;
+
+  const thisWeek = getWeekRange(0);
+  const lastWeek = getWeekRange(-1);
+
   
-  
+
+  const [thisWeekData, lastWeekData] = await Promise.all([
+    UserService.getWeekData(thisWeek, coachId),
+    UserService.getWeekData(lastWeek, coachId),
+  ]);
+
+  return BaseService.sendSuccessResponse({
+    message: {
+      thisWeek: thisWeekData,
+      lastWeek: lastWeekData,
+    },
+  });
+}
 
   static calculateExpiryDateBasedOnPlan(paystackPlanCode) {
     const now = new Date();
@@ -3834,6 +3943,94 @@ class UserService extends BaseService {
       now.setFullYear(now.getFullYear() + 1);
     }
     return now;
+  }
+
+  static async getWeekData(range, coachId) {
+    const [chats, calls, subs] = await Promise.all([
+      MessageModel.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: range.from, $lt: range.to },
+            $or: [{ senderId: coachId }, { receiverId: coachId }],
+          },
+        },
+        {
+          $group: {
+            _id: { $dayOfWeek: "$createdAt" }, // 1 = Sunday
+            total: { $sum: 1 },
+          },
+        },
+      ]),
+
+      CallLogModel.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: range.from, $lt: range.to },
+            callType: { $in: ["audio", "video"] },
+            $or: [{ callerId: coachId }, { receiverId: coachId }],
+          },
+        },
+        {
+          $group: {
+            _id: { $dayOfWeek: "$createdAt" },
+            total: { $sum: 1 },
+          },
+        },
+      ]),
+
+      SubscriptionModel.aggregate([
+        {
+          $match: {
+            coachId,
+            status: "active",
+            createdAt: { $gte: range.from, $lt: range.to },
+          },
+        },
+        {
+          $group: {
+            _id: { $dayOfWeek: "$createdAt" },
+            total: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    // Initialize Monday → Sunday
+    const days = {
+      monday: 0,
+      tuesday: 0,
+      wednesday: 0,
+      thursday: 0,
+      friday: 0,
+      saturday: 0,
+      sunday: 0,
+    };
+
+    const mapDay = (mongoDay) => {
+      const map = {
+        1: "sunday",
+        2: "monday",
+        3: "tuesday",
+        4: "wednesday",
+        5: "thursday",
+        6: "friday",
+        7: "saturday",
+      };
+      return map[mongoDay];
+    };
+
+    const merge = (arr) => {
+      arr.forEach(({ _id, total }) => {
+        const day = mapDay(_id);
+        days[day] += total;
+      });
+    };
+
+    merge(chats);
+    merge(calls);
+    merge(subs);
+
+    return days;
   }
 
   static isSameInterval(date1, date2, interval) {
@@ -3873,6 +4070,12 @@ class UserService extends BaseService {
     return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
   }
 
+  static async countByDateRange(Model, dateField, range) {
+    return Model.countDocuments({
+      [dateField]: { $gte: range.from, $lt: range.to },
+    });
+  }
+
   static formatLabel(date, interval) {
     const d = new Date(date);
 
@@ -3899,7 +4102,6 @@ class UserService extends BaseService {
 
     return "";
   }
-
 }
 
 module.exports = UserService;

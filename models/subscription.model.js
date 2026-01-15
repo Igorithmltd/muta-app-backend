@@ -21,5 +21,11 @@ const SubscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+SubscriptionSchema.index({
+  coachId: 1,
+  status: 1,
+  createdAt: 1,
+});
+
 const SubscriptionModel = mongoose.model("Subscription", SubscriptionSchema);
 module.exports = SubscriptionModel;

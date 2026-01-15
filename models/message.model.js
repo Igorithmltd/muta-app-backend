@@ -63,5 +63,8 @@ MessageSchema.virtual("likeCount").get(function () {
   return this.likes?.length || 0;
 });
 
+MessageSchema.index({ createdAt: 1 });
+
+
 const MessageModel = mongoose.model("Message", MessageSchema);
 module.exports = MessageModel;

@@ -90,3 +90,45 @@ module.exports.getCurrentWeekNumber = ()=> {
 
   return tips[bmiCategory] || ["Maintain a healthy lifestyle with balanced diet and exercise."];
   }
+
+  module.exports.getWeekRange = (offset = 0)=> {
+    const now = new Date();
+    const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+  
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMonday + offset * 7);
+    monday.setHours(0, 0, 0, 0);
+  
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 7);
+  
+    return { from: monday, to: sunday };
+  }
+  
+
+  module.exports.getClientGrowthDateRanges = () => {
+    const now = new Date();
+  
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+  
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+  
+    const endOfYesterday = new Date(startOfToday);
+  
+    const last7Days = new Date(startOfToday);
+    last7Days.setDate(last7Days.getDate() - 7);
+  
+    const last30Days = new Date(startOfToday);
+    last30Days.setDate(last30Days.getDate() - 30);
+  
+    return {
+      today: { from: startOfToday, to: now },
+      yesterday: { from: startOfYesterday, to: endOfYesterday },
+      last7Days: { from: last7Days, to: now },
+      last30Days: { from: last30Days, to: now },
+    };
+  }
+  
