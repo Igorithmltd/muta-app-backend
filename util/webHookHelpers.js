@@ -9,7 +9,6 @@ const sendEmail = require("./emailService");
 
 async function handleChargeSuccess(data) {
     try {
-        console.log({ handleChargeData: data });
       
         const metadata = data.metadata || {};
         const reference = data.reference;
@@ -35,6 +34,7 @@ async function handleChargeSuccess(data) {
           metadata,
         });
       
+        console.log({user, metadata, data}, "handle charge success")
         // ==========================
         // 🛒 ORDER PAYMENT FLOW
         // ==========================
@@ -67,7 +67,7 @@ async function handleChargeSuccess(data) {
 
 async function createInitialSubscriptionFromCharge(data, user, metadata) {
     try {
-        
+        console.log({user, metadata, data}, 'from createInitialSubscriptionFromCharge');
         const {
           planId,
           categoryId,
@@ -86,7 +86,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
         });
       
         if (existing) return;
-        console.log({user, metadata, data}, 'from createInitialSubscriptionFromCharge');
       
         // ⚠️ Create Paystack subscription HERE (ONCE)
         const resp = await paystackAxios.post(
@@ -249,6 +248,7 @@ async function handleGiftSubscription(data, sender, metadata) {
 
 async function handleNormalSubscription(data, user, metadata) {
     try {
+        console.log({user, metadata, data}, 'from handleNormalSubscription');    
         const subscriptionCode = data.subscription?.subscription_code;
       
         // 🔁 Renewal
