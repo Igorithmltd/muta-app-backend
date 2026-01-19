@@ -26,8 +26,8 @@ const CouponSchema = new mongoose.Schema(
     phoneNumber: { type: String },
     expiresAt: { type: Date, required: true },
     used: { type: Boolean, default: false },
-    authorizationCode: { type: String, required: true },
-    customerCode: { type: String, required: true },
+    // authorizationCode: { type: String, required: true },
+    // customerCode: { type: String, required: true },
     subscriptionCode: { type: String, default: null },
   },
   { timestamps: true }

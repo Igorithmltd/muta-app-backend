@@ -318,7 +318,6 @@ async function handleGiftSubscription(data, sender, metadata) {
           giftedByUserId: sender._id,
           recipientEmail,
           expiresAt,
-          used: false,
         });
       
         // Notify recipient

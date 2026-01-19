@@ -29,6 +29,7 @@ const SubscriptionSchema = new mongoose.Schema(
     nextPaymentDate: { type: Date },
     cancelledAt: { type: Date },
     lastPaymentAt: { type: Date },
+    isGift: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
