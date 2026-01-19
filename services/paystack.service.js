@@ -11,7 +11,7 @@ const axios = require("axios");
  * yearly: PLN_7e0ibd16z5ijrxi
  *
  * live:
- * montly: PLN_ylerggpbm0jq6vu
+ * monthly: PLN_ylerggpbm0jq6vu
  * yearly: PLN_vu53jf8t745zu7l
  */
 class PaystackService extends BaseService {
