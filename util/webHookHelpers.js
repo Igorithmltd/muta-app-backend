@@ -34,7 +34,6 @@ async function handleChargeSuccess(data) {
           metadata,
         });
       
-        console.log({user, metadata, data}, "handle charge success")
         // ==========================
         // 🛒 ORDER PAYMENT FLOW
         // ==========================
@@ -55,6 +54,7 @@ async function handleChargeSuccess(data) {
         // 🔁 NORMAL SUBSCRIPTION
         // ==========================
         if (metadata.type === "subscription") {
+        console.log({user, metadata, data}, "subscription handle")
           await handleNormalSubscription(data, user, metadata);
           return;
         }

@@ -57,7 +57,6 @@ const webhookFunction = async (req, res) => {
         break;
 
       default:
-        console.log("📩 Paystack webhook 6");
         break;
     }
 
