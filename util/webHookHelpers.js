@@ -119,6 +119,7 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     status: "active",
   });
 
+  console.log({existingSubscription: existing})
   if (existing) return;
 
   // ⚠️ Create Paystack subscription HERE (ONCE)
