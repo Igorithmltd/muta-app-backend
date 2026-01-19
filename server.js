@@ -16,6 +16,10 @@ const limiter = require("./middlewares/rateLimiter.js");
 const corsMiddleware = require('./config/cors.js');
 const setupApp = require("./config/setup.js");
 
+//cron jobs
+require('./lib/cron/updatePaystackStatus.js');
+
+
 
 const port = process.env.PORT || 5000;
 const mongoURL = process.env.MONGODB_URL;

@@ -1983,8 +1983,11 @@ class UserService extends BaseService {
         reference: paystackSub.subscription_code,
         status: "active",
         startDate: new Date(),
-        expiryDate,
+        // expiryDate,
         paystackSubscriptionId: category.paystackSubscriptionId,
+        lastPaymentAt: new Date(),
+        // nextPaymentDate: 
+        // currentPeriodEnd
       });
 
       return BaseService.sendSuccessResponse({
@@ -2078,7 +2081,7 @@ class UserService extends BaseService {
       const filter = {
         user: userId,
         status: "active",
-        expiryDate: { $gt: new Date() },
+        currentPeriodEnd: { $gt: new Date() },
       };
 
       const userSubscriptionPlan = await SubscriptionModel.findOne(
@@ -2095,13 +2098,13 @@ class UserService extends BaseService {
       // const plan = user.subscriptionPlan;
 
       // Auto-expire if past expiry date
-      if (
-        userSubscriptionPlan.status === "active" &&
-        userSubscriptionPlan.expiryDate < new Date()
-      ) {
-        userSubscriptionPlan.status = "expired";
-        await userSubscriptionPlan.save();
-      }
+      // if (
+      //   userSubscriptionPlan.status === "active" &&
+      //   userSubscriptionPlan.expiryDate < new Date()
+      // ) {
+      //   userSubscriptionPlan.status = "expired";
+      //   await userSubscriptionPlan.save();
+      // }
 
       return BaseService.sendSuccessResponse({
         message: "Subscription state retrieved successfully",
