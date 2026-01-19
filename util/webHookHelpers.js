@@ -8,6 +8,7 @@ const paystackAxios = require("../services/paystack.client.service");
 const sendEmail = require("./emailService");
 
 async function handleChargeSuccess(data) {
+    console.log({handleChargeData: data})
   const metadata = data.metadata || {};
   const reference = data.reference;
   const userEmail = data.customer.email;
