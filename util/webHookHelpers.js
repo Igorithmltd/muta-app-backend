@@ -189,6 +189,8 @@ async function handleGiftSubscription(data, sender, metadata) {
           console.warn("Invalid gift subscription metadata", metadata);
           return;
         }
+
+        const receiver = await UserModel.findOne({ email: recipientEmail });
       
         // Generate coupon
         const couponCode =
@@ -214,6 +216,7 @@ async function handleGiftSubscription(data, sender, metadata) {
           giftedByUserId: sender._id,
           recipientEmail,
           expiresAt,
+        //   userId: receiver._id,
           used: false,
         });
       
