@@ -283,77 +283,6 @@ async function handleNormalSubscription(data, user, metadata) {
     }
 }
 
-async function handleGiftSubscription(data, sender, metadata) {
-    try {
-        
-        const {
-          planId,
-          categoryId,
-          coachId,
-          recipientEmail,
-          duration,
-        } = metadata;
-      
-        if (!planId || !categoryId || !coachId || !recipientEmail) {
-          console.warn("Invalid gift subscription metadata", metadata);
-          return;
-        }
-      
-        // Generate coupon
-        const couponCode =
-          "MUTAG-" + Math.random().toString(36).slice(2, 10).toUpperCase();
-      
-        // Calculate access duration
-        const now = new Date();
-        let expiresAt = new Date(now);
-      
-        if (duration === "monthly") {
-          expiresAt.setMonth(expiresAt.getMonth() + 1);
-        } else if (duration === "yearly") {
-          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-        } else {
-          expiresAt.setMonth(expiresAt.getMonth() + 1); // default
-        }
-      
-        await CouponModel.create({
-          code: couponCode,
-          coachId,
-          planId,
-          categoryId,
-          giftedByUserId: sender._id,
-          recipientEmail,
-          expiresAt,
-        });
-      
-        // Notify recipient
-        await sendEmail({
-          from: "Muta App <no-reply@fitnessapp.com>",
-          to: recipientEmail,
-          subject: "🎁 You received a gift subscription!",
-          html: `
-            <p>Hello!</p>
-            <p>${sender.firstName} ${sender.lastName} just gifted you a fitness subscription 💪</p>
-            <p><strong>Coupon Code:</strong> ${couponCode}</p>
-            <p>Open the Muta app and redeem your gift to get started!</p>
-          `,
-        });
-      
-        // Notify sender (optional)
-        await NotificationModel.create({
-          user: sender._id,
-          title: "Gift Sent 🎁",
-          body: `Your gift subscription has been successfully sent to ${recipientEmail}.`,
-        });
-      
-        console.log(
-          `🎁 Gift subscription created by ${sender.email} for ${recipientEmail}`
-        );
-    } catch (error) {
-        console.error("Error in handleGiftSubscription:", error);
-        return;
-    }
-  }
-
   async function handleOrderPayment(metadata, reference) {
     try {
         
@@ -384,7 +313,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       
         // 🔔 Optional notification
         await NotificationModel.create({
-          user: order.user,
+          userId: order.userId,
           title: "Payment Successful",
           body: "Your order payment was successful and is being processed.",
         });
