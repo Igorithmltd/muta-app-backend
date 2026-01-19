@@ -234,11 +234,13 @@ async function handleGiftSubscription(data, sender, metadata) {
         });
       
         // Notify sender (optional)
-        await NotificationModel.create({
-          user: sender._id,
-          title: "Gift Sent 🎁",
-          body: `Your gift subscription has been successfully sent to ${recipientEmail}.`,
-        });
+        const notificationData = {
+            userId: sender._id,
+            title: "Gift Sent 🎁",
+            body: `Your gift subscription has been successfully sent to ${recipientEmail}.`,
+          }
+          console.log({notificationData})
+        await NotificationModel.create(notificationData);
       
         console.log(
           `🎁 Gift subscription created by ${sender.email} for ${recipientEmail}`
