@@ -85,8 +85,8 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
           status: "active",
         });
       
-        console.log({existingSubscription: existing})
         if (existing) return;
+        console.log({user, metadata, data}, 'from createInitialSubscriptionFromCharge');
       
         // ⚠️ Create Paystack subscription HERE (ONCE)
         const resp = await paystackAxios.post(
