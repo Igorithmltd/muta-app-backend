@@ -109,7 +109,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
           coachId,
           planId,
           categoryId,
-      
           status: "active",
           startDate: new Date(),
           subscriptionCode: paystackSub.subscription_code,

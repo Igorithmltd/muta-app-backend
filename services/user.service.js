@@ -1897,107 +1897,107 @@ class UserService extends BaseService {
 
     return BaseService.sendSuccessResponse({ message: "Subscription created" });
   }
-  async subscribeUserToPlan(req) {
-    try {
-      const userId = req.user.id;
+  // async subscribeUserToPlan(req) {
+  //   try {
+  //     const userId = req.user.id;
 
-      const validateRule = {
-        planId: "string|required",
-        categoryDuration: "string|required|in:monthly,yearly",
-        paystackPlanCode: "string|required",
-      };
+  //     const validateRule = {
+  //       planId: "string|required",
+  //       categoryDuration: "string|required|in:monthly,yearly",
+  //       paystackPlanCode: "string|required",
+  //     };
 
-      const validateMessage = {
-        required: ":attribute is required",
-        "in.categoryDuration":
-          "categoryDuration must be one of 'monthly', 'yearly'",
-      };
+  //     const validateMessage = {
+  //       required: ":attribute is required",
+  //       "in.categoryDuration":
+  //         "categoryDuration must be one of 'monthly', 'yearly'",
+  //     };
 
-      const validateResult = validateData(
-        req.body,
-        validateRule,
-        validateMessage
-      );
-      if (!validateResult.success) {
-        return BaseService.sendFailedResponse({ error: validateResult.data });
-      }
+  //     const validateResult = validateData(
+  //       req.body,
+  //       validateRule,
+  //       validateMessage
+  //     );
+  //     if (!validateResult.success) {
+  //       return BaseService.sendFailedResponse({ error: validateResult.data });
+  //     }
 
-      const { planId, categoryDuration, paystackPlanCode } = req.body;
+  //     const { planId, categoryDuration, paystackPlanCode } = req.body;
 
-      const user = await UserModel.findById(userId);
-      if (!user)
-        return BaseService.sendFailedResponse({ error: "User not found" });
+  //     const user = await UserModel.findById(userId);
+  //     if (!user)
+  //       return BaseService.sendFailedResponse({ error: "User not found" });
 
-      const existingSub = await SubscriptionModel.findOne({
-        user: userId,
-        status: "active",
-      });
+  //     const existingSub = await SubscriptionModel.findOne({
+  //       user: userId,
+  //       status: "active",
+  //     });
 
-      const plan = await PlanModel.findById(planId);
-      if (!plan) {
-        return BaseService.sendFailedResponse({ error: "Plan not found" });
-      }
+  //     const plan = await PlanModel.findById(planId);
+  //     if (!plan) {
+  //       return BaseService.sendFailedResponse({ error: "Plan not found" });
+  //     }
 
-      const category = plan.categories.find(
-        (cat) => cat.duration === categoryDuration
-      );
-      if (!category) {
-        return BaseService.sendFailedResponse({
-          error: `Plan category '${categoryDuration}' not found`,
-        });
-      }
+  //     const category = plan.categories.find(
+  //       (cat) => cat.duration === categoryDuration
+  //     );
+  //     if (!category) {
+  //       return BaseService.sendFailedResponse({
+  //         error: `Plan category '${categoryDuration}' not found`,
+  //       });
+  //     }
 
-      if (
-        existingSub &&
-        existingSub.planId.toString() === planId.toString() &&
-        existingSub.categoryId.toString() === category._id.toString()
-      ) {
-        return BaseService.sendSuccessResponse({
-          message: "Already subscribed",
-          subscription: existingSub,
-        });
-      }
+  //     if (
+  //       existingSub &&
+  //       existingSub.planId.toString() === planId.toString() &&
+  //       existingSub.categoryId.toString() === category._id.toString()
+  //     ) {
+  //       return BaseService.sendSuccessResponse({
+  //         message: "Already subscribed",
+  //         subscription: existingSub,
+  //       });
+  //     }
 
-      // Assuming createPaystackSubscription throws on error
-      const paystackSub = await createPaystackSubscription(
-        user.email,
-        paystackPlanCode
-      );
-      if (paystackSub.success === false) {
-        return BaseService.sendFailedResponse({
-          error: "Something went wrong creating a subscription with Paystack",
-        });
-      }
+  //     // Assuming createPaystackSubscription throws on error
+  //     const paystackSub = await createPaystackSubscription(
+  //       user.email,
+  //       paystackPlanCode
+  //     );
+  //     if (paystackSub.success === false) {
+  //       return BaseService.sendFailedResponse({
+  //         error: "Something went wrong creating a subscription with Paystack",
+  //       });
+  //     }
 
-      let expiryDate = new Date();
-      if (category.duration === "monthly") {
-        expiryDate.setMonth(expiryDate.getMonth() + 1);
-      } else if (category.duration === "yearly") {
-        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-      }
+  //     let expiryDate = new Date();
+  //     if (category.duration === "monthly") {
+  //       expiryDate.setMonth(expiryDate.getMonth() + 1);
+  //     } else if (category.duration === "yearly") {
+  //       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  //     }
 
-      const newSub = await SubscriptionModel.create({
-        user: userId,
-        planId: planId,
-        categoryId: category._id,
-        reference: paystackSub.subscription_code,
-        status: "active",
-        startDate: new Date(),
-        // expiryDate,
-        paystackSubscriptionId: category.paystackSubscriptionId,
-        lastPaymentAt: new Date(),
-        // nextPaymentDate: 
-        // currentPeriodEnd
-      });
+  //     const newSub = await SubscriptionModel.create({
+  //       user: userId,
+  //       planId: planId,
+  //       categoryId: category._id,
+  //       reference: paystackSub.subscription_code,
+  //       status: "active",
+  //       startDate: new Date(),
+  //       // expiryDate,
+  //       paystackSubscriptionId: category.paystackSubscriptionId,
+  //       lastPaymentAt: new Date(),
+  //       // nextPaymentDate:
+  //       // currentPeriodEnd
+  //     });
 
-      return BaseService.sendSuccessResponse({
-        message: "Subscription created",
-        subscription: newSub,
-      });
-    } catch (error) {
-      return BaseService.sendFailedResponse({ error: error.message });
-    }
-  }
+  //     return BaseService.sendSuccessResponse({
+  //       message: "Subscription created",
+  //       subscription: newSub,
+  //     });
+  //   } catch (error) {
+  //     return BaseService.sendFailedResponse({ error: error.message });
+  //   }
+  // }
 
   async createPaystackSubscription(userEmail, planPaystackCode) {
     try {
@@ -2131,11 +2131,14 @@ class UserService extends BaseService {
       if (!coupon) {
         return BaseService.sendFailedResponse({ error: "Coupon not found" });
       }
-      const customerCode = coupon.customerCode;
-      const authorizationCode = coupon.authorizationCode;
+      // const customerCode = coupon.customerCode;
+      // const authorizationCode = coupon.authorizationCode;
 
-      // Validate coupon expiration
-      if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+      // Validate coupon expiration for 10 days
+
+      const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
+
+      if (Date.now() - coupon.createdAt.getTime() > TEN_DAYS) {
         return BaseService.sendFailedResponse({ error: "Coupon has expired" });
       }
 
@@ -2147,10 +2150,7 @@ class UserService extends BaseService {
       }
 
       // Validate recipient
-      if (
-        coupon.recipientEmail?.toLowerCase() !== user.email?.toLowerCase() &&
-        coupon.phoneNumber !== user.phoneNumber
-      ) {
+      if (coupon.recipientEmail?.toLowerCase() !== user.email?.toLowerCase()) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
@@ -2249,6 +2249,7 @@ class UserService extends BaseService {
         expiryDate,
         paystackSubscriptionId: paystackSubscriptionId,
         coachId: coupon.coachId,
+        currentPeriodEnd: coupon.expiresAt,
       });
 
       // Mark coupon as used
@@ -3826,8 +3827,11 @@ class UserService extends BaseService {
   async getClientGrowthStats(req) {
     const ranges = getClientGrowthDateRanges();
 
-    const rangeEqui = ['today', 'yesterday', 'last7Days', 'last30Days'];
-    const range = req.query.range && rangeEqui.includes(req.query.range) ? req.query.range : 'today';
+    const rangeEqui = ["today", "yesterday", "last7Days", "last30Days"];
+    const range =
+      req.query.range && rangeEqui.includes(req.query.range)
+        ? req.query.range
+        : "today";
 
     let result = {};
     const coachId = req.user.id;
@@ -3910,7 +3914,7 @@ class UserService extends BaseService {
       };
     }
 
-    const selectedRange = result[range]
+    const selectedRange = result[range];
 
     result = { ...totals, [range]: selectedRange };
 
@@ -3918,25 +3922,23 @@ class UserService extends BaseService {
   }
 
   async getCoachWeeklyPerformanceGraph(req) {
-  const coachId = req.user.id;
+    const coachId = req.user.id;
 
-  const thisWeek = getWeekRange(0);
-  const lastWeek = getWeekRange(-1);
+    const thisWeek = getWeekRange(0);
+    const lastWeek = getWeekRange(-1);
 
-  
+    const [thisWeekData, lastWeekData] = await Promise.all([
+      UserService.getWeekData(thisWeek, coachId),
+      UserService.getWeekData(lastWeek, coachId),
+    ]);
 
-  const [thisWeekData, lastWeekData] = await Promise.all([
-    UserService.getWeekData(thisWeek, coachId),
-    UserService.getWeekData(lastWeek, coachId),
-  ]);
-
-  return BaseService.sendSuccessResponse({
-    message: {
-      thisWeek: thisWeekData,
-      lastWeek: lastWeekData,
-    },
-  });
-}
+    return BaseService.sendSuccessResponse({
+      message: {
+        thisWeek: thisWeekData,
+        lastWeek: lastWeekData,
+      },
+    });
+  }
 
   static calculateExpiryDateBasedOnPlan(paystackPlanCode) {
     const now = new Date();
