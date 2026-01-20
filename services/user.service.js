@@ -2115,10 +2115,14 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
-  async redeemCoupon(req, res) {
+  async redeemCoupon(req) {
     try {
       const { couponCode } = req.body;
       const userId = req.user.id;
+
+      if(!couponCode){
+        return BaseService.sendFailedResponse({ error: "CouponCode is required" });
+      }
 
       // Fetch user
       const user = await UserModel.findById(userId);
@@ -2168,6 +2172,7 @@ class UserService extends BaseService {
         });
       }
 
+      console.log(coupon, "coupon plan id");
       // Load plan from coupon
       const plan = await PlanModel.findOne({
         "categories.paystackSubscriptionId": coupon.planId,
@@ -2192,12 +2197,12 @@ class UserService extends BaseService {
       }
 
       // Validate authorizationCode and customerCode presence
-      if (!authorizationCode || !customerCode) {
-        return BaseService.sendFailedResponse({
-          error:
-            "Authorization and customer codes are required to redeem subscription",
-        });
-      }
+      // if (!authorizationCode || !customerCode) {
+      //   return BaseService.sendFailedResponse({
+      //     error:
+      //       "Authorization and customer codes are required to redeem subscription",
+      //   });
+      // }
 
       // Create Paystack subscription
       // let resp;
@@ -2250,6 +2255,7 @@ class UserService extends BaseService {
         paystackSubscriptionId: paystackSubscriptionId,
         coachId: coupon.coachId,
         currentPeriodEnd: coupon.expiresAt,
+        isGift: true,
       });
 
       // Mark coupon as used

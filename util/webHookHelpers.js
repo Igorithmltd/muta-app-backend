@@ -206,11 +206,12 @@ async function handleGiftSubscription(data, sender, metadata) {
         } else {
           expiresAt.setMonth(expiresAt.getMonth() + 1); // default
         }
+        console.log({paystacksubscriptionCode: metadata}, '*******************')
       
         await CouponModel.create({
           code: couponCode,
           coachId,
-          planId,
+          planId: metadata.paystackSubscriptionCode,
           categoryId,
           giftedByUserId: sender._id,
           recipientEmail,
