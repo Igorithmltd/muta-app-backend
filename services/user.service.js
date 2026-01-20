@@ -2172,7 +2172,6 @@ class UserService extends BaseService {
         });
       }
 
-      console.log(coupon, "coupon plan id");
       // Load plan from coupon
       const plan = await PlanModel.findOne({
         "categories.paystackSubscriptionId": coupon.planId,
@@ -2266,7 +2265,7 @@ class UserService extends BaseService {
         title: "Coupon Redeemed",
         body: `You have successfully redeemed your coupon for a ${category.duration} subscription.`,
         time: new Date(),
-        type: "subscription",
+        type: "system",
       });
 
       await NotificationModel.create({
