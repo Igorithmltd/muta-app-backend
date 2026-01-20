@@ -2264,8 +2264,6 @@ class UserService extends BaseService {
         userId,
         title: "Coupon Redeemed",
         body: `You have successfully redeemed your coupon for a ${category.duration} subscription.`,
-        time: new Date(),
-        type: "system",
       });
 
       await NotificationModel.create({
