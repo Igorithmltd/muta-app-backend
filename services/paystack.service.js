@@ -133,6 +133,7 @@ class PaystackService extends BaseService {
         {
           email,
           amount, // e.g. 4500000 for ₦45,000.00
+          channels: ['card'],
           metadata: {
             userId,
             planId,
