@@ -23,7 +23,13 @@ class OrderService extends BaseService {
       const post = req.body;
 
       const validateRule = {
-        paymentMethod: "string|required"
+        paymentMethod: "string|required",
+        shippingAddress: "object|required",
+        "shippingAddress.fullName": "string|required",
+        "shippingAddress.phoneNumber": "string|required",
+        "shippingAddress.address": "string|required",
+        "shippingAddress.region": "string|required",
+        "shippingAddress.city": "string|required",
       };
 
       const validateMessage = {
@@ -69,7 +75,10 @@ class OrderService extends BaseService {
         };
       });
 
-      totalAmount = parseFloat(totalAmount.toFixed(2)) + DELIVERY_CHARGE;
+      const totalDelivery = OrderService.calculateDelivery(cart.items);
+
+       // Add delivery to order total
+       totalAmount = parseFloat((totalAmount + totalDelivery).toFixed(2));
 
       const newOrder = await OrderModel.create({
         userId,
@@ -228,6 +237,27 @@ class OrderService extends BaseService {
       });
     }
   }
+  static calculateDelivery(items) {
+    const baseRate = 500;      // base delivery charge
+    const weightFactor = 50;   // per kg
+    const priceFactor = 0.01;  // 1% of product price
+  
+    let totalDelivery = 0;
+  
+    for (const item of items) {
+      const variation = item.product.variations.find(
+        (v) => v.color === item.color && v.size === item.size
+      );
+  
+      const price = variation && variation.price ? variation.price : item.product.price;
+      const weight = variation ? variation.weight : 0;
+  
+      totalDelivery += baseRate + weight * weightFactor + price * priceFactor;
+    }
+  
+    return totalDelivery;
+  }
+  
 }
 
 module.exports = OrderService;
