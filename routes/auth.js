@@ -172,9 +172,6 @@ router.post(ROUTE_APPLE_SIGNUP, (req, res)=>{
  *               email:
  *                 type: string
  *                 example: user@example.com
- *               phoneNumber:
- *                 type: string
- *                 example: 08174737434
  *     responses:
  *       200:
  *         description: Login successful
