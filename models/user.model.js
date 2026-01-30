@@ -85,6 +85,7 @@ const UserSchema = new mongoose.Schema(
     },
     isRegistrationComplete: { type: Boolean, default: false },
     otp: { type: String },
+    otpPhoneNumber: { type: String },
     customerCode: { type: String },
     emailToken: { type: String },
     otpExpiresAt: { type: Date },

@@ -370,8 +370,9 @@ class UserService extends BaseService {
       const post = req.body;
 
       const validateRule = {
-        email: "email|required",
+        // email: "email|required",
         otp: "string|required",
+        otpPhoneNumber: "string|required",
       };
 
       const validateMessage = {
@@ -385,9 +386,18 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email, otp } = post;
+      const { email, otp, phoneNumber, otpPhoneNumber } = post;
 
-      const userExists = await UserModel.findOne({ email });
+      if(!email && !phoneNumber){
+        return BaseService.sendFailedResponse({
+          error: "Please provide email or phone number",
+        });
+      }
+
+      const userExists = await UserModel.findOne(
+        {email}
+        // phoneNumber ? { phoneNumber } : { email }
+      );
       if (empty(userExists)) {
         return BaseService.sendFailedResponse({
           error: "User not found. Please try again later",
@@ -399,7 +409,10 @@ class UserService extends BaseService {
       }
 
       if (userExists.otp !== otp) {
-        return BaseService.sendFailedResponse({ error: "Invalid OTP" });
+        return BaseService.sendFailedResponse({ error: "Invalid email OTP" });
+      }
+      if (userExists.otpPhoneNumber !== otpPhoneNumber) {
+        return BaseService.sendFailedResponse({ error: "Invalid phone number OTP" });
       }
       if (userExists.otpExpiresAt < new Date()) {
         return BaseService.sendFailedResponse({ error: "OTP expired" });
@@ -407,6 +420,7 @@ class UserService extends BaseService {
 
       userExists.isVerified = true;
       userExists.otp = "";
+      userExists.otpPhoneNumber = "";
       userExists.otpExpiresAt = null;
       await userExists.save();
 
@@ -671,6 +685,7 @@ class UserService extends BaseService {
 
       const validateRule = {
         email: "email|required",
+        phoneNumber: "string|required",
       };
 
       const validateMessage = {
@@ -684,7 +699,7 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { email } = post;
+      const { email, phoneNumber } = post;
 
       const userExists = await UserModel.findOne({ email });
       if (empty(userExists)) {
@@ -692,11 +707,14 @@ class UserService extends BaseService {
           error: "User does not exist, Please try again later",
         });
       }
-      const otp = generateOTP();
+
+      const otp1 = generateOTP();
+      const otp2 = generateOTP();
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
-      userExists.otp = otp;
+      userExists.otp = otp1;
+      userExists.otpPhoneNumber = otp2;
       userExists.otpExpiresAt = expiresAt;
       await userExists.save();
 
@@ -704,7 +722,7 @@ class UserService extends BaseService {
       const emailHtml = `
          <h1>Verify Your Email</h1>
       <p>Hi <strong>${email}</strong>,</p>
-      <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
+      <p>Here is your One-Time Password: <b>${otp1}</b> to complete the verification:</p>
       `;
       await sendEmail({
         subject: "Verify Your email",
@@ -712,8 +730,12 @@ class UserService extends BaseService {
         html: emailHtml,
       });
 
+      const message = `Your verification code is ${otp2}`;
+
+      const otpResult = await sendOTP(phoneNumber, message);
+
       return BaseService.sendSuccessResponse({
-        message: "Email sent. Please verify your email",
+        message: "Otp sent. Please verify your email",
       });
     } catch (error) {
       return BaseService.sendFailedResponse({ error });
