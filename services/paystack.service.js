@@ -30,7 +30,7 @@ class PaystackService extends BaseService {
     try {
       const post = req.body;
       const userId = req.user.id;
-
+  
       const validateRule = {
         email: "string|required",
         amount: "integer|required",
@@ -40,24 +40,27 @@ class PaystackService extends BaseService {
         duration: "string|required",
         paystackSubscriptionCode: "string|required",
         isGift: "boolean|required",
+        recipientEmail: "string|email",
+        phoneNumber: "string",
+        giftMessage: "string",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
-        "string.string": ":attribute must be a string.",
+        "string.string": ":attribute must be a string",
+        "email.email": ":attribute must be a valid email",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
-
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-
+  
       const {
         email,
         amount,
@@ -67,92 +70,119 @@ class PaystackService extends BaseService {
         coachId,
         duration,
         isGift,
+        recipientEmail,
+        phoneNumber,
+        giftMessage,
       } = post;
-      
-      const recipientEmail = post.recipientEmail || "";
-      const phoneNumber = post.phoneNumber || "";
-      const giftMessage = post.giftMessage || "";
-
-      // console.log(await connectRedis(),'the redix')
-
-      if (isGift && !recipientEmail) {
-        return BaseService.sendFailedResponse({
-          error: "Recipient email is required for gift subscriptions",
-        });
-      }
-
-      // if(!isGift && !email){
-      //   return BaseService.sendFailedResponse({ error: "Email is required" });
-      // }
-
-      const receiverExists = await UserModel.findOne({ email: recipientEmail });
-      // if(isGift && !receiverExists){
-      //   return BaseService.sendFailedResponse({ error: "Recipient does not have an account" });
-      // }
-
-      const customerCode = user.customerCode || null;
-      // const isGiftEmail = this.isInputEmail(recipientEmail) ? true : false;
-
-      // if(!customerCode){
-      //   return BaseService.sendFailedResponse({error: "Customer code not found. Please make a successful transaction first."});
-      // }
-      let existingPaystackSubscription;
-      if (customerCode && !isGift) {
-        existingPaystackSubscription =
-          await this.checkIfCustomerHasSubscription(
-            customerCode,
-            paystackSubscriptionCode
-          );
-        if (existingPaystackSubscription) {
-          return BaseService.sendSuccessResponse({
-            message: "Subscription already active",
+  
+      /* --------------------
+         Gift validation
+      ---------------------*/
+      if (isGift) {
+        if (!recipientEmail && !phoneNumber) {
+          return BaseService.sendFailedResponse({
+            error: "Recipient email or phone number is required for gifts",
+          });
+        }
+  
+        if (recipientEmail && phoneNumber) {
+          return BaseService.sendFailedResponse({
+            error: "Provide only one gift delivery method (email OR phone)",
           });
         }
       }
-
+  
+      /* --------------------
+         Self subscription checks
+      ---------------------*/
       if (!isGift) {
-        let existingSubscription = await SubscriptionModel.findOne({
+        if (user.customerCode) {
+          const existingPaystackSubscription =
+            await this.checkIfCustomerHasSubscription(
+              user.customerCode,
+              paystackSubscriptionCode
+            );
+  
+          if (existingPaystackSubscription) {
+            return BaseService.sendSuccessResponse({
+              message: "Subscription already active",
+            });
+          }
+        }
+  
+        const existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
           paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
         });
-
+  
         if (existingSubscription) {
           return BaseService.sendSuccessResponse({
             message: "Subscription already active",
           });
         }
       }
+  
+      /* --------------------
+         Optional: Gift duplication check
+      ---------------------*/
+      if (isGift) {
+        const gifteeUser = await UserModel.findOne({
+            $or: [{ email: recipientEmail }, { phoneNumber }],
+        })
 
-      //   if(isUserSubscribed?.status && isUserSubscribed?.data.length > 0){
-      //     return BaseService.sendFailedResponse({error: 'You are already subscribed to this plan'})
-      //   }
-
+        const giftQuery = {
+          paystackSubscriptionId: paystackSubscriptionCode,
+          status: "active",
+          user: gifteeUser._id
+          // ...(recipientEmail && { recipientEmail }),
+          // ...(phoneNumber && { phoneNumber }),
+        };
+  
+        if(gifteeUser){
+          const existingGift = await SubscriptionModel.findOne(giftQuery);
+          if (existingGift) {
+            return BaseService.sendFailedResponse({
+              error: "Recipient already has an active subscription for this plan",
+            });
+          }
+        }
+      }
+  
+      /* --------------------
+         Initialize Paystack
+      ---------------------*/
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         {
-          email,
-          amount, // e.g. 4500000 for ₦45,000.00
-          channels: ['card'],
+          email, // payer email
+          amount,
+          // channels: ["card"],
           metadata: {
-            userId,
+            type: "subscription",
+            payerId: userId,
+  
             planId,
             categoryId,
             duration,
-            paystackSubscriptionCode,
             coachId,
-            type: "subscription",
+            paystackSubscriptionCode,
+  
             isGift,
-            // isGiftEmail,
-            ...(giftMessage && { giftMessage }),
-            ...(recipientEmail && { recipientEmail }),
-            ...(phoneNumber && { phoneNumber }),
-          }, // VERY helpful for mapping webhooks -> user
-          // callback_url: 'https://yourapp.com/pay/callback' // optional
+            ...(isGift && {
+              gift: {
+                recipientEmail,
+                phoneNumber,
+                giftMessage,
+              },
+            }),
+          },
         }
       );
-
-      return BaseService.sendSuccessResponse({ message: response.data });
+  
+      return BaseService.sendSuccessResponse({
+        message: response.data,
+      });
     } catch (error) {
       console.error("Initialize payment failed:", error);
       return BaseService.sendFailedResponse({
@@ -160,6 +190,8 @@ class PaystackService extends BaseService {
       });
     }
   }
+
+  
   async checkIfCustomerHasSubscription(customerCode, paystackSubscriptionId) {
     try {
       const response = await axios.get(
