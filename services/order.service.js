@@ -86,6 +86,7 @@ class OrderService extends BaseService {
         items: orderItems,
         totalAmount,
         shippingAddress: post.shippingAddress,
+        deliveryPrice: totalDelivery,
       });
 
       const paymentData = await this.axiosInstance.post(
