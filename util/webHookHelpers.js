@@ -228,7 +228,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       code: couponCode,
       coachId,
       planId: paystackSubscriptionCode,
-      categoryId,
+      // categoryId,
       giftedByUserId: sender._id,
 
       recipientEmail: recipientEmail || null,
