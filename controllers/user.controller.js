@@ -244,7 +244,7 @@ class UserController extends BaseController{
     }
     async getAllVerfiedCoach(req, res){
         const userService = new UserService()
-        const getAllVerfiedCoach = await userService.getAllVerfiedCoach(req)
+        const getAllVerfiedCoach = await userService.getAllVerifiedCoach(req)
         if(!getAllVerfiedCoach.success){
             return BaseController.sendFailedResponse(res, getAllVerfiedCoach.data)
         }

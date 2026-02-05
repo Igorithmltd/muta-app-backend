@@ -36,3 +36,4 @@ CallLogSchema.index({ createdAt: 1, callType: 1 });
 
 const CallLogModel = mongoose.model("CallLog", CallLogSchema);
 module.exports = CallLogModel;
+

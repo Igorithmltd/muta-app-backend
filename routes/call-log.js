@@ -396,6 +396,23 @@ router.put(ROUTE_MARK_CALL_AS_READ, [auth], (req, res)=>{
  *           type: string
  *         required: true
  *         description: Channel name for which the token is generated
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - callId
+ *               - agoraUid
+ *               - channelId
+ *             properties:
+ *               callId:
+ *                 type: string
+ *                 description: The call id
+ *               agoraUid:
+ *                 type: string
+ *                 description: The agora uid
  *     responses:
  *       200:
  *         description: Agora token generated successfully

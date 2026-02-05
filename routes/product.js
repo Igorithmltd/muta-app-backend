@@ -23,6 +23,7 @@ const router = require('express').Router()
  *               - price
  *               - category
  *               - description
+ *               - weight
  *               - keyFeatures
  *               - images
  *               - variations
@@ -42,7 +43,11 @@ const router = require('express').Router()
  *               category:
  *                 type: string
  *                 description: Category of the product
- *                 example: Footwear
+ *                 example: 68e3b0bdfe6ad9a9072e68a0
+ *               weight:
+ *                 type: number
+ *                 description: weight of the product in kg
+ *                 example: 3.2
  *               keyFeatures:
  *                 type: array
  *                 items:

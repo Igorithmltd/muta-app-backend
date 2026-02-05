@@ -479,6 +479,7 @@ class UserService extends BaseService {
         });
       }
 
+
       const userExists = await UserModel.findOne({
         userType,
         $or: [{ email: email }, { phoneNumber: email }],
@@ -1777,39 +1778,51 @@ class UserService extends BaseService {
   //     return BaseService.sendFailedResponse({ error });
   //   }
   // }
-  async getAllVerfiedCoach(req) {
+  async getAllVerifiedCoach(req) {
     try {
-      const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
-      const limit = parseInt(req.query.limit, 10) || 10; // Default to limit 10 if not provided
-      const skip = (page - 1) * limit; // Calculate skip based on current page and limit
-
-      const coaches = await UserModel.find({
-        userType: "coach",
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const skip = (page - 1) * limit;
+  
+      const verifiedCoaches = await VerificationApplicationModel.find({
+        status: "approved",
       })
-        .select("-password -otp -otpExpiresAt")
-        .sort({ createdAt: -1 })
+        .populate({
+          path: "userId",
+          match: { userType: "coach" },           // only include if user is a coach
+          select: "-password -otp -otpExpiresAt", // exclude sensitive fields
+        })
+        .sort({ reviewedAt: -1, submittedAt: -1, createdAt: -1 }) // most recently reviewed first
         .skip(skip)
         .limit(limit)
-        // .populate("userId")
         .lean();
-
-      // const coaches = await VerificationApplicationModel.find({
-      //   status: "approved",
-      // })
-      //   .sort({ createdAt: -1 })
-      //   .skip(skip)
-      //   .limit(limit)
-      //   .populate("userId")
-      //   .lean();
-
+  
+      // Filter out any documents where userId didn't match (i.e. not a coach)
+      const coaches = verifiedCoaches
+        .filter(app => app.userId !== null)
+        .map(app => app.userId); // return just the populated User objects
+  
+      const total = await VerificationApplicationModel.countDocuments({
+        status: "approved",
+        userId: { $exists: true } // optional safety
+      });
+  
       return BaseService.sendSuccessResponse({
-        message: coaches || [],
+        message: "Verified coaches retrieved successfully",
+        data: coaches,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
       });
     } catch (error) {
-      console.log(error, "the admin error");
-      return BaseService.sendFailedResponse({ error });
+      console.error("Error fetching verified coaches:", error);
+      return BaseService.sendFailedResponse({ error: error.message });
     }
   }
+  
   async getCoachBySpecialty(req) {
     try {
       const { specialty } = req.query;
@@ -3084,7 +3097,7 @@ class UserService extends BaseService {
   async contactUsAction(req) {
     try {
       const { message, name, email, phoneNumber } = req.body;
-      if (!message || !email || phoneNumber || name) {
+      if (!message || !email || !name) {
         return BaseService.sendFailedResponse({
           error: "Please provide the required fields",
         });
@@ -3095,7 +3108,7 @@ class UserService extends BaseService {
       <p>${message}</p>
       `;
       await sendEmail({
-        subject: subject,
+        subject: 'Incoming email from contact',
         to: email,
         html: emailHtml,
       });

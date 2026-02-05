@@ -10,8 +10,14 @@ const ANALYSIS_RANGES = {
     "ALL": { days: 0, interval: "day" }
   };
 
+  const RtcRole = {
+    ROLE_PUBLISHER: 1,
+    ROLE_SUBSCRIBER: 2,
+  };
+
 module.exports = {
     EXPIRES_AT,
     DELIVERY_CHARGE,
-    ANALYSIS_RANGES
+    ANALYSIS_RANGES,
+    RtcRole
 }

@@ -6,7 +6,6 @@ const variationSchema = new mongoose.Schema({
   stock: { type: Number, required: true },
   price: { type: Number }, // Optional: in case the variation has a different price
   sku: { type: String },   // Optional: for inventory systems
-  weight: { type: Number, required: true },
   images: [{
     imageUrl: { type: String },
     publicId: { type: String },
@@ -19,7 +18,7 @@ const productSchema = new mongoose.Schema({
   category: { type: mongoose.Schema.Types.ObjectId, ref: "ProductCategory" },
   description: { type: String, required: true },
   keyFeatures: [{ type: String, required: true }],
-
+  weight: { type: Number, required: true },
   variations: [variationSchema], // <-- Array of product variations
 
   images: [{

@@ -76,7 +76,7 @@ class CallLogController extends BaseController{
     }
     async getAgoraToken(req, res){
         const callLogService = new CallLogService()
-        const getAgoraToken = await callLogService.getAgoraToken(req)
+        const getAgoraToken = await callLogService.generateAgoraToken(req)
         if(!getAgoraToken.success){
             return BaseController.sendFailedResponse(res, getAgoraToken.data)
         }

@@ -16,6 +16,7 @@ class ProductService extends BaseService {
         title: "string|required",
         description: "string|required",
         price: "integer|required",
+        weight: "integer|required",
         category: "string|required",
         keyFeatures: "array|required",
         images: "array|required",

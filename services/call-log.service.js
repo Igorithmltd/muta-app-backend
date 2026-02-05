@@ -8,8 +8,14 @@ const validateData = require("../util/validate");
 const { getIO } = require("../config/socket");
 const ChatRoomModel = require("../models/chatModel");
 const ScheduledCallModel = require("../models/scheduledCall.model");
+const { RtcRole } = require("../util/constants");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder;
+
+
+const appID = process.env.AGORA_APP_ID;
+const appCertificate = process.env.AGORA_APP_CERTIFICATE;
 class CallLogService extends BaseService {
+  
   async initiateCall(req) {
     try {
       const post = req.body;
@@ -96,8 +102,14 @@ class CallLogService extends BaseService {
         getReceiverAgoraToken.data && getReceiverAgoraToken.data.message
           ? getReceiverAgoraToken.data.message
           : null;
-      const userJwtToken = await user.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
-      const receiverJwtToken = await receiver.generateAccessToken(process.env.ACCESS_TOKEN_SECRET, '10m');
+      const userJwtToken = await user.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET,
+        "10m"
+      );
+      const receiverJwtToken = await receiver.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET,
+        "10m"
+      );
 
       const callObject = {
         callId: callLog._id,
@@ -119,7 +131,7 @@ class CallLogService extends BaseService {
         callType,
         callStatus: "outgoing",
         notificationType: "call",
-        jwtToken: userJwtToken
+        jwtToken: userJwtToken,
       };
 
       const receiverData = {
@@ -127,7 +139,7 @@ class CallLogService extends BaseService {
         callStatus: "incoming",
         token: receiverAgoraToken,
         agoraUid: receiverUid,
-        jwtToken: receiverJwtToken
+        jwtToken: receiverJwtToken,
       };
 
       // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
@@ -143,7 +155,7 @@ class CallLogService extends BaseService {
       return BaseService.sendSuccessResponse({ message: callObject });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async endCall(req) {
@@ -182,7 +194,7 @@ class CallLogService extends BaseService {
       return BaseService.sendSuccessResponse({ message: "Call ended" });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async missCall(req) {
@@ -223,7 +235,7 @@ class CallLogService extends BaseService {
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async recievedCall(req) {
@@ -259,7 +271,7 @@ class CallLogService extends BaseService {
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async rejectCall(req) {
@@ -298,7 +310,7 @@ class CallLogService extends BaseService {
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async updateCallStatus(req, res) {
@@ -388,7 +400,7 @@ class CallLogService extends BaseService {
       });
     } catch (error) {
       console.error("Error updating call status:", error);
-      return BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async getUserCallLogs(req) {
@@ -411,7 +423,7 @@ class CallLogService extends BaseService {
       return BaseService.sendSuccessResponse({ message: logs });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async getUserMissedCalls(req) {
@@ -435,7 +447,7 @@ class CallLogService extends BaseService {
       return BaseService.sendSuccessResponse({ message: logs });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async markCallAsRead(req) {
@@ -453,7 +465,6 @@ class CallLogService extends BaseService {
           },
           { isRead: true }
         );
-
       } else {
         if (!id) {
           return BaseService.sendFailedResponse({
@@ -479,15 +490,16 @@ class CallLogService extends BaseService {
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async scheduleCall(req) {
     try {
       const post = req.body;
+      const coachId = req.user.id
 
       const validateRule = {
-        coachId: "string|required",
+        // coachId: "string|required",
         userId: "string|required",
         callType: "string|required:in:audio,video",
         callDate: "date|required",
@@ -504,7 +516,7 @@ class CallLogService extends BaseService {
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-      const { coachId, userId, callType, callDate, startTime, endTime } = post;
+      const { userId, callType, callDate, startTime, endTime } = post;
 
       const receiver = await UserModel.findById(userId);
       const sender = await UserModel.findById(coachId);
@@ -532,36 +544,52 @@ class CallLogService extends BaseService {
         callDate,
         startTime,
         endTime,
-        ...post
-      }
+        ...post,
+      };
 
-      const conflict = await ScheduledCallModel.findOne({
+      const callConflict = await ScheduledCallModel.findOne({
         coachId,
         status: "scheduled",
-        $or: [
-          { startAt: { $lt: endAt }, endAt: { $gt: startAt } }
-        ]
+        $or: [{ startAt: { $lt: endAt }, endAt: { $gt: startAt } }],
       });
-      
-      if (conflict) {
-        return BaseService.sendFailedResponse({error: 'You have another call scheduled during this time. Please choose a different time slot.'});
+
+      if (callConflict) {
+        return BaseService.sendFailedResponse({
+          error:
+            "You have another call scheduled during this time. Please choose a different time slot.",
+        });
       }
 
+
+  //   duration: { type: Number }, // in seconds
+  //   sessionId: { type: String }, // Agora/Twilio session id
+  //   recordingUrl: { type: String },
+      const call = await CallLogModel.create({
+        receiverId: userId,
+        callerId: coachId,
+        callType
+      })
+      
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
 
-      // sendPushNotification({
-      //   deviceToken: receiverDeviceToken,
-      //   title: "Incoming Scheduled call",
-      //   body: `${sender.firstName} scheduled an ${callType} call with you`,
-      //   data: receiverData,
-      //   notificationType: "call",
-      // });
+      sendPushNotification({
+        deviceToken: receiverDeviceToken,
+        title: "Incoming Scheduled call",
+        body: `${sender.firstName} scheduled an ${callType} call with you`,
+        data: receiverData,
+        notificationType: "ScheduledCall",
+      });
+
+      const response = {
+        ...scheduledCall.toObject(),
+        call
+      }
       return BaseService.sendSuccessResponse({
-        message: scheduledCall,
+        message: response,
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async getScheduledCalls(req) {
@@ -571,78 +599,81 @@ class CallLogService extends BaseService {
       const scheduledCalls = await ScheduledCallModel.find({
         $or: [{ coachId: userId }, { userId: userId }],
         status: { $in: ["scheduled", "completed"] },
-      })
-      
+      });
+
       return BaseService.sendSuccessResponse({
         message: scheduledCalls,
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async getScheduledCall(req) {
     try {
       const userId = req.user.id;
-      const callId = req.params.id
+      const callId = req.params.id;
 
       const scheduledCall = await ScheduledCallModel.findOne({
         $or: [{ coachId: userId }, { userId: userId }],
         _id: callId,
         status: { $in: ["scheduled", "completed"] },
-      })
-      
+      });
+
       return BaseService.sendSuccessResponse({
         message: scheduledCall,
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async deleteScheduledCall(req) {
     try {
       const userId = req.user.id;
-      const callId = req.params.id
+      const callId = req.params.id;
 
       const scheduledCall = await ScheduledCallModel.findOneAndDelete({
         $or: [{ coachId: userId }, { userId: userId }],
         _id: callId,
-      })
-      
+      });
+
       return BaseService.sendSuccessResponse({
         message: "Call schedule deleted",
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   async modifyScheduleCall(req) {
     try {
       const userId = req.user.id;
-      const callId = req.params.id
+      const callId = req.params.id;
 
-      const scheduledCall = await ScheduledCallModel.findByIdAndUpdate({
-        $or: [{ coachId: userId }, { userId: userId }],
-        _id: callId,
-      }, {
-        ...req.body
-      }, {new: true})
-      
+      const scheduledCall = await ScheduledCallModel.findByIdAndUpdate(
+        {
+          $or: [{ coachId: userId }, { userId: userId }],
+          _id: callId,
+        },
+        {
+          ...req.body,
+        },
+        { new: true }
+      );
+
       return BaseService.sendSuccessResponse({
         message: "Call schedule updated successfully",
       });
     } catch (error) {
       console.log(error, "the error");
-      BaseService.sendFailedResponse(this.server_error_message);
+      BaseService.sendFailedResponse({ error: this.server_error_message });
     }
   }
   // async getAgoraToken(req) {
   async getAgoraToken({ channelName, uid }) {
     try {
-      const appID = process.env.AGORA_APP_ID;
-      const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+     
       // const channelName = req.query.channel;
 
       if (!channelName) {
@@ -651,10 +682,7 @@ class CallLogService extends BaseService {
         });
       }
 
-      const RtcRole = {
-        ROLE_PUBLISHER: 1,
-        ROLE_SUBSCRIBER: 2,
-      };
+      
       // const role = RtcRole.PUBLISHER;
       const expirationTimeInSeconds = 3600; // 1 hour
       const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -674,7 +702,56 @@ class CallLogService extends BaseService {
       return BaseService.sendSuccessResponse({ message: token });
     } catch (error) {
       console.log(error, "the error");
-      return BaseService.sendFailedResponse(this.server_error_message);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+
+  async generateAgoraToken(req) {
+    try {
+      const post = req.body;
+
+      const validateRule = {
+        // sessionId: "string|required",
+        callId: "string|required",
+        channelId: "string|required",
+        agoraUid: "string|required"
+      };
+
+      const validateMessage = {
+        required: ":attribute is required",
+        "string.string": ":attribute must be a string.",
+      };
+
+      const validateResult = validateData(post, validateRule, validateMessage);
+
+      if (!validateResult.success) {
+        return BaseService.sendFailedResponse({ error: validateResult.data });
+      }
+
+      const {callId, channelId, agoraUid} = post
+
+      const expirationTimeInSeconds = 3600; // 1 hour
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+      const tokenExpirationInSecond = 3600 * 24; // 1 hour in seconds
+
+      const token = RtcTokenBuilder.buildTokenWithUid(
+        appID,
+        appCertificate,
+        channelId,
+        agoraUid,
+        RtcRole.ROLE_PUBLISHER,
+        tokenExpirationInSecond,
+        privilegeExpiredTs
+      );
+
+    } catch (error) {
+      console.log("Error", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
 }

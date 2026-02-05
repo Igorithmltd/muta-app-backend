@@ -2645,7 +2645,7 @@ router.get(ROUTE_CUSTOMER_SUPPORT, [auth], (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get(ROUTE_CONTACT_US_ACTION, (req, res) => {
+router.post(ROUTE_CONTACT_US_ACTION, (req, res) => {
   const userController = new UserController();
   return userController.contactUsAction(req, res);
 });
