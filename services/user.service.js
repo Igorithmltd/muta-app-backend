@@ -46,6 +46,7 @@ class UserService extends BaseService {
       const validateRule = {
         email: "email|required",
         password: "string|required",
+        phoneNumber: "string|required",
         userType: "string|required",
       };
 
@@ -1822,7 +1823,7 @@ class UserService extends BaseService {
       return BaseService.sendFailedResponse({ error: error.message });
     }
   }
-  
+
   async getCoachBySpecialty(req) {
     try {
       const { specialty } = req.query;
