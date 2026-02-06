@@ -1357,8 +1357,8 @@ class UserService extends BaseService {
     const height = user.height.value;
 
     if (empty(weight) || empty(height)) {
-      return BaseService.sendFailedResponse({
-        error: "Please log your weight and height",
+      return BaseService.sendSuccessResponse({
+        message: []
       });
     }
     const weightTips = getWeightImprovementTipsByWeight(weight, height);
