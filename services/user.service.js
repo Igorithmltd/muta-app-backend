@@ -98,7 +98,7 @@ class UserService extends BaseService {
 
       const message = `Your verification code is ${otp2}`;
 
-      const otpResult = await sendOTP(phoneNumber, message);
+      const otpResult = await sendOTP(post.phoneNumber, message);
 
       return BaseService.sendSuccessResponse({
         message: "Registration Successful",
