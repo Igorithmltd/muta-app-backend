@@ -989,7 +989,7 @@ class UserService extends BaseService {
       };
 
       if (userType === "user") {
-        validateRule.age = "integer|required";
+        // validateRule.age = "integer|required";
       } else if (userType === "coach") {
         validateRule.yearsOfExperience = "integer|required";
         validateRule.location = "string|required";
