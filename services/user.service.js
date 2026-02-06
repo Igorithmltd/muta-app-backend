@@ -75,10 +75,12 @@ class UserService extends BaseService {
       // await userExists.save();
 
       const otp = generateOTP();
+      const otp2 = generateOTP();
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
       newUser.otp = otp;
+      newUser.otpPhoneNumber = otp2;
       newUser.otpExpiresAt = expiresAt;
       await newUser.save();
 
@@ -93,6 +95,10 @@ class UserService extends BaseService {
         to: post.email,
         html: emailHtml,
       });
+
+      const message = `Your verification code is ${otp2}`;
+
+      const otpResult = await sendOTP(phoneNumber, message);
 
       return BaseService.sendSuccessResponse({
         message: "Registration Successful",
