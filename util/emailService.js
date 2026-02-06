@@ -14,6 +14,7 @@ const sendEmail = async ({
   to,
 }) => {
   try {
+    console.log('attempt to send email')
     if (!to || !subject || !html) {
       console.log({
         success: false,
