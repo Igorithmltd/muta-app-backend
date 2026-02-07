@@ -571,13 +571,24 @@ class UserService extends BaseService {
       const userId = req.user.id;
 
       let userDetails = {};
-      userDetails = await UserModel.findById(userId).select("-password");
+      userDetails = await UserModel.findById(userId).select("-password -otp -otpPhonenumber");
 
       if (empty(userDetails)) {
         return BaseService.sendFailedResponse({
           error: "Something went wrong trying to fetch your account.",
         });
       }
+
+      userDetails = userDetails.toObject()
+      
+      if(userDetails.userType == 'coach'){
+        const coachVerificationStatus = await VerificationApplicationModel.findOne({userId})
+        
+        if(coachVerificationStatus){
+          userDetails.isVerifiedCoach = coachVerificationStatus.status
+        }
+      }
+
 
       return BaseService.sendSuccessResponse({ message: userDetails });
     } catch (error) {

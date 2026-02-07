@@ -13,15 +13,15 @@ const ReminderSchema = new mongoose.Schema({
       "thursday",
       "friday",
       "saturday",
-      "sunday"
+      "sunday",
     ],
-    required: true
+    required: true,
   },
   time: {
     type: String, // HH:MM format
     required: true,
-    match: [/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time format"]
-  }
+    match: [/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time format"],
+  },
 });
 
 const UserSchema = new mongoose.Schema(
@@ -49,7 +49,7 @@ const UserSchema = new mongoose.Schema(
         },
       ],
       default: [],
-    },    
+    },
     bmi: { type: Number },
     height: {
       value: Number,
@@ -90,10 +90,7 @@ const UserSchema = new mongoose.Schema(
     emailToken: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
-    // isVerifiedCoach: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+    isVerifiedCoach: {type: String},
     servicePlatform: {
       type: String,
       // default: "local",
@@ -129,8 +126,8 @@ const UserSchema = new mongoose.Schema(
     location: { type: String, trim: true },
     reminders: {
       type: [ReminderSchema],
-      default: []
-    }
+      default: [],
+    },
     // favorites: [
     //   {
     //     type: mongoose.Schema.Types.ObjectId,
@@ -191,7 +188,10 @@ UserSchema.methods.isSubscriptionActive = function () {
   );
 };
 
-UserSchema.methods.generateAccessToken = async function (secretToken, expiresIn="1w") {
+UserSchema.methods.generateAccessToken = async function (
+  secretToken,
+  expiresIn = "1w"
+) {
   const token = jwt.sign(
     {
       id: this._id,
