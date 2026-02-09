@@ -166,6 +166,7 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
+    console.log({data},'handleSubscriptionCreate')
     await SubscriptionModel.findOneAndUpdate(
       { subscriptionCode: data.subscription_code },
       {
