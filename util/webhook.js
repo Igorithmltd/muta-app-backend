@@ -42,7 +42,7 @@ const webhookFunction = async (req, res) => {
         break;
 
       case "subscription.create":
-        console.log("📩 Paystack webhook 3");
+        console.log("📩 Paystack webhook 3: subscription.create");
         await handleSubscriptionCreate(event.data);
         break;
 
