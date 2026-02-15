@@ -1,7 +1,7 @@
 const CallController = require('../controllers/call-log.controller')
 const auth = require('../middlewares/auth')
 const coachAuth = require('../middlewares/coachAuth')
-const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ, ROUTE_SCHEDULE_CALL, ROUTE_GET_SCHEDULED_CALLS, ROUTE_GET_SCHEDULED_CALL, ROUTE_DELETE_SCHEDULED_CALL, ROUTE_UPDATE_SCHEDULED_CALL } = require('../util/page-route')
+const { ROUTE_INITIATE_CALL, ROUTE_END_CALL, ROUTE_RECEIVE_CALL, ROUTE_MISS_CALL, ROUTE_REJECT_CALL, ROUTE_GET_USER_CALL_LOGS, ROUTE_GET_AGORA_TOKEN, ROUTE_UPDATE_STATUS, ROUTE_GET_USER_MISSED_CALLS, ROUTE_MARK_CALL_AS_READ, ROUTE_SCHEDULE_CALL, ROUTE_GET_SCHEDULED_CALLS, ROUTE_GET_SCHEDULED_CALL, ROUTE_DELETE_SCHEDULED_CALL, ROUTE_UPDATE_SCHEDULED_CALL, GENERATE_JOIN_TOKEN } = require('../util/page-route')
 
 const router = require('express').Router()
 
@@ -691,6 +691,77 @@ router.put(ROUTE_UPDATE_SCHEDULED_CALL+"/:id", [auth], (req, res)=>{
 router.delete(ROUTE_DELETE_SCHEDULED_CALL+"/:id", [auth], (req, res)=>{
     const callController = new CallController()
     return callController.deleteScheduledCall(req, res)
+})
+
+/**
+ * @swagger
+ * /calls/generate-join-token:
+ *   post:
+ *     summary: Generate token to join a call
+ *     tags: [Calls]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - callId
+ *             properties:
+ *               callId:
+ *                 type: string
+ *                 description: ID of the call to join
+ *                 example: "65f1a2b3c4d5e6f7890a1234"
+ *     responses:
+ *       200:
+ *         description: Scheduled call joined successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     callId:
+ *                       type: string
+ *                       example: "65f1a2b3c4d5e6f7890a1234"
+ *                     channelId:
+ *                       type: string
+ *                       example: "session_123456"
+ *                     token:
+ *                       type: string
+ *                       example: "agora_token_string"
+ *                     agoraUid:
+ *                       type: number
+ *                       example: 123456
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         userId:
+ *                           type: string
+ *                           example: "65f1a2b3c4d5e6f7890a5678"
+ *                         firstName:
+ *                           type: string
+ *                           example: "John"
+ *                         lastName:
+ *                           type: string
+ *                           example: "Doe"
+ *                         image:
+ *                           type: string
+ *                           example: "https://example.com/profile.jpg"
+ *                     callType:
+ *                       type: string
+ *                       example: "video"
+ *                     jwtToken:
+ *                       type: string
+ *                       example: "user_jwt_token_string"
+ *       404:
+ *         description: Call not found
+ */
+router.post(GENERATE_JOIN_TOKEN, [auth], (req, res)=>{
+    const callController = new CallController()
+    return callController.generateAgoraToken(req, res)
 })
 
 module.exports = router

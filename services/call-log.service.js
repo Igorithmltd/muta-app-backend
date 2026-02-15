@@ -513,6 +513,7 @@ class CallLogService extends BaseService {
         "date.date": ":attribute must be a valid date.",
       };
       const validateResult = validateData(post, validateRule, validateMessage);
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
@@ -520,6 +521,8 @@ class CallLogService extends BaseService {
 
       const receiver = await UserModel.findById(userId);
       const sender = await UserModel.findById(coachId);
+      const sessionId = uuidv4();
+
 
       // const receiverDeviceToken = receiver.deviceToken;
 
@@ -544,6 +547,7 @@ class CallLogService extends BaseService {
         callDate,
         startTime,
         endTime,
+        channelId: sessionId,
         ...post,
       };
 
@@ -567,7 +571,8 @@ class CallLogService extends BaseService {
       const call = await CallLogModel.create({
         receiverId: userId,
         callerId: coachId,
-        callType
+        callType,
+        sessionId,
       })
       
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
@@ -673,7 +678,6 @@ class CallLogService extends BaseService {
   // async getAgoraToken(req) {
   async getAgoraToken({ channelName, uid }) {
     try {
-     
       // const channelName = req.query.channel;
 
       if (!channelName) {
@@ -681,7 +685,6 @@ class CallLogService extends BaseService {
           error: "Channel name is required",
         });
       }
-
       
       // const role = RtcRole.PUBLISHER;
       const expirationTimeInSeconds = 3600; // 1 hour
@@ -711,12 +714,10 @@ class CallLogService extends BaseService {
   async generateAgoraToken(req) {
     try {
       const post = req.body;
+      const userId = req.user.id
 
       const validateRule = {
-        // sessionId: "string|required",
         callId: "string|required",
-        channelId: "string|required",
-        agoraUid: "string|required"
       };
 
       const validateMessage = {
@@ -730,22 +731,71 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const {callId, channelId, agoraUid} = post
+      const {callId} = post
 
-      const expirationTimeInSeconds = 3600; // 1 hour
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
-      const tokenExpirationInSecond = 3600 * 24; // 1 hour in seconds
+      const call = await CallLogModel.findById(callId);
+      const user = await UserModel.findById(userId);
 
-      const token = RtcTokenBuilder.buildTokenWithUid(
-        appID,
-        appCertificate,
-        channelId,
-        agoraUid,
-        RtcRole.ROLE_PUBLISHER,
-        tokenExpirationInSecond,
-        privilegeExpiredTs
+      if(!call){
+        return BaseService.sendFailedResponse({error: "Call not found"})
+      }
+      if(!user){
+        return BaseService.sendFailedResponse({error: "User not found"})
+      }
+
+
+      let userUid = null;
+
+      const userType = req.user.userType;
+
+      if(userType === 'coach'){
+        userUid = 1
+      }else if(userType === 'user'){
+        userUid = 2
+      }
+
+      const sessionId = call.sessionId;
+
+      const getAgoraToken = await this.getAgoraToken({
+          channelName: sessionId,
+          uid: userUid,
+        });
+
+      if (!getAgoraToken.success) {
+        return BaseService.sendFailedResponse({
+          error: "Could not generate call token",
+        });
+      }
+
+      const token = getAgoraToken.data && getAgoraToken.data.message ? getAgoraToken.data.message : null;
+      const userJwtToken = await user.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET,
+        "10m"
       );
+
+      const callObject = {
+        callId: call._id,
+        channelId: sessionId,
+        token: token,
+        agoraUid: userUid,
+        user: {
+          userId: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          image: user.image,
+        },
+        callType: call.callType,
+        jwtToken: userJwtToken,
+      };
+
+      if(!call.startTime){
+        call.startTime = new Date();
+      }else if(call.startTime){
+        call.status = 'received';
+      }
+
+
+      return BaseService.sendSuccessResponse({ message: callObject });
 
     } catch (error) {
       console.log("Error", error);

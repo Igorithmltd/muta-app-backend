@@ -219,6 +219,7 @@ exports.ROUTE_GET_SCHEDULED_CALLS = '/get-scheduled-calls'
 exports.ROUTE_GET_SCHEDULED_CALL = '/get-scheduled-call'
 exports.ROUTE_DELETE_SCHEDULED_CALL = '/delete-scheduled-call'
 exports.ROUTE_UPDATE_SCHEDULED_CALL = '/update-scheduled-call'
+exports.GENERATE_JOIN_TOKEN = '/generate-join-token'
 
 //sleeps
 exports.ROUTE_LOG_SLEEP = '/log-sleep'
