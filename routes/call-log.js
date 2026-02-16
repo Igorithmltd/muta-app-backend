@@ -485,7 +485,7 @@ router.get(ROUTE_GET_AGORA_TOKEN, [auth], (req, res)=>{
  *                 example: "10:00am"
  *               callType:
  *                 type: string
- *                 enum: [voice, video]
+ *                 enum: [audio, video]
  *               description:
  *                 type: string
  *                 example: Weekly fitness progress check-in

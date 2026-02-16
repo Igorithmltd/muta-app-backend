@@ -499,12 +499,12 @@ class CallLogService extends BaseService {
       const coachId = req.user.id
 
       const validateRule = {
-        // coachId: "string|required",
         userId: "string|required",
         callType: "string|required:in:audio,video",
         callDate: "date|required",
         startTime: "string|required",
         endTime: "string|required",
+        description: "string|required",
       };
 
       const validateMessage = {
@@ -546,7 +546,7 @@ class CallLogService extends BaseService {
       const callConflict = await ScheduledCallModel.findOne({
         coachId,
         status: "scheduled",
-        $or: [{ startAt: { $lt: endAt }, endAt: { $gt: startAt } }],
+        $or: [{ startAt: { $lt: startTime }, endAt: { $gt: endTime } }],
       });
 
       if (callConflict) {
@@ -570,7 +570,7 @@ class CallLogService extends BaseService {
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
 
       const callObject = {
-        callId: callLog._id,
+        callId: call._id,
         channelId: sessionId,
         // token: userAgoraToken,
         // agoraUid: userUid,
