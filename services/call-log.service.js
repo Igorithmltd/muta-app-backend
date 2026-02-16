@@ -524,21 +524,13 @@ class CallLogService extends BaseService {
       const sessionId = uuidv4();
 
 
-      // const receiverDeviceToken = receiver.deviceToken;
+      const receiverDeviceToken = receiver.deviceToken;
 
-      // if (!receiverDeviceToken) {
-      //   return BaseService.sendFailedResponse({
-      //     error: "Receiver cannot be reached at the moment",
-      //   });
-      // }
-
-      // const receiverData = {
-      //   ...callObject,
-      //   callStatus: "incoming",
-      //   token: receiverAgoraToken,
-      //   agoraUid: receiverUid,
-      //   jwtToken: receiverJwtToken
-      // };
+      if (!receiverDeviceToken) {
+        return BaseService.sendFailedResponse({
+          error: "Receiver cannot be reached at the moment",
+        });
+      }
 
       const scheduleCallData = {
         coachId,
@@ -577,12 +569,42 @@ class CallLogService extends BaseService {
       
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
 
+      const callObject = {
+        callId: callLog._id,
+        channelId: sessionId,
+        // token: userAgoraToken,
+        // agoraUid: userUid,
+        caller: {
+          userId: sender._id,
+          firstName: sender.firstName,
+          lastName: sender.lastName,
+          image: sender.image,
+        },
+        receiver: {
+          userId: receiver._id,
+          firstName: receiver.firstName,
+          lastName: receiver.lastName,
+          image: receiver.image,
+        },
+        callType,
+        callStatus: "scheduled",
+        notificationType: "call",
+        // jwtToken: userJwtToken,
+      };
+
+      const receiverData = {
+        call: callObject,
+        // token: receiverAgoraToken,
+        // agoraUid: receiverUid,
+        // jwtToken: receiverJwtToken,
+      };
+
       sendPushNotification({
         deviceToken: receiverDeviceToken,
         title: "Incoming Scheduled call",
         body: `${sender.firstName} scheduled an ${callType} call with you`,
         data: receiverData,
-        notificationType: "ScheduledCall",
+        notificationType: "scheduledCall",
       });
 
       const response = {

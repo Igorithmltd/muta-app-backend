@@ -15,7 +15,7 @@ const CallLogSchema = new mongoose.Schema(
     callType: { type: String, enum: ["audio", "video"], required: true },
     status: {
       type: String,
-      enum: ["incoming", "missed", "received", "rejected", "ended", "ringing"],
+      enum: ["incoming", "missed", "received", "rejected", "ended", "ringing", "scheduled"],
       default: "incoming",
       required: true,
     },
