@@ -594,9 +594,10 @@ class CallLogService extends BaseService {
 
       const receiverData = {
         call: callObject,
-        // token: receiverAgoraToken,
-        // agoraUid: receiverUid,
-        // jwtToken: receiverJwtToken,
+        callDate: scheduledCall.callDate,
+	      startTime: scheduledCall.startTime,
+	      endTime: scheduledCall.endTime,
+	      description: scheduledCall.description,
       };
 
       sendPushNotification({
