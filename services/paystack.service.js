@@ -66,6 +66,17 @@ class PaystackService extends BaseService {
       if (!plan) {
         return BaseService.sendFailedResponse({ error: "Plan not found" });
       }
+
+      const category = plan.categories.find(
+        (cat) => cat._id.toString() === categoryId
+      );
+
+      if (!category) {
+        return BaseService.sendFailedResponse({ error: "Invalid category" });
+      }
+
+      const paystackPlanCode = category.paystackSubscriptionId;
+
   
       const {
         email,
@@ -164,11 +175,10 @@ class PaystackService extends BaseService {
           email, // payer email
           amount,
           // channels: ["card"],
-          ...(planId && !isGift && {plan: plan.categories}),
+          ...(planId && !isGift && {plan: paystackPlanCode}),
           metadata: {
             type: "subscription",
             payerId: userId,
-  
             planId,
             categoryId,
             duration,
