@@ -56,13 +56,27 @@ class PaystackService extends BaseService {
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
+
+      const {
+        email,
+        amount,
+        planId,
+        categoryId,
+        paystackSubscriptionCode,
+        coachId,
+        duration,
+        isGift,
+        recipientEmail,
+        phoneNumber,
+        giftMessage,
+      } = post;
   
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const plan = await PlanModel.findById(post.planId);
+      const plan = await PlanModel.findById(planId);
       if (!plan) {
         return BaseService.sendFailedResponse({ error: "Plan not found" });
       }
@@ -78,19 +92,7 @@ class PaystackService extends BaseService {
       const paystackPlanCode = category.paystackSubscriptionId;
 
   
-      const {
-        email,
-        amount,
-        planId,
-        categoryId,
-        paystackSubscriptionCode,
-        coachId,
-        duration,
-        isGift,
-        recipientEmail,
-        phoneNumber,
-        giftMessage,
-      } = post;
+    
   
       /* --------------------
          Gift validation
