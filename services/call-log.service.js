@@ -504,7 +504,7 @@ class CallLogService extends BaseService {
         callDate: "date|required",
         startTime: "string|required",
         endTime: "string|required",
-        description: "string|required",
+        // description: "string|required",
       };
 
       const validateMessage = {

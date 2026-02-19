@@ -35,7 +35,6 @@ const ScheduledCallSchema = new mongoose.Schema(
 
     description: {
       type: String,
-      trim: true,
     },
 
     status: {
