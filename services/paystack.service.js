@@ -1,3 +1,4 @@
+const PlanModel = require("../models/plan.model");
 const SubscriptionModel = require("../models/subscription.model");
 const UserModel = require("../models/user.model");
 // const connectRedis = require("../util/cache");
@@ -59,6 +60,11 @@ class PaystackService extends BaseService {
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      const plan = await PlanModel.findById(post.planId);
+      if (!plan) {
+        return BaseService.sendFailedResponse({ error: "Plan not found" });
       }
   
       const {
@@ -157,7 +163,8 @@ class PaystackService extends BaseService {
         {
           email, // payer email
           amount,
-          channels: ["card"],
+          // channels: ["card"],
+          ...(planId && !isGift && {plan: plan.categories}),
           metadata: {
             type: "subscription",
             payerId: userId,

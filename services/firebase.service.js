@@ -1,4 +1,5 @@
 const admin = require("firebase-admin");
+const UserModel = require("../models/user.model");
 // const serviceAccount = require("../firebase.json");
 
 
@@ -41,6 +42,13 @@ const sendPushNotification = async ({ deviceToken, topic, title=null, body=null,
       return response;
     } catch (error) {
       console.error("❌ Error Sending Notification:", error);
+      if (error.code === "messaging/registration-token-not-registered") {
+        // remove token from DB
+        await UserModel.updateOne(
+          { deviceToken: deviceToken },
+          { $unset: { deviceToken: "" } }
+        );
+      }
       throw error;
     }
 };
