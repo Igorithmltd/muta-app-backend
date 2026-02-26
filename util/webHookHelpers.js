@@ -62,8 +62,7 @@ async function handleChargeSuccess(data) {
     // 🔁 NORMAL SUBSCRIPTION
     // ==========================
     if (metadata.type === "subscription") {
-      console.log({ user, metadata, data }, "subscription handle");
-      await handleNormalSubscription(data, user, metadata);
+      await handleNormalSubscription(data, user);
       return;
     }
   } catch (error) {
@@ -99,10 +98,15 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     console.log("Called createInitialSubscriptionFromCharge 3🎁")
 
     // ⚠️ Create Paystack subscription HERE (ONCE)
+    const customerCode = data.customer.customer_code || ""
+    if(!customerCode){
+      console.warn("Charge missing customer code, cannot create subscription", data);
+      return;
+    }
     const resp = await paystackAxios.post(
       "/subscription",
       {
-        customer: user.customerCode,
+        customer: customerCode,
         plan: metadata.paystackSubscriptionCode,
         authorization: data.authorization.authorization_code,
       },
@@ -128,6 +132,8 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
       paystackSubscriptionId: paystackSub.id,
       paystackAuthorizationToken: paystackSub.email_token,
     });
+    user.customerCode = customerCode;
+    user.save();
     console.log("Called createInitialSubscriptionFromCharge 5🎁")
   } catch (error) {
     console.error("Error from createInitialSubscriptionFromCharge:", error);
@@ -308,8 +314,9 @@ async function handleGiftSubscription(data, sender, metadata) {
   }
 }
 
-async function handleNormalSubscription(data, user, metadata) {
+async function handleNormalSubscription(data, user) {
   try {
+    const metadata = data.metadata || {};
     console.log("Called handleNormalSubscription 1🎁")
     const subscriptionCode = data.subscription?.subscription_code;
 
