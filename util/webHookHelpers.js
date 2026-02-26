@@ -10,7 +10,6 @@ const sendOTP = require("./sendOtp");
 
 async function handleChargeSuccess(data) {
   try {
-    console.log("Called handleChargeSuccess 1🎁")
     const metadata = data.metadata || {};
     const reference = data.reference;
     const userEmail = data.customer.email;
@@ -19,7 +18,6 @@ async function handleChargeSuccess(data) {
     const user = await UserModel.findOne({ email: userEmail });
     if (!user) return;
 
-    console.log("Called handleChargeSuccess 2🎁")
     // 2️⃣ Idempotency: prevent duplicate payments
     const existingPayment = await PaymentModel.findOne({ reference });
     if (existingPayment) return;
@@ -36,7 +34,6 @@ async function handleChargeSuccess(data) {
       metadata,
     });
 
-    console.log("Called handleChargeSuccess 3🎁")
 
     // ==========================
     // 🛒 ORDER PAYMENT FLOW
@@ -46,7 +43,6 @@ async function handleChargeSuccess(data) {
       return;
     }
 
-    console.log("Called handleChargeSuccess 4🎁")
 
     // ==========================
     // 🎁 GIFT SUBSCRIPTION
@@ -56,7 +52,6 @@ async function handleChargeSuccess(data) {
       return;
     }
 
-    console.log("Called handleChargeSuccess 5🎁")
 
     // ==========================
     // 🔁 NORMAL SUBSCRIPTION
@@ -73,7 +68,6 @@ async function handleChargeSuccess(data) {
 
 async function createInitialSubscriptionFromCharge(data, user, metadata) {
   try {
-    console.log("Called createInitialSubscriptionFromCharge 1🎁")
 
     const {
       planId,
@@ -84,7 +78,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     } = metadata;
 
     if (!planId || !categoryId || !coachId) return;
-    console.log("Called createInitialSubscriptionFromCharge 2🎁")
 
 
     // 🔒 Prevent duplicate active subscription
@@ -95,7 +88,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     });
 
     if (existing) return;
-    console.log("Called createInitialSubscriptionFromCharge 3🎁")
 
     // ⚠️ Create Paystack subscription HERE (ONCE)
     const customerCode = data.customer.customer_code || ""
@@ -116,7 +108,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
         },
       }
     );
-    console.log("Called createInitialSubscriptionFromCharge 4🎁")
 
 
     const paystackSub = resp.data.data;
@@ -134,7 +125,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     });
     user.customerCode = customerCode;
     user.save();
-    console.log("Called createInitialSubscriptionFromCharge 5🎁")
   } catch (error) {
     console.error("Error from createInitialSubscriptionFromCharge:", error);
     return;
@@ -172,7 +162,6 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
-    console.log({data},'handleSubscriptionCreate')
     await SubscriptionModel.findOneAndUpdate(
       { subscriptionCode: data.subscription_code },
       {
@@ -201,7 +190,6 @@ async function handleInvoiceFailed(data) {
 }
 
 async function handleGiftSubscription(data, sender, metadata) {
-  console.log("Called handleGiftSubscription 1🎁")
   try {
     const {
       planId,
@@ -218,13 +206,11 @@ async function handleGiftSubscription(data, sender, metadata) {
       console.warn("Invalid gift subscription metadata", metadata);
       return;
     }
-  console.log("Called handleGiftSubscription 2🎁")
 
     if (!recipientEmail && !phoneNumber) {
       console.warn("Gift missing recipient contact", gift);
       return;
     }
-  console.log("Called handleGiftSubscription 3🎁")
 
     // Optional: find receiver if email exists
     const receiver = recipientEmail
@@ -234,7 +220,6 @@ async function handleGiftSubscription(data, sender, metadata) {
     // Generate coupon
     const couponCode =
       "MUTAG-" + Math.random().toString(36).slice(2, 10).toUpperCase();
-  console.log("Called handleGiftSubscription 4🎁")
 
     // Calculate expiry
     const now = new Date();
@@ -245,7 +230,6 @@ async function handleGiftSubscription(data, sender, metadata) {
     } else if (duration === "yearly") {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     }
-  console.log("Called handleGiftSubscription 5🎁")
 
     // Save coupon
     await CouponModel.create({
@@ -261,7 +245,6 @@ async function handleGiftSubscription(data, sender, metadata) {
       expiresAt,
       used: false,
     });
-  console.log("Called handleGiftSubscription 6🎁")
 
     /* ==========================
        📧 EMAIL DELIVERY
@@ -283,7 +266,6 @@ async function handleGiftSubscription(data, sender, metadata) {
       });
     }
 
-  console.log("Called handleGiftSubscription 7🎁")
 
     /* ==========================
        📱 SMS DELIVERY
@@ -317,17 +299,14 @@ async function handleGiftSubscription(data, sender, metadata) {
 async function handleNormalSubscription(data, user) {
   try {
     const metadata = data.metadata || {};
-    console.log("Called handleNormalSubscription 1🎁")
     const subscriptionCode = data.subscription?.subscription_code;
 
     // 🔁 Renewal
     if (subscriptionCode) {
-    console.log("Called handleNormalSubscription 2🎁")
       const subscription = await SubscriptionModel.findOne({
         subscriptionCode,
       });
       if (!subscription) return;
-    console.log("Called handleNormalSubscription 3🎁")
 
       subscription.status = "active";
       subscription.lastPaymentAt = new Date(data.paid_at);
@@ -337,7 +316,6 @@ async function handleNormalSubscription(data, user) {
       subscription.nextPaymentDate = new Date(
         data.subscription.next_payment_date
       );
-    console.log("Called handleNormalSubscription 4🎁")
 
       await subscription.save();
       return;
@@ -384,7 +362,6 @@ async function handleOrderPayment(metadata, reference) {
       body: "Your order payment was successful and is being processed.",
     });
 
-    console.log(`🛒 Order ${order._id} marked as paid`);
   } catch (error) {
     console.error("Error in handleOrderPayment:", error);
     return;
