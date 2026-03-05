@@ -55,7 +55,7 @@ if (process.env.NODE_ENV !== "development") {
 setupSwagger(app);
 app.use("/api", router);
 
-app.get("/", (req, res) => {
+app.get("/", async(req, res) => {
   res.send("This is the base project");
 });
 

@@ -1,36 +1,44 @@
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.AUTH_EMAIL,
-    pass: process.env.NODEMAILER_PASS,
-  },
-});
-
-const sendEmail = async ({
-  subject = "New Mail",
-  html,
-  to,
-}) => {
+const sendEmail = async ({ to, subject = "New Mail", html }) => {
   try {
-    console.log('attempt to send email')
+    console.log("📧 Attempting to send email...");
+
     if (!to || !subject || !html) {
-      console.log({
+      console.error({
         success: false,
-        message: "Please provide email options to from subject html",
+        message: "Please provide all email fields: to, subject, html",
       });
       return false;
     }
-    transporter.sendMail({to, subject, html, from: "groweapp@support.com"}, (err, info) => {
-      if (err) {
-        return console.log("Error sending mail:", err.message);
+
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          email: process.env.EMAIL_FROM,
+          name: process.env.APP_NAME || "My App",
+        },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
       }
-      console.log("Mail sent!", info.response);
-    });
+    );
+
+    console.log("✅ Email sent via Brevo:", response.data.messageId || "No ID returned");
     return true;
   } catch (error) {
-    console.log(error.message, "caught error here");
+    console.error(
+      "❌ Brevo email error:",
+      error.response?.data || error.message
+    );
+    return false;
   }
 };
 
