@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const OrderController = require("../controllers/order.controller");
-const { ROUTE_CREATE_ORDER, ROUTE_GET_ALL_ORDERS, ROUTE_GET_ORDER, ROUTE_GET_USER_ORDER, ROUTE_CANCEL_ORDER, ROUTE_UPDATE_ORDER } = require("../util/page-route");
+const { ROUTE_CREATE_ORDER, ROUTE_GET_ALL_ORDERS, ROUTE_GET_ORDER, ROUTE_GET_USER_ORDER, ROUTE_CANCEL_ORDER, ROUTE_UPDATE_ORDER, ROUTE_GET_ORDER_PRICE } = require("../util/page-route");
 const auth = require("../middlewares/auth");
 const adminAuth = require("../middlewares/adminAuth");
 
@@ -167,6 +167,41 @@ router.post(ROUTE_CREATE_ORDER, auth, (req, res)=>{
 router.get(ROUTE_GET_USER_ORDER, auth, (req, res)=>{
     const orderController = new OrderController();
     return orderController.getUserOrders(req, res);
+});
+
+/**
+ * @swagger
+ * /order/get-order-price:
+ *   get:
+ *     summary: Get total order amount and delivery fee for the current user
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Total order amount and delivery fee
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     totalAmount:
+ *                       type: number
+ *                       example: 5000
+ *                     deliveryFee:
+ *                       type: number
+ *                       example: 1500
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_GET_ORDER_PRICE, auth, (req, res)=>{
+    const orderController = new OrderController();
+    return orderController.getOrderPrice(req, res);
 });
 
 /**

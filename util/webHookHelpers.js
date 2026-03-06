@@ -14,6 +14,26 @@ async function handleChargeSuccess(data) {
     const reference = data.reference;
     const userEmail = data.customer.email;
 
+    if (data.subscription) {
+      console.log("📩 Charge success with subscription data, updating subscription", {subscription: data.subscription})
+      const subscription = await SubscriptionModel.findOne({
+        subscriptionCode: data.subscription.subscription_code,
+      });
+
+      if (!subscription) return;
+
+      subscription.status = "active";
+      subscription.lastPaymentAt = new Date(data.paid_at);
+      subscription.currentPeriodEnd = new Date(
+        data.subscription.next_payment_date
+      );
+      subscription.nextPaymentDate = new Date(
+        data.subscription.next_payment_date
+      );
+
+      await subscription.save();
+    }
+
     // 1️⃣ Find user
     const user = await UserModel.findOne({ email: userEmail });
     if (!user) return;
@@ -34,7 +54,6 @@ async function handleChargeSuccess(data) {
       metadata,
     });
 
-
     // ==========================
     // 🛒 ORDER PAYMENT FLOW
     // ==========================
@@ -42,7 +61,6 @@ async function handleChargeSuccess(data) {
       await handleOrderPayment(metadata, reference);
       return;
     }
-
 
     // ==========================
     // 🎁 GIFT SUBSCRIPTION
@@ -52,12 +70,11 @@ async function handleChargeSuccess(data) {
       return;
     }
 
-
     // ==========================
     // 🔁 NORMAL SUBSCRIPTION
     // ==========================
     if (metadata.type === "subscription") {
-      await handleNormalSubscription(data, user);
+      // await handleNormalSubscription(data, user);
       return;
     }
   } catch (error) {
@@ -68,7 +85,6 @@ async function handleChargeSuccess(data) {
 
 async function createInitialSubscriptionFromCharge(data, user, metadata) {
   try {
-
     const {
       planId,
       categoryId,
@@ -78,7 +94,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     } = metadata;
 
     if (!planId || !categoryId || !coachId) return;
-
 
     // 🔒 Prevent duplicate active subscription
     const existing = await SubscriptionModel.findOne({
@@ -90,9 +105,12 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     if (existing) return;
 
     // ⚠️ Create Paystack subscription HERE (ONCE)
-    const customerCode = data.customer.customer_code || ""
-    if(!customerCode){
-      console.warn("Charge missing customer code, cannot create subscription", data);
+    const customerCode = data.customer.customer_code || "";
+    if (!customerCode) {
+      console.warn(
+        "Charge missing customer code, cannot create subscription",
+        data
+      );
       return;
     }
     const resp = await paystackAxios.post(
@@ -109,7 +127,6 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
       }
     );
 
-
     const paystackSub = resp.data.data;
 
     await SubscriptionModel.create({
@@ -122,6 +139,8 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
       subscriptionCode: paystackSub.subscription_code,
       paystackSubscriptionId: paystackSub.id,
       paystackAuthorizationToken: paystackSub.email_token,
+      planCode: metadata.paystackSubscriptionCode,
+      authorizationCode: data.authorization.authorization_code,
     });
     user.customerCode = customerCode;
     user.save();
@@ -162,16 +181,28 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
-    await SubscriptionModel.findOneAndUpdate(
-      { subscriptionCode: data.subscription_code },
-      {
-        paystackSubscriptionId: data.id,
-        nextPaymentDate: new Date(data.next_payment_date),
-      }
-    );
+    const metadata = data.metadata || {};
+
+    const existing = await SubscriptionModel.findOne({
+      subscriptionCode: data.subscription_code,
+    });
+    console.log("📩 Handling subscription.create, inside***", {data})
+
+    if (existing) return;
+
+    await SubscriptionModel.create({
+      user: metadata.payerId,
+      coachId: metadata.coachId,
+      planId: metadata.planId,
+      categoryId: metadata.categoryId,
+      status: "active",
+      startDate: new Date(),
+      subscriptionCode: data.subscription_code,
+      paystackSubscriptionId: data.id,
+      nextPaymentDate: new Date(data.next_payment_date),
+    });
   } catch (error) {
     console.error("Error in handleSubscriptionCreate:", error);
-    return;
   }
 }
 
@@ -266,12 +297,11 @@ async function handleGiftSubscription(data, sender, metadata) {
       });
     }
 
-
     /* ==========================
        📱 SMS DELIVERY
     ========================== */
     if (phoneNumber) {
-     const message = ` 🎁 You received a gift subscription from ${sender.firstName}! Coupon: ${couponCode} Redeem it in the Muta app.`
+      const message = ` 🎁 You received a gift subscription from ${sender.firstName}! Coupon: ${couponCode} Redeem it in the Muta app.`;
       await sendOTP(phoneNumber, message);
     }
 
@@ -361,7 +391,6 @@ async function handleOrderPayment(metadata, reference) {
       title: "Payment Successful",
       body: "Your order payment was successful and is being processed.",
     });
-
   } catch (error) {
     console.error("Error in handleOrderPayment:", error);
     return;

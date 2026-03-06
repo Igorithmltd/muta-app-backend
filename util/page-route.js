@@ -185,6 +185,7 @@ exports.ROUTE_CANCEL_ORDER = '/cancel-order'
 exports.ROUTE_GET_ALL_ORDERS = '/get-all-orders'
 exports.ROUTE_GET_ORDER = '/get-order'
 exports.ROUTE_GET_USER_ORDER = '/get-user-order'
+exports.ROUTE_GET_ORDER_PRICE = '/get-order-price'
 exports.ROUTE_UPDATE_ORDER = '/update-order'
 exports.ROUTE_DELETE_ORDER = '/delete-order'
 

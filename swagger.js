@@ -14,7 +14,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "https://muta-app-backend.onrender.com/api",
+        url: "https://muta-app-backend-spbz.onrender.com/api",
       },
     ],
     components: {

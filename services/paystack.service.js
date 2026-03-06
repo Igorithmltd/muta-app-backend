@@ -34,12 +34,12 @@ class PaystackService extends BaseService {
   
       const validateRule = {
         email: "string|required",
-        amount: "integer|required",
+        // amount: "integer|required",
         planId: "string|required",
         coachId: "string|required",
         categoryId: "string|required",
-        duration: "string|required",
-        paystackSubscriptionCode: "string|required",
+        // duration: "string|required",
+        // paystackSubscriptionCode: "string|required",
         isGift: "boolean|required",
         recipientEmail: "string|email",
         phoneNumber: "string",
@@ -59,12 +59,9 @@ class PaystackService extends BaseService {
 
       const {
         email,
-        amount,
         planId,
         categoryId,
-        paystackSubscriptionCode,
         coachId,
-        duration,
         isGift,
         recipientEmail,
         phoneNumber,
@@ -89,8 +86,9 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: "Invalid category" });
       }
 
+      const amount = category.price * 100; // Paystack uses kobo
       const paystackPlanCode = category.paystackSubscriptionId;
-
+      const duration = category.duration;
   
     
   
@@ -133,6 +131,7 @@ class PaystackService extends BaseService {
           user: user._id,
           paystackSubscriptionId: paystackSubscriptionCode,
           status: "active",
+          categoryId,
         });
   
         if (existingSubscription) {
@@ -171,12 +170,15 @@ class PaystackService extends BaseService {
       /* --------------------
          Initialize Paystack
       ---------------------*/
+      const reference = `SUB_${Date.now()}_${userId}`;
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         {
           email, // payer email
           amount,
+          reference,
           channels: ["card"],
+          plan: paystackPlanCode,
           // ...(planId && !isGift && {plan: paystackPlanCode}),
           metadata: {
             type: "subscription",
@@ -185,8 +187,7 @@ class PaystackService extends BaseService {
             categoryId,
             duration,
             coachId,
-            paystackSubscriptionCode,
-  
+            paystackSubscriptionCode: paystackPlanCode,  
             isGift,
             ...(isGift && {
               gift: {

@@ -20,6 +20,14 @@ class OrderController extends BaseController {
         }
         return BaseController.sendSuccessResponse(res, getUserOrders.data)
     }
+    async getOrderPrice(req, res){
+        const orderService = new OrderService()
+        const getOrderPrice = await orderService.getOrderPrice(req)
+        if(!getOrderPrice.success){
+            return BaseController.sendFailedResponse(res, getOrderPrice.data)
+        }
+        return BaseController.sendSuccessResponse(res, getOrderPrice.data)
+    }
     async getOrderById(req, res){
         const orderService = new OrderService()
         const getOrderById = await orderService.getOrderById(req)

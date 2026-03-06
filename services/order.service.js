@@ -116,6 +116,68 @@ class OrderService extends BaseService {
       });
     }
   }
+  async getOrderPrice(req) {
+    try {
+      const userId = req.user.id;
+      const post = req.body;
+
+      const user = await UserModel.findById(userId)
+      
+      if(!user){
+        return BaseService.sendFailedResponse({ error: "User not found" });
+      }
+
+      const cart = await CartModel.findOne({ user: userId }).populate(
+        "items.product"
+      );
+      if (!cart || cart.items.length === 0) {
+        return BaseService.sendSuccessResponse({ message: {
+          totalAmount: 0,
+          deliveryFee: 0,
+        }
+        });
+      }
+
+      let totalAmount = 0;
+
+      cart.items.map((item) => {
+        const variation = item.product.variations.find(
+          (v) => v.color === item.color && v.size === item.size
+        );
+
+        const price =
+          variation && variation.price ? variation.price : item.product.price;
+
+        totalAmount += price * item.quantity;
+
+        return {
+          product: item.product._id,
+          quantity: item.quantity,
+          price,
+          size: item.size,
+          color: item.color,
+        };
+      });
+
+      const totalDelivery = OrderService.calculateDelivery(cart.items);
+
+       // Add delivery to order total
+       totalAmount = parseFloat((totalAmount + totalDelivery).toFixed(2));
+
+
+      return BaseService.sendSuccessResponse({
+        message: {
+          totalAmount,
+          deliveryFee: totalDelivery,
+        }
+      });
+    } catch (error) {
+      console.error("Create order error:", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
   async getUserOrders(req) {
     try {
       const page = parseInt(req.query.page) || 1;

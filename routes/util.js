@@ -230,7 +230,6 @@ router.post(
  *             type: object
  *             required:
  *               - email
- *               - amount
  *               - planId
  *               - categoryId
  *             properties:
@@ -238,10 +237,6 @@ router.post(
  *                 type: string
  *                 example: "chiemelapromise30@gmail.com"
  *                 description: The user's email address
- *               amount:
- *                 type: string
- *                 example: "4500000"
- *                 description: Amount in kobo (₦1 = 100 kobo)
  *               planId:
  *                 type: string
  *                 example: "64ab12fcd09a7f34b1d5a9c2"
@@ -254,18 +249,10 @@ router.post(
  *                 type: string
  *                 example: "64ab13ffd09a7f34b1d5a9d9"
  *                 description: The plan category id
- *               paystackSubscriptionCode:
- *                 type: string
- *                 example: "PLN_d09ab1d5a9d9"
- *                 description: The paystack plan id
  *               isGift:
  *                 type: boolean
  *                 example: true
  *                 description: Whether it is a gift or not
- *               duration:
- *                 type: string
- *                 example: 'monthly'
- *                 description: duration of the plan category
  *               recipientEmail:
  *                 type: string
  *                 example: "abc@gmail.com"
