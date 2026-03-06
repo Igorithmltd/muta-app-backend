@@ -2134,7 +2134,10 @@ class UserService extends BaseService {
       const filter = {
         user: userId,
         status: "active",
-        currentPeriodEnd: { $gt: new Date() },
+        $or: [
+          { currentPeriodEnd: { $gt: new Date() } },
+          { currentPeriodEnd: { $exists: false } }
+        ]
       };
 
       const userSubscriptionPlan = await SubscriptionModel.findOne(
