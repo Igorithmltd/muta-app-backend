@@ -176,7 +176,7 @@ class PaystackService extends BaseService {
         {
           email, // payer email
           amount,
-          // channels: ["card"],
+          channels: ["card"],
           // ...(planId && !isGift && {plan: paystackPlanCode}),
           metadata: {
             type: "subscription",
