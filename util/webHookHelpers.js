@@ -6,7 +6,7 @@ const SubscriptionModel = require("../models/subscription.model");
 const UserModel = require("../models/user.model");
 const paystackAxios = require("../services/paystack.client.service");
 const sendEmail = require("./emailService");
-const sendOTP = require("./sendOtp");
+const otpSend = require("./otpSend");
 
 async function handleChargeSuccess(data) {
   try {
@@ -301,8 +301,9 @@ async function handleGiftSubscription(data, sender, metadata) {
        📱 SMS DELIVERY
     ========================== */
     if (phoneNumber) {
-      const message = ` 🎁 You received a gift subscription from ${sender.firstName}! Coupon: ${couponCode} Redeem it in the Muta app.`;
-      await sendOTP(phoneNumber, message);
+      // const message = ` 🎁 You received a gift subscription from ${sender.firstName}! Coupon: ${couponCode} Redeem it in the Muta app.`;
+      const message = ` 🎁 You received a gift subscription Coupon. Redeem it in the Muta app. Go to playstore and download MutaApp`;
+      await otpSend(phoneNumber, message);
     }
 
     /* ==========================

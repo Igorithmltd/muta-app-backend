@@ -21,13 +21,12 @@ const WorkoutPlanModel = require("../models/workoutPlan.model");
 const PlanModel = require("../models/plan.model");
 const CouponModel = require("../models/coupon.model");
 const SleepEntryModel = require("../models/sleep-entry.model");
+const MessageModel = require("../models/message.model");
 const WaterEntryModel = require("../models/water-entry.model");
 const NotificationModel = require("../models/notification.model");
 const SubscriptionModel = require("../models/subscription.model");
 const { sendPushNotification } = require("./firebase.service");
 const PaystackService = require("./paystack.service");
-const sendOTP = require("../util/sendOtp");
-const MessageModel = require("../models/message.model");
 const CallLogModel = require("../models/call-log.model");
 const mongoose = require("mongoose");
 const ChallengeActionModel = require("../models/challengeAction.model");
@@ -37,10 +36,13 @@ const OrderModel = require("../models/order.model");
 const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const VerificationApplicationModel = require("../models/verification-applications.model");
 const CoachGuidanceModel = require("../models/coach-guidance.model");
+const otpSend = require("../util/otpSend");
 
 class UserService extends BaseService {
   async createUser(req, res) {
     try {
+      const session = await mongoose.startSession();
+      session.startTransaction();
       const post = req.body;
 
       const validateRule = {
@@ -69,7 +71,7 @@ class UserService extends BaseService {
       }
 
       const newUser = new UserModel({ ...post, servicePlatform: "local" });
-      await newUser.save();
+      await newUser.save({session});
 
       // userExists.markModified("password");
       // await userExists.save();
@@ -82,7 +84,7 @@ class UserService extends BaseService {
       newUser.otp = otp;
       newUser.otpPhoneNumber = otp2;
       newUser.otpExpiresAt = expiresAt;
-      await newUser.save();
+      await newUser.save({session});
 
       // Send OTP email
       const emailHtml = `
@@ -90,21 +92,31 @@ class UserService extends BaseService {
       <p>Hi <strong>${post.email}</strong>,</p>
       <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
       `;
+   
+
+
+
+      const otpResult = await otpSend(post.phoneNumber, otp2, session);
+
+      if(!otpResult.success){
+        return BaseService.sendFailedResponse({
+          error: 'Failed to create account'
+        })
+      }
+
       await sendEmail({
         subject: "Verify Your email",
         to: post.email,
         html: emailHtml,
       });
 
-      const message = `Your verification code is ${otp2}`;
-
-      const otpResult = await sendOTP(post.phoneNumber, message);
-
       return BaseService.sendSuccessResponse({
         message: "Registration Successful",
       });
     } catch (error) {
       console.log(error);
+      await session.abortTransaction();
+      session.endSession()
       return BaseService.sendFailedResponse({ error });
     }
   }
@@ -749,9 +761,9 @@ class UserService extends BaseService {
         html: emailHtml,
       });
 
-      const message = `Your verification code is ${otp2}`;
+      // const message = `Your verification code is ${otp2}`;
 
-      const otpResult = await sendOTP(phoneNumber, message);
+      const otpResult = await otpSend(phoneNumber, otp2);
 
       return BaseService.sendSuccessResponse({
         message: "Otp sent. Please verify your email",
@@ -2910,9 +2922,9 @@ class UserService extends BaseService {
 
       const otp = generateOTP();
 
-      const message = `Your verification code is ${otp}`;
+      // const message = otp;
 
-      const otpResult = await sendOTP(phoneNumber, message);
+      const otpResult = await otpSend(phoneNumber, otp);
       // console.log({otpResult: otpResult.data})
 
       if (otpResult.code == "ok") {
