@@ -15,6 +15,7 @@ async function handleChargeSuccess(data) {
     const userEmail = data.customer.email;
 
     // 1️⃣ Find user
+    console.log('🔍 Looking up user by email:', userEmail);
     const user = await UserModel.findOne({ email: userEmail });
     if (!user) return;
 
@@ -57,6 +58,7 @@ async function handleChargeSuccess(data) {
     // 🔁 NORMAL SUBSCRIPTION
     // ==========================
     if (metadata.type === "subscription") {
+      console.log("Handling normal subscription charge.success for user:", user.email);
       await handleNormalSubscription(data, user);
       return;
     }
@@ -90,6 +92,7 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     if (existing) return;
 
     // ⚠️ Create Paystack subscription HERE (ONCE)
+    console.log("Creating Paystack subscription for user:", user.email);
     const customerCode = data.customer.customer_code || ""
     if(!customerCode){
       console.warn("Charge missing customer code, cannot create subscription", data);
@@ -110,6 +113,7 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     );
 
 
+    console.log("Paystack subscription created:", resp.data);
     const paystackSub = resp.data.data;
 
     await SubscriptionModel.create({
@@ -125,6 +129,7 @@ async function createInitialSubscriptionFromCharge(data, user, metadata) {
     });
     user.customerCode = customerCode;
     user.save();
+    console.log("Subscription created in DB for user:", user.email);
   } catch (error) {
     console.error("Error from createInitialSubscriptionFromCharge:", error);
     return;
@@ -298,11 +303,13 @@ async function handleGiftSubscription(data, sender, metadata) {
 
 async function handleNormalSubscription(data, user) {
   try {
+    console.log("Handling normal subscription charge.success for user:", user.email);
     const metadata = data.metadata || {};
     const subscriptionCode = data.subscription?.subscription_code;
 
     // 🔁 Renewal
     if (subscriptionCode) {
+      console.log("Processing subscription renewal for code:", subscriptionCode);
       const subscription = await SubscriptionModel.findOne({
         subscriptionCode,
       });
