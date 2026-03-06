@@ -199,6 +199,7 @@ class PaystackService extends BaseService {
         }
       );
   
+      console.log({data: response.data})
       return BaseService.sendSuccessResponse({
         message: response.data,
       });
