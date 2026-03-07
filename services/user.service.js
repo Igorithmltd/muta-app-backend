@@ -1077,7 +1077,7 @@ class UserService extends BaseService {
       } else if (userType === "coach") {
         validateRule.yearsOfExperience = "integer|required";
         validateRule.location = "string|required";
-        validateRule.lastName = "string|required";
+        // validateRule.lastName = "string|required";
       }
 
       const validateMessage = {
@@ -1772,6 +1772,8 @@ class UserService extends BaseService {
       coachApplicationExists.reviewedAt = new Date();
       // user.coachVerification.reviewedBy = adminId;
       await coachApplicationExists.save();
+      user.isVerifiedCoach = true;
+      await user.save();
 
       return BaseService.sendSuccessResponse({
         message: "Coach application approved successfully",
@@ -1808,6 +1810,9 @@ class UserService extends BaseService {
       coachApplicationExists.status = "rejected";
       coachApplicationExists.reviewedAt = new Date();
       // user.coachVerification.reviewedBy = adminId;
+
+      user.isVerifiedCoach = false;
+      await user.save()
       await coachApplicationExists.save();
 
       return BaseService.sendSuccessResponse({
@@ -1880,22 +1885,29 @@ class UserService extends BaseService {
       })
         .populate({
           path: "userId",
-          match: { userType: "coach" },           // only include if user is a coach
-          select: "-password -otp -otpExpiresAt", // exclude sensitive fields
+          match: { userType: "coach" },
+          select: "-password -otp -otpExpiresAt",
         })
-        .sort({ reviewedAt: -1, submittedAt: -1, createdAt: -1 }) // most recently reviewed first
+        .sort({ reviewedAt: -1, submittedAt: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
   
-      // Filter out any documents where userId didn't match (i.e. not a coach)
       const coaches = verifiedCoaches
-        .filter(app => app.userId !== null)
-        .map(app => app.userId); // return just the populated User objects
+        // .filter(app => app.userId !== null)
+        // .map(app => ({
+        //   ...app.userId,
+        //   verification: {
+        //     status: app.status,
+        //     submittedAt: app.submittedAt,
+        //     reviewedAt: app.reviewedAt,
+        //     governmentIssuedId: app.governmentIssuedId,
+        //     coachCertificate: app.coachCertificate,
+        //   }
+        // }));
   
       const total = await VerificationApplicationModel.countDocuments({
         status: "approved",
-        userId: { $exists: true } // optional safety
       });
   
       return BaseService.sendSuccessResponse({
@@ -1908,9 +1920,13 @@ class UserService extends BaseService {
           pages: Math.ceil(total / limit),
         },
       });
+  
     } catch (error) {
       console.error("Error fetching verified coaches:", error);
-      return BaseService.sendFailedResponse({ error: error.message });
+  
+      return BaseService.sendFailedResponse({
+        error: error.message
+      });
     }
   }
 

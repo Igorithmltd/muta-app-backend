@@ -90,7 +90,7 @@ const UserSchema = new mongoose.Schema(
     emailToken: { type: String },
     otpExpiresAt: { type: Date },
     isVerified: { type: Boolean, default: false },
-    isVerifiedCoach: {type: String},
+    isVerifiedCoach: {type: Boolean},
     servicePlatform: {
       type: String,
       // default: "local",
