@@ -40,84 +40,123 @@ const otpSend = require("../util/otpSend");
 
 class UserService extends BaseService {
   async createUser(req, res) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+  
     try {
-      const session = await mongoose.startSession();
-      session.startTransaction();
       const post = req.body;
-
+  
       const validateRule = {
         email: "email|required",
         password: "string|required",
         phoneNumber: "string|required",
         userType: "string|required",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
-      const userExists = await UserModel.findOne({ email: post.email });
-      if (!empty(userExists)) {
+  
+      // Find user by email OR phone
+      let user = await UserModel.findOne({
+        $or: [
+          { email: post.email },
+          { phoneNumber: post.phoneNumber }
+        ]
+      }).session(session);
+  
+      if (user && user.isVerified) {
+        await session.abortTransaction();
+        session.endSession();
+  
         return BaseService.sendFailedResponse({
-          error: "User exist. Please login",
+          error: "User already exists. Please login",
         });
       }
+  
 
-      const newUser = new UserModel({ ...post, servicePlatform: "local" });
-      await newUser.save({session});
-
-      // userExists.markModified("password");
-      // await userExists.save();
-
-      const otp = generateOTP();
-      const otp2 = generateOTP();
+      const [_, otpEmail] = generateOTP();
+      const [otpPhoneMessage, otpPhone] = generateOTP();
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
-
-      newUser.otp = otp;
-      newUser.otpPhoneNumber = otp2;
-      newUser.otpExpiresAt = expiresAt;
-      await newUser.save({session});
-
-      // Send OTP email
-      const emailHtml = `
-         <h1>Verify Your Email</h1>
-      <p>Hi <strong>${post.email}</strong>,</p>
-      <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
-      `;
-   
-
-
-
-      const otpResult = await otpSend(post.phoneNumber, otp2, session);
-
-      if(!otpResult.success){
-        return BaseService.sendFailedResponse({
-          error: 'Failed to create account'
-        })
+  
+      // CASE 1: User exists but not verified
+      if (user && !user.isVerified) {
+  
+        user.email = post.email;
+        user.phoneNumber = post.phoneNumber;
+        user.password = post.password;
+        user.userType = post.userType;
+  
+        user.otp = otpEmail;
+        user.otpPhoneNumber = otpPhone;
+        user.otpExpiresAt = expiresAt;
+  
+        await user.save({ session });
+  
+      } else {
+  
+        // CASE 2: New user
+        user = new UserModel({
+          ...post,
+          servicePlatform: "local",
+          otp: otpEmail,
+          otpPhoneNumber: otpPhone,
+          otpExpiresAt: expiresAt
+        });
+  
+        await user.save({ session });
       }
-
+  
+      // Send phone OTP
+      const otpResult = await otpSend(post.phoneNumber, otpPhoneMessage);
+  
+      if (!otpResult.success) {
+        await session.abortTransaction();
+        session.endSession();
+  
+        return BaseService.sendFailedResponse({
+          error: "Failed to send OTP",
+        });
+      }
+  
+      // Send Email OTP
+      const emailHtml = `
+        <h1>Verify Your Email</h1>
+        <p>Hi <strong>${post.email}</strong>,</p>
+        <p>Your OTP is <b>${otpEmail}</b></p>
+      `;
+  
       await sendEmail({
         subject: "Verify Your email",
         to: post.email,
         html: emailHtml,
       });
-
+  
+      await session.commitTransaction();
+      session.endSession();
+  
       return BaseService.sendSuccessResponse({
-        message: "Registration Successful",
+        message: "Registration Successful. Verify your OTP",
       });
+  
     } catch (error) {
-      console.log(error);
+  
       await session.abortTransaction();
-      session.endSession()
-      return BaseService.sendFailedResponse({ error });
+      session.endSession();
+  
+      console.log(error);
+  
+      return BaseService.sendFailedResponse({
+        error: "Something went wrong",
+      });
     }
   }
   async googleSignup(req, res) {
@@ -386,90 +425,110 @@ class UserService extends BaseService {
   }
   async verifyOTP(req) {
     try {
+  
       const post = req.body;
-
+  
       const validateRule = {
-        // email: "email|required",
+        email: "email|required",
+        phoneNumber: "string|required",
         otp: "string|required",
         otpPhoneNumber: "string|required",
       };
-
+  
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
       };
-
+  
       const validateResult = validateData(post, validateRule, validateMessage);
-
+  
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-
+  
       const { email, otp, phoneNumber, otpPhoneNumber } = post;
-
-      if(!email && !phoneNumber){
+  
+      const user = await UserModel.findOne({
+        $or: [{ email }, { phoneNumber }]
+      });
+  
+      if (!user) {
         return BaseService.sendFailedResponse({
-          error: "Please provide email or phone number",
+          error: "User not found"
         });
       }
-
-      const userExists = await UserModel.findOne(
-        {email}
-        // phoneNumber ? { phoneNumber } : { email }
-      );
-      if (empty(userExists)) {
+  
+      if (user.isVerified) {
         return BaseService.sendFailedResponse({
-          error: "User not found. Please try again later",
+          error: "User already verified"
         });
       }
-
-      if (empty(userExists.otp)) {
-        return BaseService.sendFailedResponse({ error: "OTP not found" });
+  
+      if (!user.otp || !user.otpPhoneNumber) {
+        return BaseService.sendFailedResponse({
+          error: "OTP not found"
+        });
       }
-
-      if (userExists.otp !== otp) {
-        return BaseService.sendFailedResponse({ error: "Invalid email OTP" });
+  
+      if (user.otpExpiresAt < new Date()) {
+        return BaseService.sendFailedResponse({
+          error: "OTP expired"
+        });
       }
-      if (userExists.otpPhoneNumber !== otpPhoneNumber) {
-        return BaseService.sendFailedResponse({ error: "Invalid phone number OTP" });
+  
+      if (user.otp !== otp.trim()) {
+        return BaseService.sendFailedResponse({
+          error: "Invalid email OTP"
+        });
       }
-      if (userExists.otpExpiresAt < new Date()) {
-        return BaseService.sendFailedResponse({ error: "OTP expired" });
+  
+      if (user.otpPhoneNumber !== otpPhoneNumber.trim()) {
+        return BaseService.sendFailedResponse({
+          error: "Invalid phone OTP"
+        });
       }
-
-      userExists.isVerified = true;
-      userExists.otp = "";
-      userExists.otpPhoneNumber = "";
-      userExists.otpExpiresAt = null;
-      await userExists.save();
-
-      const accessToken = await userExists.generateAccessToken(
-        process.env.ACCESS_TOKEN_SECRET || ""
+  
+      user.isVerified = true;
+      user.otp = null;
+      user.otpPhoneNumber = null;
+      user.otpExpiresAt = null;
+  
+      await user.save();
+  
+      const accessToken = await user.generateAccessToken(
+        process.env.ACCESS_TOKEN_SECRET
       );
-      const refreshToken = await userExists.generateRefreshToken(
-        process.env.REFRESH_TOKEN_SECRET || ""
+  
+      const refreshToken = await user.generateRefreshToken(
+        process.env.REFRESH_TOKEN_SECRET
       );
-
-      // Send OTP email
+  
       const emailHtml = `
-          <h1>Your email has been verified</h1>
-          <p>Hi <strong>${email}</strong>,</p>
-          <p>You have successfully verified your account</p>
+        <h1>Your email has been verified</h1>
+        <p>Hi <strong>${email}</strong>,</p>
+        <p>Your account has been successfully verified.</p>
       `;
+  
       await sendEmail({
         subject: "Email Verification",
         to: email,
         html: emailHtml,
       });
-
+  
       return BaseService.sendSuccessResponse({
-        message: accessToken,
-        user: userExists,
+        message: "Verification successful",
+        accessToken,
         refreshToken,
+        user
       });
+  
     } catch (error) {
+  
       console.log(error);
-      return BaseService.sendFailedResponse({ error });
+  
+      return BaseService.sendFailedResponse({
+        error: "Verification failed"
+      });
     }
   }
   async loginUser(req, res) {
@@ -513,7 +572,8 @@ class UserService extends BaseService {
       if (!userExists.isVerified) {
         return BaseService.sendFailedResponse(
           {
-            error: "Email is not verified. Please verifiy your email",
+            error: "User is not found. Please create an account",
+            // error: "Email is not verified. Please verifiy your email",
           },
           405
         );
@@ -624,7 +684,7 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
       // Generate OTP
-      const otp = generateOTP();
+      const [_, otp] = generateOTP();
       userExists.otp = otp;
       userExists.otpExpiresAt = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
       await userExists.save();
@@ -739,8 +799,9 @@ class UserService extends BaseService {
         });
       }
 
-      const otp1 = generateOTP();
-      const otp2 = generateOTP();
+      const [_, otp1] = generateOTP();
+      const [otpMessage2, otp2] = generateOTP();
+
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
@@ -763,7 +824,7 @@ class UserService extends BaseService {
 
       // const message = `Your verification code is ${otp2}`;
 
-      const otpResult = await otpSend(phoneNumber, otp2);
+      const otpResult = await otpSend(phoneNumber, otpMessage2);
 
       return BaseService.sendSuccessResponse({
         message: "Otp sent. Please verify your email",
@@ -804,7 +865,7 @@ class UserService extends BaseService {
         email,
       });
 
-      const otp = generateOTP();
+      const [_, otp] = generateOTP();
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
@@ -2920,11 +2981,11 @@ class UserService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
-      const otp = generateOTP();
+      const [otpMessage, otp] = generateOTP();
 
       // const message = otp;
 
-      const otpResult = await otpSend(phoneNumber, otp);
+      const otpResult = await otpSend(phoneNumber, otpMessage);
       // console.log({otpResult: otpResult.data})
 
       if (otpResult.code == "ok") {

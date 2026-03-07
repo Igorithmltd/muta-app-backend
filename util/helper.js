@@ -4,7 +4,8 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET
 
 
 module.exports.generateOTP = ()=>{
-    return 'Your Muta code is ' + Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    return ['Your Muta code is ' + otp, otp];
 }
 
 module.exports.verifyRefreshToken = (token)=> {
