@@ -1893,18 +1893,10 @@ class UserService extends BaseService {
         .limit(limit)
         .lean();
   
+      // return only the user objects
       const coaches = verifiedCoaches
-        // .filter(app => app.userId !== null)
-        // .map(app => ({
-        //   ...app.userId,
-        //   verification: {
-        //     status: app.status,
-        //     submittedAt: app.submittedAt,
-        //     reviewedAt: app.reviewedAt,
-        //     governmentIssuedId: app.governmentIssuedId,
-        //     coachCertificate: app.coachCertificate,
-        //   }
-        // }));
+        .filter(app => app.userId) 
+        .map(app => app.userId);
   
       const total = await VerificationApplicationModel.countDocuments({
         status: "approved",
