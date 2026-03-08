@@ -38,8 +38,6 @@ class PaystackService extends BaseService {
         planId: "string|required",
         coachId: "string|required",
         categoryId: "string|required",
-        // duration: "string|required",
-        // paystackSubscriptionCode: "string|required",
         isGift: "boolean|required",
         recipientEmail: "string|email",
         phoneNumber: "string",
@@ -117,7 +115,7 @@ class PaystackService extends BaseService {
           const existingPaystackSubscription =
             await this.checkIfCustomerHasSubscription(
               user.customerCode,
-              paystackSubscriptionCode
+              paystackPlanCode
             );
   
           if (existingPaystackSubscription) {
@@ -129,7 +127,7 @@ class PaystackService extends BaseService {
   
         const existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
-          paystackSubscriptionId: paystackSubscriptionCode,
+          paystackSubscriptionId: paystackPlanCode,
           status: "active",
           categoryId,
         });
@@ -150,7 +148,7 @@ class PaystackService extends BaseService {
         })
 
         const giftQuery = {
-          paystackSubscriptionId: paystackSubscriptionCode,
+          paystackSubscriptionId: paystackPlanCode,
           status: "active",
           user: gifteeUser._id
           // ...(recipientEmail && { recipientEmail }),
@@ -166,6 +164,7 @@ class PaystackService extends BaseService {
           }
         }
       }
+      console.log(paystackPlanCode, "paystack plan code")
   
       /* --------------------
          Initialize Paystack
