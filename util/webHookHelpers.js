@@ -12,37 +12,28 @@ async function handleChargeSuccess(data) {
   try {
     const metadata = data.metadata || {};
     const reference = data.reference;
-    const userEmail = data.customer.email;
+    const userEmail = data.customer?.email;
 
-    if (data.subscription) {
-      console.log("📩 Charge success with subscription data, updating subscription", {subscription: data.subscription})
-      const subscription = await SubscriptionModel.findOne({
-        subscriptionCode: data.subscription.subscription_code,
-      });
-
-      if (!subscription) return;
-
-      subscription.status = "active";
-      subscription.lastPaymentAt = new Date(data.paid_at);
-      subscription.currentPeriodEnd = new Date(
-        data.subscription.next_payment_date
-      );
-      subscription.nextPaymentDate = new Date(
-        data.subscription.next_payment_date
-      );
-
-      await subscription.save();
+    if (!userEmail) {
+      console.log("No user email in charge.success");
+      return;
     }
 
     // 1️⃣ Find user
     const user = await UserModel.findOne({ email: userEmail });
-    if (!user) return;
+    if (!user) {
+      console.log("User not found for email:", userEmail);
+      return;
+    }
 
-    // 2️⃣ Idempotency: prevent duplicate payments
+    // 2️⃣ Prevent duplicate payments
     const existingPayment = await PaymentModel.findOne({ reference });
-    if (existingPayment) return;
+    if (existingPayment) {
+      console.log("Payment already recorded:", reference);
+      return;
+    }
 
-    // 3️⃣ Record payment
+    // 3️⃣ Save payment
     await PaymentModel.create({
       user: user._id,
       amount: data.amount / 100,
@@ -53,6 +44,8 @@ async function handleChargeSuccess(data) {
       paidAt: new Date(data.paid_at),
       metadata,
     });
+
+    console.log("Payment recorded:", reference);
 
     // ==========================
     // 🛒 ORDER PAYMENT FLOW
@@ -74,12 +67,52 @@ async function handleChargeSuccess(data) {
     // 🔁 NORMAL SUBSCRIPTION
     // ==========================
     if (metadata.type === "subscription") {
-      // await handleNormalSubscription(data, user);
-      return;
+
+      if (!data.subscription) {
+        console.log("Subscription metadata present but no subscription object");
+        return;
+      }
+
+      const subscriptionCode = data.subscription.subscription_code;
+
+      let subscription = await SubscriptionModel.findOne({
+        subscriptionCode,
+      });
+
+      // 4️⃣ Create subscription if it doesn't exist
+      if (!subscription) {
+        console.log("Creating new subscription");
+
+        subscription = await SubscriptionModel.create({
+          user: metadata.payerId || user._id,
+          coachId: metadata.coachId,
+          planId: metadata.planId,
+          categoryId: metadata.categoryId,
+          status: "active",
+          startDate: new Date(data.paid_at),
+          subscriptionCode: subscriptionCode,
+          paystackSubscriptionId: data.subscription.id,
+          lastPaymentAt: new Date(data.paid_at),
+          currentPeriodEnd: new Date(data.subscription.next_payment_date),
+          nextPaymentDate: new Date(data.subscription.next_payment_date),
+        });
+
+        return;
+      }
+
+      subscription.status = "active";
+      subscription.lastPaymentAt = new Date(data.paid_at);
+      subscription.currentPeriodEnd = new Date(
+        data.subscription.next_payment_date
+      );
+      subscription.nextPaymentDate = new Date(
+        data.subscription.next_payment_date
+      );
+
+      await subscription.save();
     }
   } catch (error) {
     console.error("Error in handleChargeSuccess:", error);
-    return;
   }
 }
 
@@ -181,26 +214,19 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
-    const metadata = data.metadata || {};
-
     const existing = await SubscriptionModel.findOne({
       subscriptionCode: data.subscription_code,
     });
-    console.log("📩 Handling subscription.create, inside***", {data})
 
-    if (existing) return;
+    if (!existing) {
+      console.log("Subscription created but no metadata available.");
+      return;
+    }
 
-    await SubscriptionModel.create({
-      user: metadata.payerId,
-      coachId: metadata.coachId,
-      planId: metadata.planId,
-      categoryId: metadata.categoryId,
-      status: "active",
-      startDate: new Date(),
-      subscriptionCode: data.subscription_code,
-      paystackSubscriptionId: data.id,
-      nextPaymentDate: new Date(data.next_payment_date),
-    });
+    existing.status = data.status;
+    existing.nextPaymentDate = new Date(data.next_payment_date);
+
+    await existing.save();
   } catch (error) {
     console.error("Error in handleSubscriptionCreate:", error);
   }
