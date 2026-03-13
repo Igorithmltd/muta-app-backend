@@ -6,14 +6,17 @@ const SubscriptionSchema = new mongoose.Schema(
     coachId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
     planId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Plan",
-      required: true,
+      // required: true,
     },
-    categoryId: { type: mongoose.Schema.Types.ObjectId, required: true }, // New field
+    categoryId: { 
+      type: mongoose.Schema.Types.ObjectId,
+      //  required: true 
+    }, // New field
     // reference: { type: String, required: true },
     status: {
       type: String,

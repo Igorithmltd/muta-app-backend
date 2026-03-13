@@ -179,15 +179,15 @@ async function handleSubscriptionCreate(data) {
       console.log("✅ Subscription updated with Paystack subscription_code:", subscription.subscriptionCode);
       return;
     }
-    // else{
-    //   await SubscriptionModel.create({
-    //     nextPaymentDate: data.next_payment_date,
-    //     status: data.status,
-    //     subscriptionCode: data.subscription_code,
-    //     paystackSubscriptionId: data.plan.plan_code,
-    //     paystackAuthorizationToken: data.authorization.authorization_code
-    //   })
-    // }
+    else{
+      await SubscriptionModel.create({
+        nextPaymentDate: data.next_payment_date,
+        status: data.status,
+        subscriptionCode: data.subscription_code,
+        paystackSubscriptionId: data.plan.plan_code,
+        paystackAuthorizationToken: data.authorization.authorization_code
+      })
+    }
   } catch (error) {
     console.error("Error in handleSubscriptionCreate:", error);
   }
