@@ -10,6 +10,7 @@ const otpSend = require("./otpSend");
 
 async function handleChargeSuccess(data) {
   try {
+    console.log({data}, 'handleChargeSuccess')
     const metadata = data.metadata || {};
     const reference = data.reference;
     const userEmail = data.customer?.email;
@@ -69,7 +70,7 @@ async function handleChargeSuccess(data) {
     if (metadata.type === "subscription") {
 
       if (!data.subscription) {
-        console.log("Subscription metadata present but no subscription object");
+        console.log(data, "Subscription metadata present but no subscription object");
         return;
       }
 
@@ -214,6 +215,7 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
+    console.log(data, 'handle subscription create')
     const existing = await SubscriptionModel.findOne({
       subscriptionCode: data.subscription_code,
     });
