@@ -10,7 +10,7 @@ const otpSend = require("./otpSend");
 
 async function handleChargeSuccess(data) {
   try {
-    console.log({data}, 'handleChargeSuccess')
+    console.log({ data }, "handleChargeSuccess");
     const metadata = data.metadata || {};
     const reference = data.reference;
     const userEmail = data.customer?.email;
@@ -68,9 +68,12 @@ async function handleChargeSuccess(data) {
     // 🔁 NORMAL SUBSCRIPTION
     // ==========================
     if (metadata.type === "subscription") {
-
       if (!data.subscription) {
-        console.log(data, "Subscription metadata present but no subscription object");
+        await handleNormalSubscription(data, user);
+        console.log(
+          data,
+          "Subscription metadata present but no subscription object"
+        );
         return;
       }
 
@@ -215,7 +218,7 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
-    console.log(data, 'handle subscription create')
+    console.log(data, "handle subscription create");
     const existing = await SubscriptionModel.findOne({
       subscriptionCode: data.subscription_code,
     });
@@ -357,31 +360,39 @@ async function handleGiftSubscription(data, sender, metadata) {
 
 async function handleNormalSubscription(data, user) {
   try {
-    const metadata = data.metadata || {};
-    const subscriptionCode = data.subscription?.subscription_code;
+    console.log(data, "handle subscription create");
 
-    // 🔁 Renewal
-    if (subscriptionCode) {
-      const subscription = await SubscriptionModel.findOne({
-        subscriptionCode,
+    let subscription = await SubscriptionModel.findOne({
+      subscriptionCode: data.subscription_code,
+    });
+
+    if (!subscription) {
+      console.log(
+        "Subscription does not exist, creating new subscription from webhook"
+      );
+
+      // Optional: fallback values if you have a mapping table or default plan/coach
+      subscription = await SubscriptionModel.create({
+        subscriptionCode: data.subscription_code,
+        paystackSubscriptionId: data.id,
+        status: data.status || "active",
+        startDate: new Date(),
+        nextPaymentDate: data.next_payment_date
+          ? new Date(data.next_payment_date)
+          : null,
       });
-      if (!subscription) return;
 
-      subscription.status = "active";
-      subscription.lastPaymentAt = new Date(data.paid_at);
-      subscription.currentPeriodEnd = new Date(
-        data.subscription.next_payment_date
+      console.log(
+        "Created subscription from webhook:",
+        subscription.subscriptionCode
       );
-      subscription.nextPaymentDate = new Date(
-        data.subscription.next_payment_date
-      );
-
-      await subscription.save();
       return;
     }
 
-    // 🆕 Initial subscription creation
-    await createInitialSubscriptionFromCharge(data, user, metadata);
+    subscription.status = data.status;
+    subscription.nextPaymentDate = new Date(data.next_payment_date);
+
+    await subscription.save();
   } catch (error) {
     console.error("Error in handleNormalSubscription:", error);
   }
