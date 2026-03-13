@@ -2221,32 +2221,30 @@ class UserService extends BaseService {
         ]
       };
 
-      const userSubscriptionPlan = await SubscriptionModel.findOne(
-        filter
-      ).populate("planId");
-      if (!userSubscriptionPlan) {
-        return BaseService.sendSuccessResponse({
-          message: "No active subscription",
-          subscription: null,
-        });
-      }
+      let subscription = await SubscriptionModel.findOne(filter)
+      .populate("planId");
 
-      // const subscription = user.subscription;
-      // const plan = user.subscriptionPlan;
-
-      // Auto-expire if past expiry date
-      // if (
-      //   userSubscriptionPlan.status === "active" &&
-      //   userSubscriptionPlan.expiryDate < new Date()
-      // ) {
-      //   userSubscriptionPlan.status = "expired";
-      //   await userSubscriptionPlan.save();
-      // }
-
+    if (!subscription) {
       return BaseService.sendSuccessResponse({
-        message: "Subscription state retrieved successfully",
-        subscription: userSubscriptionPlan,
+        message: "No active subscription",
+        subscription: null,
       });
+    }
+
+    const plan = subscription.planId;
+
+    const category = plan?.categories?.find(
+      (cat) => cat._id.toString() === subscription.categoryId?.toString()
+    );
+
+    subscription = subscription.toObject();
+    subscription.categoryId = category || null;
+
+    return BaseService.sendSuccessResponse({
+      message: "Subscription state retrieved successfully",
+      subscription,
+    });
+
     } catch (error) {
       console.error("Subscription error:", error);
       return BaseService.sendFailedResponse({ error: error.message });
@@ -3943,13 +3941,15 @@ class UserService extends BaseService {
       const subscriptions = await SubscriptionModel.find({
         coachId: coachId,
         status: "active",
-        expiryDate: { $gte: now },
+        nextPaymentDate: { $gte: now },
       })
         .populate({
           path: "user",
           select: "-password -otp -emailToken", // remove sensitive fields
         })
         .lean();
+
+        console.log(subscriptions,'the sub')
 
       const users = subscriptions.map((sub) => sub.user).filter(Boolean);
 
