@@ -33,7 +33,6 @@ const webhookFunction = async (req, res) => {
   try {
     const event = JSON.parse(req.body.toString());
     if (!event?.event || !event?.data) return res.sendStatus(200);
-    console.log("📩 Paystack webhook 1");
 
     switch (event.event) {
       case "charge.success":

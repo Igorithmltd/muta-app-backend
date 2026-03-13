@@ -73,43 +73,43 @@ async function handleChargeSuccess(data) {
         return;
       }
 
-      const subscriptionCode = data.subscription.subscription_code;
+      // const subscriptionCode = data.subscription.subscription_code;
 
-      let subscription = await SubscriptionModel.findOne({
-        subscriptionCode,
-      });
+      // let subscription = await SubscriptionModel.findOne({
+      //   subscriptionCode,
+      // });
 
-      // 4️⃣ Create subscription if it doesn't exist
-      if (!subscription) {
-        console.log("Creating new subscription");
+      // // 4️⃣ Create subscription if it doesn't exist
+      // if (!subscription) {
+      //   console.log("Creating new subscription");
 
-        subscription = await SubscriptionModel.create({
-          user: metadata.payerId || user._id,
-          coachId: metadata.coachId,
-          planId: metadata.planId,
-          categoryId: metadata.categoryId,
-          status: "active",
-          startDate: new Date(data.paid_at),
-          subscriptionCode: subscriptionCode,
-          paystackSubscriptionId: data.subscription.id,
-          lastPaymentAt: new Date(data.paid_at),
-          currentPeriodEnd: new Date(data.subscription.next_payment_date),
-          nextPaymentDate: new Date(data.subscription.next_payment_date),
-        });
+      //   subscription = await SubscriptionModel.create({
+      //     user: metadata.payerId || user._id,
+      //     coachId: metadata.coachId,
+      //     planId: metadata.planId,
+      //     categoryId: metadata.categoryId,
+      //     status: "active",
+      //     startDate: new Date(data.paid_at),
+      //     subscriptionCode: subscriptionCode,
+      //     paystackSubscriptionId: data.subscription.id,
+      //     lastPaymentAt: new Date(data.paid_at),
+      //     currentPeriodEnd: new Date(data.subscription.next_payment_date),
+      //     nextPaymentDate: new Date(data.subscription.next_payment_date),
+      //   });
 
-        return;
-      }
+      //   return;
+      // }
 
-      subscription.status = "active";
-      subscription.lastPaymentAt = new Date(data.paid_at);
-      subscription.currentPeriodEnd = new Date(
-        data.subscription.next_payment_date
-      );
-      subscription.nextPaymentDate = new Date(
-        data.subscription.next_payment_date
-      );
+      // subscription.status = "active";
+      // subscription.lastPaymentAt = new Date(data.paid_at);
+      // subscription.currentPeriodEnd = new Date(
+      //   data.subscription.next_payment_date
+      // );
+      // subscription.nextPaymentDate = new Date(
+      //   data.subscription.next_payment_date
+      // );
 
-      await subscription.save();
+      // await subscription.save();
     }
   } catch (error) {
     console.error("Error in handleChargeSuccess:", error);
@@ -215,9 +215,35 @@ async function handleSubscriptionDisable(data) {
 async function handleSubscriptionCreate(data) {
   try {
     console.log(data, "handle subscription create");
-    const existing = await SubscriptionModel.findOne({
-      subscriptionCode: data.subscription_code,
+
+    const user = await UserModel.findOne({ email: data.customer.email });
+    if (!user) {
+      console.warn(
+        "User not found for subscription.create, cannot create subscription",
+        data.customer.email
+      );
+      return;
+    }
+
+    const subscription = await SubscriptionModel.findOne({
+      user: user._id,
+      planId: data.plan?.id,      // map to your internal planId if possible
+      categoryId: null,            // optional: set categoryId if known
+      paystackSubscriptionId: null // only those not yet linked
     });
+
+    if (subscription) {
+      subscription.subscriptionCode = data.subscription_code;
+      subscription.status = data.status || "active";
+      subscription.nextPaymentDate = data.next_payment_date
+        ? new Date(data.next_payment_date)
+        : null;
+      subscription.paystackAuthorizationToken = data.authorization?.authorization_code;
+
+      await subscription.save();
+      console.log("✅ Subscription updated with Paystack subscription_code:", subscription.subscriptionCode);
+      return;
+    }
 
     if (!existing) {
       console.log("Subscription created but no metadata available.");
@@ -359,7 +385,9 @@ async function handleNormalSubscription(data, user) {
     const metadata = data.metadata || {};
 
     let subscription = await SubscriptionModel.findOne({
-      subscriptionCode: data.subscription_code,
+      user: user._id,
+      planId: metadata.planId,
+      categoryId: metadata.categoryId,
     });
 
     if (!subscription) {
@@ -370,30 +398,22 @@ async function handleNormalSubscription(data, user) {
       // Optional: fallback values if you have a mapping table or default plan/coach
       subscription = await SubscriptionModel.create({
 
-        subscriptionCode: data.subscription_code,
-        paystackSubscriptionId: data.id,
+        // subscriptionCode: data.subscription_code,
+        paystackSubscriptionId: metadata.paystackSubscriptionCode || null,
         status: "active",
         startDate: new Date(),
         coachId: metadata.coachId,
         categoryId: metadata.categoryId,
         planId: metadata.planId,
         user: user._id,
-        nextPaymentDate: data.next_payment_date
-          ? new Date(data.next_payment_date)
-          : null,
+        // nextPaymentDate: data.next_payment_date
+        //   ? new Date(data.next_payment_date)
+        //   : null,
       });
 
-      console.log(
-        "Created subscription from webhook:",
-        subscription.subscriptionCode
-      );
       return;
     }
 
-    subscription.status = data.status;
-    subscription.nextPaymentDate = new Date(data.next_payment_date);
-
-    await subscription.save();
   } catch (error) {
     console.error("Error in handleNormalSubscription:", error);
   }
