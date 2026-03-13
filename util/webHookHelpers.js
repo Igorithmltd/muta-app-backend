@@ -59,7 +59,7 @@ async function handleChargeSuccess(data) {
     // ==========================
     // 🎁 GIFT SUBSCRIPTION
     // ==========================
-    if (metadata.type === "subscription" && metadata.isGift === true) {
+    if (metadata.type === "subscription" && metadata.isGift == 'true') {
       await handleGiftSubscription(data, user, metadata);
       return;
     }
@@ -320,7 +320,6 @@ async function handleGiftSubscription(data, sender, metadata) {
 async function handleNormalSubscription(data, user) {
   try {
     const metadata = data.metadata || {};
-    console.log(data,'handle normal subscription');
 
     let subscription = await SubscriptionModel.findOne({
       user: user._id,

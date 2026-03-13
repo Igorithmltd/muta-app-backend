@@ -163,7 +163,6 @@ class PaystackService extends BaseService {
           }
         }
       }
-      console.log(paystackPlanCode, "paystack plan code")
   
       /* --------------------
          Initialize Paystack
