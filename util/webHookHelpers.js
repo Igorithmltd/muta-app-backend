@@ -116,73 +116,6 @@ async function handleChargeSuccess(data) {
   }
 }
 
-async function createInitialSubscriptionFromCharge(data, user, metadata) {
-  try {
-    const {
-      planId,
-      categoryId,
-      coachId,
-      isGift = false,
-      recipientEmail,
-    } = metadata;
-
-    if (!planId || !categoryId || !coachId) return;
-
-    // 🔒 Prevent duplicate active subscription
-    const existing = await SubscriptionModel.findOne({
-      user: user._id,
-      planId,
-      status: "active",
-    });
-
-    if (existing) return;
-
-    // ⚠️ Create Paystack subscription HERE (ONCE)
-    const customerCode = data.customer.customer_code || "";
-    if (!customerCode) {
-      console.warn(
-        "Charge missing customer code, cannot create subscription",
-        data
-      );
-      return;
-    }
-    const resp = await paystackAxios.post(
-      "/subscription",
-      {
-        customer: customerCode,
-        plan: metadata.paystackSubscriptionCode,
-        authorization: data.authorization.authorization_code,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        },
-      }
-    );
-
-    const paystackSub = resp.data.data;
-
-    await SubscriptionModel.create({
-      user: user._id,
-      coachId,
-      planId,
-      categoryId,
-      status: "active",
-      startDate: new Date(),
-      subscriptionCode: paystackSub.subscription_code,
-      paystackSubscriptionId: paystackSub.id,
-      paystackAuthorizationToken: paystackSub.email_token,
-      planCode: metadata.paystackSubscriptionCode,
-      authorizationCode: data.authorization.authorization_code,
-    });
-    user.customerCode = customerCode;
-    user.save();
-  } catch (error) {
-    console.error("Error from createInitialSubscriptionFromCharge:", error);
-    return;
-  }
-}
-
 async function handlePaymentFailed(data) {
   try {
     if (!data.subscription) return;
@@ -227,13 +160,15 @@ async function handleSubscriptionCreate(data) {
 
     const subscription = await SubscriptionModel.findOne({
       user: user._id,
-      planId: data.plan?.id,      // map to your internal planId if possible
-      categoryId: null,            // optional: set categoryId if known
-      paystackSubscriptionId: null // only those not yet linked
+      // planId: data.plan?.id,
+      // categoryId: null,
+      paystackSubscriptionId: data.plan.plan_code,
+      // subscriptionCode: data.subscription_code,
     });
 
     if (subscription) {
       subscription.subscriptionCode = data.subscription_code;
+      subscription.paystackSubscriptionId = data.plan.plan_code;
       subscription.status = data.status || "active";
       subscription.nextPaymentDate = data.next_payment_date
         ? new Date(data.next_payment_date)
@@ -243,17 +178,15 @@ async function handleSubscriptionCreate(data) {
       await subscription.save();
       console.log("✅ Subscription updated with Paystack subscription_code:", subscription.subscriptionCode);
       return;
+    }else{
+      await SubscriptionModel.create({
+        nextPaymentDate: data.next_payment_date,
+        status: data.status,
+        subscriptionCode: data.subscription_code,
+        paystackSubscriptionId: data.plan.plan_code,
+        paystackAuthorizationToken: data.authorization.authorization_code
+      })
     }
-
-    if (!existing) {
-      console.log("Subscription created but no metadata available.");
-      return;
-    }
-
-    existing.status = data.status;
-    existing.nextPaymentDate = new Date(data.next_payment_date);
-
-    await existing.save();
   } catch (error) {
     console.error("Error in handleSubscriptionCreate:", error);
   }
@@ -386,8 +319,8 @@ async function handleNormalSubscription(data, user) {
 
     let subscription = await SubscriptionModel.findOne({
       user: user._id,
-      planId: metadata.planId,
-      categoryId: metadata.categoryId,
+      paystackSubscriptionId: metadata.paystackSubscriptionCode,
+      status: 'active'
     });
 
     if (!subscription) {
@@ -397,8 +330,6 @@ async function handleNormalSubscription(data, user) {
 
       // Optional: fallback values if you have a mapping table or default plan/coach
       subscription = await SubscriptionModel.create({
-
-        // subscriptionCode: data.subscription_code,
         paystackSubscriptionId: metadata.paystackSubscriptionCode || null,
         status: "active",
         startDate: new Date(),
@@ -406,9 +337,6 @@ async function handleNormalSubscription(data, user) {
         categoryId: metadata.categoryId,
         planId: metadata.planId,
         user: user._id,
-        // nextPaymentDate: data.next_payment_date
-        //   ? new Date(data.next_payment_date)
-        //   : null,
       });
 
       return;
