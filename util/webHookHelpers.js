@@ -185,7 +185,8 @@ async function handleSubscriptionCreate(data) {
         status: data.status,
         subscriptionCode: data.subscription_code,
         paystackSubscriptionId: data.plan.plan_code,
-        paystackAuthorizationToken: data.authorization.authorization_code
+        paystackAuthorizationToken: data.authorization.authorization_code,
+        user: user._id,
       })
     }
   } catch (error) {
