@@ -1708,7 +1708,7 @@ router.get(ROUTE_GET_PLAN+"/:id", auth, (req, res) => {
  * /users/get-subscription-status:
  *   get:
  *     summary: Get the current subscription state of the logged-in user
- *     description: Returns the user's active subscription details including plan, duration, status, start date, expiry date, and features. Requires authentication.
+ *     description: Returns the user's active subscription details including plan information, coach, payment state, and billing cycle. Requires authentication.
  *     tags:
  *       - Plans
  *     security:
@@ -1731,37 +1731,76 @@ router.get(ROUTE_GET_PLAN+"/:id", auth, (req, res) => {
  *                   type: object
  *                   nullable: true
  *                   properties:
- *                     plan:
+ *                     _id:
  *                       type: string
- *                       example: Premium Monthly
- *                     duration:
+ *                       example: 66b123abcde23456789f0123
+ *                     user:
  *                       type: string
- *                       enum: [monthly, yearly]
- *                       example: monthly
+ *                       example: 66a111abcde23456789f0111
+ *                     coachId:
+ *                       type: string
+ *                       example: 66a222abcde23456789f0222
+ *                     planId:
+ *                       type: string
+ *                       example: 66a333abcde23456789f0333
+ *                     categoryId:
+ *                       type: string
+ *                       example: 66a444abcde23456789f0444
  *                     status:
  *                       type: string
- *                       enum: [active, expired, pending]
+ *                       enum: [active, pending, cancelled, expired]
  *                       example: active
  *                     startDate:
  *                       type: string
  *                       format: date-time
  *                       example: 2025-09-01T10:20:00.000Z
- *                     expiryDate:
+ *                     currentPeriodEnd:
  *                       type: string
  *                       format: date-time
  *                       example: 2025-10-01T10:20:00.000Z
- *                     features:
- *                       type: array
- *                       items:
- *                         type: string
- *                       example:
- *                         - Unlimited workouts
- *                         - Coach chat
- *                         - Nutrition guide
+ *                     nextPaymentDate:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-10-01T10:20:00.000Z
+ *                     lastPaymentAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-09-01T10:20:00.000Z
+ *                     cancelledAt:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
+ *                       example: null
+ *                     paystackSubscriptionId:
+ *                       type: string
+ *                       example: SUB_1234567890
+ *                     subscriptionCode:
+ *                       type: string
+ *                       example: SUB_CODE_abc123
+ *                     paystackAuthorizationToken:
+ *                       type: string
+ *                       example: AUTH_token_123
+ *                     authorizationCode:
+ *                       type: string
+ *                       example: AUTH_abc123xyz
+ *                     planCode:
+ *                       type: string
+ *                       example: PLN_premium_monthly
+ *                     isGift:
+ *                       type: boolean
+ *                       example: false
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-09-01T10:20:00.000Z
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-09-01T10:20:00.000Z
  *       401:
  *         description: Unauthorized - User not logged in or invalid token
  *       404:
- *         description: User not found
+ *         description: User not found or subscription not found
  *       500:
  *         description: Internal server error
  */
