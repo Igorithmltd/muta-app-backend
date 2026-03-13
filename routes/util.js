@@ -257,6 +257,10 @@ router.post(
  *                 type: string
  *                 example: "abc@gmail.com"
  *                 description: email of the recipient of the subscription
+ *               phoneNumber:
+ *                 type: string
+ *                 example: "081111587342"
+ *                 description: phone number of the recipient of the subscription
  *     responses:
  *       200:
  *         description: Payment initialized successfully

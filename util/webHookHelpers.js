@@ -259,7 +259,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       giftedByUserId: sender._id,
 
       recipientEmail: recipientEmail || null,
-      phoneNumber: phoneNumber || null,
+      phoneNumber: phoneNumber || '',
 
       expiresAt,
       used: false,

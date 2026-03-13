@@ -34,7 +34,6 @@ class PaystackService extends BaseService {
   
       const validateRule = {
         email: "string|required",
-        // amount: "integer|required",
         planId: "string|required",
         coachId: "string|required",
         categoryId: "string|required",
@@ -148,9 +147,9 @@ class PaystackService extends BaseService {
         })
 
         const giftQuery = {
-          paystackSubscriptionId: paystackPlanCode,
+          // paystackSubscriptionId: paystackPlanCode,
           status: "active",
-          user: gifteeUser._id
+          user: gifteeUser._id || ''
           // ...(recipientEmail && { recipientEmail }),
           // ...(phoneNumber && { phoneNumber }),
         };
