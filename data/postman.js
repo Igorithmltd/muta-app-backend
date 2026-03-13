@@ -245,7 +245,7 @@ const workoutplan = [
     "duration": 45,
     "category": "60f8c0f4e3a2f72b94a10c4d",
     "calories": 350,
-    "level": "begineer",
+    "level": "beginner",
     "recommended": "YES",
     "roundsCount": 4,
     "planRounds": [

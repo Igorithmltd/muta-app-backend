@@ -70,10 +70,6 @@ async function handleChargeSuccess(data) {
     if (metadata.type === "subscription") {
       if (!data.subscription) {
         await handleNormalSubscription(data, user);
-        console.log(
-          data,
-          "Subscription metadata present but no subscription object"
-        );
         return;
       }
 
@@ -360,7 +356,7 @@ async function handleGiftSubscription(data, sender, metadata) {
 
 async function handleNormalSubscription(data, user) {
   try {
-    console.log(data, "handle subscription create");
+    const metadata = data.metadata || {};
 
     let subscription = await SubscriptionModel.findOne({
       subscriptionCode: data.subscription_code,
@@ -373,10 +369,15 @@ async function handleNormalSubscription(data, user) {
 
       // Optional: fallback values if you have a mapping table or default plan/coach
       subscription = await SubscriptionModel.create({
+
         subscriptionCode: data.subscription_code,
         paystackSubscriptionId: data.id,
-        status: data.status || "active",
+        status: "active",
         startDate: new Date(),
+        coachId: metadata.coachId,
+        categoryId: metadata.categoryId,
+        planId: metadata.planId,
+        user: user._id,
         nextPaymentDate: data.next_payment_date
           ? new Date(data.next_payment_date)
           : null,

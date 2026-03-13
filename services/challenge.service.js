@@ -17,7 +17,7 @@ class ChallengeService extends BaseService {
         goal: "string|required",
         duration: "integer|required",
         type: "string|required|in:daily,weekly",
-        difficulty: "string|required|in:begineer,intermediate,advanced",
+        difficulty: "string|required|in:beginner,intermediate,advanced",
         startDate: "date|required",
         tasks: "array|required",
         "tasks.*.buttonLabel": "string|required",

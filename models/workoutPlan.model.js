@@ -28,7 +28,7 @@ const WorkoutPlanSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ["beginner", "intermediate", "advanced"],
-      default: "begineer",
+      default: "beginner",
     },
     recommended: { type: String, enum: ["YES", "NO"], default: "NO" },
     planRounds: [

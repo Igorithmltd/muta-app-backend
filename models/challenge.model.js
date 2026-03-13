@@ -10,7 +10,7 @@ const ChallengeSchema = new mongoose.Schema(
     weeklyCount: { type: Number },
     durationUnit: { type: String, required: true, enum: ["minute", "hour"], default: "minute" },
     type: { type: String, required: true, enum: ["daily", "weekly"], default: "daily" },
-    difficulty: { type: String, required: true, enum: ["begineer", "intermediate", "advanced"], default: "begineer" },
+    difficulty: { type: String, required: true, enum: ["beginner", "intermediate", "advanced"], default: "beginner" },
     tasks: [
       {
         buttonLabel: { type: String, required: true },
