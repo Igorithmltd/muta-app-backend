@@ -331,7 +331,7 @@ async function handleNormalSubscription(data, user) {
       // Optional: fallback values if you have a mapping table or default plan/coach
       subscription = await SubscriptionModel.create({
         paystackSubscriptionId: metadata.paystackSubscriptionCode || null,
-        status: "active",
+        // status: "active",
         startDate: new Date(),
         coachId: metadata.coachId,
         categoryId: metadata.categoryId,
@@ -340,6 +340,16 @@ async function handleNormalSubscription(data, user) {
       });
 
       return;
+    }else{
+      subscription.status = "active";
+      subscription.paystackSubscriptionId = metadata.paystackSubscriptionCode || null,
+      subscription.startDate = new Date(),
+      subscription.coachId = metadata.coachId,
+      subscription.categoryId = metadata.categoryId,
+      subscription.planId = metadata.planId,
+      user = user._id,
+
+      await subscription.save();
     }
 
   } catch (error) {
