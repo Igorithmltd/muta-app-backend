@@ -161,13 +161,15 @@ async function handleSubscriptionCreate(data) {
       return;
     }
 
-    const subscription = await SubscriptionModel.findOne({
+    const filter = {
       user: user._id,
       authorizationCode,
       paystackSubscriptionId: planCode,
-    });
+    };
+
+    const subscription = await SubscriptionModel.findOne(filter);
     console.log(
-      { paystackSubscriptionCode: planCode, subscription },
+      { paystackSubscriptionCode: planCode, subscription, filter },
       "handleSubscriptionCreate"
     );
 
@@ -186,6 +188,7 @@ async function handleSubscriptionCreate(data) {
         subscription.subscriptionCode
       );
     } else {
+      console.log(new Date(), "Creating create subscription with start date");
       await SubscriptionModel.create({
         nextPaymentDate: data.next_payment_date,
         status: 'active',
@@ -337,12 +340,14 @@ async function handleNormalSubscription(data) {
       return;
     }
 
-    let subscription = await SubscriptionModel.findOne({
+    const filter = {
       user: user._id,
       paystackSubscriptionId: planCode,
       authorizationCode,
-    });
-    console.log({ paystackSubscriptionCode: planCode, subscription }, "handleNormalSubscription");
+    };
+
+    let subscription = await SubscriptionModel.findOne(filter);
+    console.log({ paystackSubscriptionCode: planCode, subscription, filter }, "handleNormalSubscription");
 
     if (!subscription) {
       console.log(
@@ -350,6 +355,7 @@ async function handleNormalSubscription(data) {
       );
 
       // Optional: fallback values if you have a mapping table or default plan/coach
+      console.log(new Date(), "Creating handle normal subscription with start date");
       subscription = await SubscriptionModel.create({
         paystackSubscriptionId: metadata.paystackSubscriptionCode || null,
         startDate: new Date(data.paid_at),
