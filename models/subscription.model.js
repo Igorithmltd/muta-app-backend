@@ -42,9 +42,9 @@ const SubscriptionSchema = new mongoose.Schema(
 SubscriptionSchema.index({ user: 1, status: 1 });
 
 SubscriptionSchema.index({
-  coachId: 1,
+  authorizationCode: 1,
   user: 1,
-  status: 1,
+  paystackSubscriptionId: 1,
 });
 
 const SubscriptionModel = mongoose.model("Subscription", SubscriptionSchema);
