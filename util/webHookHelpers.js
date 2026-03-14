@@ -167,7 +167,7 @@ async function handleSubscriptionCreate(data) {
       paystackSubscriptionId: planCode,
     });
     console.log(
-      { paystackSubscriptionCode: planCode },
+      { paystackSubscriptionCode: planCode, subscription },
       "handleSubscriptionCreate"
     );
 
@@ -342,7 +342,7 @@ async function handleNormalSubscription(data) {
       paystackSubscriptionId: planCode,
       authorizationCode,
     });
-    console.log({ paystackSubscriptionCode }, "handleNormalSubscription");
+    console.log({ paystackSubscriptionCode: planCode, subscription }, "handleNormalSubscription");
 
     if (!subscription) {
       console.log(
