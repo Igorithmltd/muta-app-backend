@@ -376,7 +376,7 @@ async function handleNormalSubscription(data) {
         (subscription.coachId = metadata.coachId),
         (subscription.categoryId = metadata.categoryId),
         (subscription.planId = metadata.planId),
-        (user = user._id),
+        (subscription.user = user._id),
         (subscription.lastPaymentAt = new Date(data.paid_at));
       await subscription.save();
     }
