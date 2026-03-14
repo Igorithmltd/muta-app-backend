@@ -10,7 +10,7 @@ const otpSend = require("./otpSend");
 
 async function handleChargeSuccess(data) {
   try {
-    console.log({ data }, "handleChargeSuccess");
+    // console.log({ data }, "handleChargeSuccess");
     const metadata = data.metadata || {};
     const reference = data.reference;
     const userEmail = data.customer?.email;
@@ -150,7 +150,7 @@ async function handleSubscriptionCreate(data) {
     const email = data.customer.email;
     const planCode = data.plan.plan_code;
     const authorizationCode = data.authorization.authorization_code;
-    console.log(data, "handle subscription create");
+    // console.log(data, "handle subscription create");
 
     const user = await UserModel.findOne({ email });
     if (!user) {
