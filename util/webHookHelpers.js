@@ -163,7 +163,7 @@ async function handleSubscriptionCreate(data) {
 
     const filter = {
       user: user._id,
-      authorizationCode,
+      paystackAuthorizationToken: authorizationCode,
       paystackSubscriptionId: planCode,
     };
 
@@ -343,7 +343,7 @@ async function handleNormalSubscription(data) {
     const filter = {
       user: user._id,
       paystackSubscriptionId: planCode,
-      authorizationCode,
+      paystackAuthorizationToken: authorizationCode,
     };
 
     let subscription = await SubscriptionModel.findOne(filter);
@@ -364,7 +364,7 @@ async function handleNormalSubscription(data) {
         planId: metadata.planId,
         lastPaymentAt: new Date(data.paid_at),
         user: user._id,
-        authorizationCode,
+        paystackAuthorizationToken: authorizationCode,
       });
 
       return;
