@@ -26,7 +26,7 @@ const SubscriptionSchema = new mongoose.Schema(
     startDate: { type: Date, default: Date.now },
     // expiryDate: { type: Date },
     paystackSubscriptionId: { type: String },
-    subscriptionCode: { type: String, default: null },
+    subscriptionCode: { type: String, default: null, unique: true, sparse: true },
     paystackAuthorizationToken: { type: String, default: null },
     currentPeriodEnd: { type: Date },
     nextPaymentDate: { type: Date },
@@ -43,6 +43,7 @@ SubscriptionSchema.index({ user: 1, status: 1 });
 
 SubscriptionSchema.index({
   coachId: 1,
+  user: 1,
   status: 1,
 });
 

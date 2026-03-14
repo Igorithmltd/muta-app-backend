@@ -59,7 +59,7 @@ async function handleChargeSuccess(data) {
     // ==========================
     // 🎁 GIFT SUBSCRIPTION
     // ==========================
-    if (metadata.type === "subscription" && metadata.isGift == 'true') {
+    if (metadata.type === "subscription" && metadata.isGift == "true") {
       await handleGiftSubscription(data, user, metadata);
       return;
     }
@@ -147,9 +147,12 @@ async function handleSubscriptionDisable(data) {
 
 async function handleSubscriptionCreate(data) {
   try {
+    const email = data.customer.email;
+    const planCode = data.plan.plan_code;
+    const authorizationCode = data.authorization.authorization_code;
     console.log(data, "handle subscription create");
 
-    const user = await UserModel.findOne({ email: data.customer.email });
+    const user = await UserModel.findOne({ email });
     if (!user) {
       console.warn(
         "User not found for subscription.create, cannot create subscription",
@@ -160,11 +163,13 @@ async function handleSubscriptionCreate(data) {
 
     const subscription = await SubscriptionModel.findOne({
       user: user._id,
-      // planId: data.plan?.id,
-      // categoryId: null,
-      paystackSubscriptionId: data.plan.plan_code,
-      // subscriptionCode: data.subscription_code,
+      authorizationCode,
+      paystackSubscriptionId: planCode,
     });
+    console.log(
+      { paystackSubscriptionCode: planCode },
+      "handleSubscriptionCreate"
+    );
 
     if (subscription) {
       subscription.subscriptionCode = data.subscription_code;
@@ -173,23 +178,23 @@ async function handleSubscriptionCreate(data) {
       subscription.nextPaymentDate = data.next_payment_date
         ? new Date(data.next_payment_date)
         : null;
-      subscription.paystackAuthorizationToken = data.authorization?.authorization_code;
+      subscription.paystackAuthorizationToken = authorizationCode;
 
       await subscription.save();
-      console.log("✅ Subscription updated with Paystack subscription_code:", subscription.subscriptionCode);
-      return;
-    }
-    else{
+      console.log(
+        "✅ Subscription updated with Paystack subscription_code:",
+        subscription.subscriptionCode
+      );
+    } else {
       await SubscriptionModel.create({
         nextPaymentDate: data.next_payment_date,
-        status: data.status,
+        status: 'active',
         subscriptionCode: data.subscription_code,
         paystackSubscriptionId: data.plan.plan_code,
-        paystackAuthorizationToken: data.authorization.authorization_code,
+        paystackAuthorizationToken: authorizationCode,
         user: user._id,
         currentPeriodEnd: new Date(data.next_payment_date),
-
-      })
+      });
     }
   } catch (error) {
     console.error("Error in handleSubscriptionCreate:", error);
@@ -222,6 +227,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     } = metadata;
 
     const { recipientEmail, phoneNumber, giftMessage } = gift;
+    console.log({ metadata, gift }, "handleGiftSubscription");
 
     if (!planId || !categoryId || !coachId) {
       console.warn("Invalid gift subscription metadata", metadata);
@@ -257,12 +263,9 @@ async function handleGiftSubscription(data, sender, metadata) {
       code: couponCode,
       coachId,
       planId: paystackSubscriptionCode,
-      // categoryId,
       giftedByUserId: sender._id,
-
       recipientEmail: recipientEmail || null,
-      phoneNumber: phoneNumber || '',
-
+      phoneNumber: phoneNumber || "",
       expiresAt,
       used: false,
     });
@@ -292,7 +295,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     ========================== */
     if (phoneNumber) {
       // const message = ` 🎁 You received a gift subscription from ${sender.firstName}! Coupon: ${couponCode} Redeem it in the Muta app.`;
-      const message = ` 🎁 You received a gift subscription Coupon. Redeem it in the Muta app. Go to playstore and download MutaApp`;
+      const message = ` You received a gift subscription Coupon. Redeem it in the Muta app. Go to playstore and download MutaApp`;
       await otpSend(phoneNumber, message);
     }
 
@@ -317,15 +320,29 @@ async function handleGiftSubscription(data, sender, metadata) {
   }
 }
 
-async function handleNormalSubscription(data, user) {
+async function handleNormalSubscription(data) {
   try {
+    const email = data.customer.email;
+    const planCode = data.plan.plan_code;
+    const authorizationCode = data.authorization.authorization_code;
     const metadata = data.metadata || {};
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      console.warn(
+        "User not found for subscription.create, cannot create subscription",
+        data.customer.email
+      );
+      return;
+    }
 
     let subscription = await SubscriptionModel.findOne({
       user: user._id,
-      paystackSubscriptionId: metadata.paystackSubscriptionCode,
-      status: 'active'
+      paystackSubscriptionId: planCode,
+      authorizationCode,
     });
+    console.log({ paystackSubscriptionCode }, "handleNormalSubscription");
 
     if (!subscription) {
       console.log(
@@ -335,27 +352,28 @@ async function handleNormalSubscription(data, user) {
       // Optional: fallback values if you have a mapping table or default plan/coach
       subscription = await SubscriptionModel.create({
         paystackSubscriptionId: metadata.paystackSubscriptionCode || null,
-        // status: "active",
-        startDate: new Date(),
+        startDate: new Date(data.paid_at),
         coachId: metadata.coachId,
         categoryId: metadata.categoryId,
         planId: metadata.planId,
+        lastPaymentAt: new Date(data.paid_at),
         user: user._id,
+        authorizationCode,
       });
 
       return;
-    }else{
+    } else {
       subscription.status = "active";
-      subscription.paystackSubscriptionId = metadata.paystackSubscriptionCode || null,
-      subscription.startDate = new Date(),
-      subscription.coachId = metadata.coachId,
-      subscription.categoryId = metadata.categoryId,
-      subscription.planId = metadata.planId,
-      user = user._id,
-
+      (subscription.paystackSubscriptionId =
+        metadata.paystackSubscriptionCode || null),
+        (subscription.startDate = new Date(data.paid_at)),
+        (subscription.coachId = metadata.coachId),
+        (subscription.categoryId = metadata.categoryId),
+        (subscription.planId = metadata.planId),
+        (user = user._id),
+        (subscription.lastPaymentAt = new Date(data.paid_at));
       await subscription.save();
     }
-
   } catch (error) {
     console.error("Error in handleNormalSubscription:", error);
   }
