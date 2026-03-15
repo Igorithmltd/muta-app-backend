@@ -5,6 +5,7 @@ const UserModel = require("../models/user.model");
 const validateData = require("../util/validate");
 const BaseService = require("./base");
 const axios = require("axios");
+const paystackAxios = require("./paystack.client.service");
 
 /**
  * test:
@@ -31,7 +32,7 @@ class PaystackService extends BaseService {
     try {
       const post = req.body;
       const userId = req.user.id;
-  
+
       const validateRule = {
         email: "string|required",
         planId: "string|required",
@@ -42,13 +43,13 @@ class PaystackService extends BaseService {
         phoneNumber: "string",
         giftMessage: "string",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         "string.string": ":attribute must be a string",
         "email.email": ":attribute must be a valid email",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
@@ -64,7 +65,7 @@ class PaystackService extends BaseService {
         phoneNumber,
         giftMessage,
       } = post;
-  
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
@@ -86,9 +87,7 @@ class PaystackService extends BaseService {
       const amount = category.price * 100; // Paystack uses kobo
       const paystackPlanCode = category.paystackSubscriptionId;
       const duration = category.duration;
-  
-    
-  
+
       /* --------------------
          Gift validation
       ---------------------*/
@@ -98,76 +97,76 @@ class PaystackService extends BaseService {
             error: "Recipient email or phone number is required for gifts",
           });
         }
-  
+
         if (recipientEmail && phoneNumber) {
           return BaseService.sendFailedResponse({
             error: "Provide only one gift delivery method (email OR phone)",
           });
         }
       }
-  
+
       /* --------------------
          Self subscription checks
       ---------------------*/
       if (!isGift) {
-        if (user.customerCode) {
-          const existingPaystackSubscription =
-            await this.checkIfCustomerHasSubscription(
-              user.customerCode,
-              paystackPlanCode
-            );
-  
-          if (existingPaystackSubscription) {
+        const existingPaystackSubscription = await paystackAxios.get(
+          `/customer/${user.email}`
+        );
+        const subscriptions =
+          existingPaystackSubscription.data.data.subscriptions;
+        if (subscriptions.length > 0) {
+          if (subscriptions[0].status == "active" || subscriptions[1].status == "active") {
             return BaseService.sendSuccessResponse({
               message: "Subscription already active",
             });
           }
-        }
-  
-        const existingSubscription = await SubscriptionModel.findOne({
-          user: user._id,
-          paystackSubscriptionId: paystackPlanCode,
-          status: "active",
-          categoryId,
-        });
-  
-        if (existingSubscription) {
-          return BaseService.sendSuccessResponse({
-            message: "Subscription already active",
+
+          const existingSubscription = await SubscriptionModel.findOne({
+            user: user._id,
+            // paystackSubscriptionId: paystackPlanCode,
+            status: "active",
+            // categoryId,
           });
+
+          if (existingSubscription) {
+            return BaseService.sendSuccessResponse({
+              message: "Subscription already exists. Disable your subscription current subscription",
+            });
+          }
         }
       }
-  
+
       /* --------------------
          Optional: Gift duplication check
       ---------------------*/
       if (isGift) {
         const gifteeUser = await UserModel.findOne({
-            $or: [{ email: recipientEmail }, { phoneNumber }],
-        })
+          $or: [{ email: recipientEmail }, { phoneNumber }],
+        });
 
         const giftQuery = {
           // paystackSubscriptionId: paystackPlanCode,
           status: "active",
-          user: gifteeUser._id || ''
+          user: gifteeUser._id || "",
           // ...(recipientEmail && { recipientEmail }),
           // ...(phoneNumber && { phoneNumber }),
         };
-  
-        if(gifteeUser){
+
+        if (gifteeUser) {
           const existingGift = await SubscriptionModel.findOne(giftQuery);
           if (existingGift) {
             return BaseService.sendFailedResponse({
-              error: "Recipient already has an active subscription for this plan",
+              error:
+                "Recipient already has an active subscription for this plan",
             });
           }
         }
       }
-  
+
       /* --------------------
          Initialize Paystack
       ---------------------*/
-      const reference = `SUB_${Date.now()}_${userId}`;
+      const reference = `REF_${Date.now()}_${userId}`;
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         {
@@ -175,7 +174,7 @@ class PaystackService extends BaseService {
           amount,
           reference,
           channels: ["card"],
-          ...(!isGift && {plan: paystackPlanCode}),
+          ...(!isGift && { plan: paystackPlanCode }),
           // ...(planId && !isGift && {plan: paystackPlanCode}),
           metadata: {
             type: "subscription",
@@ -184,7 +183,7 @@ class PaystackService extends BaseService {
             categoryId,
             duration,
             coachId,
-            paystackSubscriptionCode: paystackPlanCode,  
+            paystackSubscriptionCode: paystackPlanCode,
             isGift,
             ...(isGift && {
               gift: {
@@ -196,7 +195,9 @@ class PaystackService extends BaseService {
           },
         }
       );
-  
+
+      await SubscriptionModel.findOneAndDelete({ user: userId });
+
       return BaseService.sendSuccessResponse({
         message: response.data,
       });
@@ -208,7 +209,6 @@ class PaystackService extends BaseService {
     }
   }
 
-  
   async checkIfCustomerHasSubscription(customerCode, paystackSubscriptionId) {
     try {
       const response = await axios.get(
@@ -262,7 +262,6 @@ class PaystackService extends BaseService {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(input.trim());
   }
-  
 }
 
 module.exports = PaystackService;

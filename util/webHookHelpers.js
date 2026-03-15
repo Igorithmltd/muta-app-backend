@@ -1,3 +1,4 @@
+const ChatRoomModel = require("../models/chatModel");
 const CouponModel = require("../models/coupon.model");
 const NotificationModel = require("../models/notification.model");
 const OrderModel = require("../models/order.model");
@@ -191,7 +192,7 @@ async function handleSubscriptionCreate(data) {
       console.log(new Date(), "Creating create subscription with start date");
       await SubscriptionModel.create({
         nextPaymentDate: data.next_payment_date,
-        status: 'active',
+        status: "active",
         subscriptionCode: data.subscription_code,
         paystackSubscriptionId: data.plan.plan_code,
         paystackAuthorizationToken: authorizationCode,
@@ -347,7 +348,10 @@ async function handleNormalSubscription(data) {
     };
 
     let subscription = await SubscriptionModel.findOne(filter);
-    console.log({ paystackSubscriptionCode: planCode, subscription, filter }, "handleNormalSubscription");
+    console.log(
+      { paystackSubscriptionCode: planCode, subscription, filter },
+      "handleNormalSubscription"
+    );
 
     if (!subscription) {
       console.log(
@@ -355,7 +359,14 @@ async function handleNormalSubscription(data) {
       );
 
       // Optional: fallback values if you have a mapping table or default plan/coach
-      console.log(new Date(), "Creating handle normal subscription with start date");
+      console.log(
+        new Date(),
+        "Creating handle normal subscription with start date"
+      );
+
+      const duration = metadata.duration || "";
+      const nextPaymentDate = generateNextPaymentDate(duration);
+
       subscription = await SubscriptionModel.create({
         paystackSubscriptionId: metadata.paystackSubscriptionCode || null,
         startDate: new Date(data.paid_at),
@@ -365,7 +376,22 @@ async function handleNormalSubscription(data) {
         lastPaymentAt: new Date(data.paid_at),
         user: user._id,
         paystackAuthorizationToken: authorizationCode,
+        status: "active",
+        currentPeriodEnd: nextPaymentDate,
+        nextPaymentDate: nextPaymentDate,
       });
+
+      let chat = await ChatRoomModel.findOne({
+        type: "private",
+        participants: { $all: [user._id, metadata.coachId] },
+      });
+
+      if (!chat) {
+        chat = await ChatRoomModel.create({
+          type: "private",
+          participants: [user._id, metadata.coachId],
+        });
+      }
 
       return;
     } else {
@@ -422,6 +448,15 @@ async function handleOrderPayment(metadata, reference) {
     console.error("Error in handleOrderPayment:", error);
     return;
   }
+}
+
+function generateNextPaymentDate(duration, startDate = new Date()) {
+  const next = new Date(startDate);
+
+  if (duration === "monthly") next.setMonth(next.getMonth() + 1);
+  if (duration === "yearly") next.setFullYear(next.getFullYear() + 1);
+
+  return next.toISOString().replace("Z", "+00:00");
 }
 
 module.exports = {

@@ -37,123 +37,115 @@ const WorkoutPlanActionModel = require("../models/workoutPlanAction.model");
 const VerificationApplicationModel = require("../models/verification-applications.model");
 const CoachGuidanceModel = require("../models/coach-guidance.model");
 const otpSend = require("../util/otpSend");
+const paystackAxios = require("./paystack.client.service");
 
 class UserService extends BaseService {
   async createUser(req, res) {
     const session = await mongoose.startSession();
     session.startTransaction();
-  
+
     try {
       const post = req.body;
-  
+
       const validateRule = {
         email: "email|required",
         password: "string|required",
         phoneNumber: "string|required",
         userType: "string|required",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       // Find user by email OR phone
       let user = await UserModel.findOne({
-        $or: [
-          { email: post.email },
-          { phoneNumber: post.phoneNumber }
-        ]
+        $or: [{ email: post.email }, { phoneNumber: post.phoneNumber }],
       }).session(session);
-  
+
       if (user && user.isVerified) {
         await session.abortTransaction();
         session.endSession();
-  
+
         return BaseService.sendFailedResponse({
           error: "User already exists. Please login",
         });
       }
-  
 
       const [_, otpEmail] = generateOTP();
       const [otpPhoneMessage, otpPhone] = generateOTP();
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
-  
+
       // CASE 1: User exists but not verified
       if (user && !user.isVerified) {
-  
         user.email = post.email;
         user.phoneNumber = post.phoneNumber;
         user.password = post.password;
         user.userType = post.userType;
-  
+
         user.otp = otpEmail;
         user.otpPhoneNumber = otpPhone;
         user.otpExpiresAt = expiresAt;
-  
+
         await user.save({ session });
-  
       } else {
-  
         // CASE 2: New user
         user = new UserModel({
           ...post,
           servicePlatform: "local",
           otp: otpEmail,
           otpPhoneNumber: otpPhone,
-          otpExpiresAt: expiresAt
+          otpExpiresAt: expiresAt,
         });
-  
+
         await user.save({ session });
       }
-  
+
       // Send phone OTP
       const otpResult = await otpSend(post.phoneNumber, otpPhoneMessage);
-  
+
       if (!otpResult.success) {
         await session.abortTransaction();
         session.endSession();
-  
+
         return BaseService.sendFailedResponse({
           error: "Failed to send OTP",
         });
       }
-  
+
       // Send Email OTP
       const emailHtml = `
         <h1>Verify Your Email</h1>
         <p>Hi <strong>${post.email}</strong>,</p>
         <p>Your OTP is <b>${otpEmail}</b></p>
       `;
-  
+
       await sendEmail({
         subject: "Verify Your email",
         to: post.email,
         html: emailHtml,
       });
-  
+
       await session.commitTransaction();
       session.endSession();
-  
+
       return BaseService.sendSuccessResponse({
         message: "Registration Successful. Verify your OTP",
       });
-  
     } catch (error) {
-  
       await session.abortTransaction();
       session.endSession();
-  
+
       console.log(error);
-  
+
       return BaseService.sendFailedResponse({
         error: "Something went wrong",
       });
@@ -425,109 +417,106 @@ class UserService extends BaseService {
   }
   async verifyOTP(req) {
     try {
-  
       const post = req.body;
-  
+
       const validateRule = {
         email: "email|required",
         phoneNumber: "string|required",
         otp: "string|required",
         otpPhoneNumber: "string|required",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const { email, otp, phoneNumber, otpPhoneNumber } = post;
-  
+
       const user = await UserModel.findOne({
-        $or: [{ email }, { phoneNumber }]
+        $or: [{ email }, { phoneNumber }],
       });
-  
+
       if (!user) {
         return BaseService.sendFailedResponse({
-          error: "User not found"
+          error: "User not found",
         });
       }
-  
+
       if (user.isVerified) {
         return BaseService.sendFailedResponse({
-          error: "User already verified"
+          error: "User already verified",
         });
       }
-  
+
       if (!user.otp || !user.otpPhoneNumber) {
         return BaseService.sendFailedResponse({
-          error: "OTP not found"
+          error: "OTP not found",
         });
       }
-  
+
       if (user.otpExpiresAt < new Date()) {
         return BaseService.sendFailedResponse({
-          error: "OTP expired"
+          error: "OTP expired",
         });
       }
-  
+
       if (user.otp !== otp.trim()) {
         return BaseService.sendFailedResponse({
-          error: "Invalid email OTP"
+          error: "Invalid email OTP",
         });
       }
-  
+
       if (user.otpPhoneNumber !== otpPhoneNumber.trim()) {
         return BaseService.sendFailedResponse({
-          error: "Invalid phone OTP"
+          error: "Invalid phone OTP",
         });
       }
-  
+
       user.isVerified = true;
       user.otp = null;
       user.otpPhoneNumber = null;
       user.otpExpiresAt = null;
-  
+
       await user.save();
-  
+
       const accessToken = await user.generateAccessToken(
         process.env.ACCESS_TOKEN_SECRET
       );
-  
+
       const refreshToken = await user.generateRefreshToken(
         process.env.REFRESH_TOKEN_SECRET
       );
-  
+
       const emailHtml = `
         <h1>Your email has been verified</h1>
         <p>Hi <strong>${email}</strong>,</p>
         <p>Your account has been successfully verified.</p>
       `;
-  
+
       await sendEmail({
         subject: "Email Verification",
         to: email,
         html: emailHtml,
       });
-  
+
       return BaseService.sendSuccessResponse({
         message: "Verification successful",
         accessToken,
         refreshToken,
-        user
+        user,
       });
-  
     } catch (error) {
-  
       console.log(error);
-  
+
       return BaseService.sendFailedResponse({
-        error: "Verification failed"
+        error: "Verification failed",
       });
     }
   }
@@ -556,7 +545,6 @@ class UserService extends BaseService {
           error: "Please provide email or phone number to login",
         });
       }
-
 
       const userExists = await UserModel.findOne({
         userType,
@@ -643,7 +631,9 @@ class UserService extends BaseService {
       const userId = req.user.id;
 
       let userDetails = {};
-      userDetails = await UserModel.findById(userId).select("-password -otp -otpPhonenumber");
+      userDetails = await UserModel.findById(userId).select(
+        "-password -otp -otpPhonenumber"
+      );
 
       if (empty(userDetails)) {
         return BaseService.sendFailedResponse({
@@ -651,16 +641,16 @@ class UserService extends BaseService {
         });
       }
 
-      userDetails = userDetails.toObject()
-      
-      if(userDetails.userType == 'coach'){
-        const coachVerificationStatus = await VerificationApplicationModel.findOne({userId})
-        
-        if(coachVerificationStatus){
-          userDetails.isVerifiedCoach = coachVerificationStatus.status
+      userDetails = userDetails.toObject();
+
+      if (userDetails.userType == "coach") {
+        const coachVerificationStatus =
+          await VerificationApplicationModel.findOne({ userId });
+
+        if (coachVerificationStatus) {
+          userDetails.isVerifiedCoach = coachVerificationStatus.status;
         }
       }
-
 
       return BaseService.sendSuccessResponse({ message: userDetails });
     } catch (error) {
@@ -801,7 +791,6 @@ class UserService extends BaseService {
 
       const [_, otp1] = generateOTP();
       const [otpMessage2, otp2] = generateOTP();
-
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
@@ -1442,7 +1431,7 @@ class UserService extends BaseService {
 
     if (empty(weight) || empty(height)) {
       return BaseService.sendSuccessResponse({
-        message: []
+        message: [],
       });
     }
     const weightTips = getWeightImprovementTipsByWeight(weight, height);
@@ -1812,7 +1801,7 @@ class UserService extends BaseService {
       // user.coachVerification.reviewedBy = adminId;
 
       user.isVerifiedCoach = false;
-      await user.save()
+      await user.save();
       await coachApplicationExists.save();
 
       return BaseService.sendSuccessResponse({
@@ -1879,7 +1868,7 @@ class UserService extends BaseService {
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
       const skip = (page - 1) * limit;
-  
+
       const verifiedCoaches = await VerificationApplicationModel.find({
         status: "approved",
       })
@@ -1892,16 +1881,16 @@ class UserService extends BaseService {
         .skip(skip)
         .limit(limit)
         .lean();
-  
+
       // return only the user objects
       const coaches = verifiedCoaches
-        .filter(app => app.userId) 
-        .map(app => app.userId);
-  
+        .filter((app) => app.userId)
+        .map((app) => app.userId);
+
       const total = await VerificationApplicationModel.countDocuments({
         status: "approved",
       });
-  
+
       return BaseService.sendSuccessResponse({
         message: "Verified coaches retrieved successfully",
         data: coaches,
@@ -1912,12 +1901,11 @@ class UserService extends BaseService {
           pages: Math.ceil(total / limit),
         },
       });
-  
     } catch (error) {
       console.error("Error fetching verified coaches:", error);
-  
+
       return BaseService.sendFailedResponse({
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -2217,34 +2205,55 @@ class UserService extends BaseService {
         status: "active",
         $or: [
           { currentPeriodEnd: { $gt: new Date() } },
-          { currentPeriodEnd: { $exists: false } }
-        ]
+          { currentPeriodEnd: { $exists: false } },
+        ],
       };
 
-      let subscription = await SubscriptionModel.findOne(filter)
-      .populate("planId");
+      let subscription = await SubscriptionModel.findOne(filter).populate(
+        "planId"
+      );
 
-    if (!subscription) {
+      if (!subscription) {
+        return BaseService.sendSuccessResponse({
+          message: "No active subscription",
+          subscription: null,
+        });
+      }
+
+      // const paystackSub = await paystackAxios.get(`/customer/CUS_x6v87jhw28rdwq6`)
+
+      const paystackSub = await paystackAxios.get(`/customer/${user.email}`);
+      const subscriptionList = paystackSub.data.data.subscriptions;
+
+      for (const sub of subscriptionList) {
+        const sub_code = sub.subscription_code;
+
+        const response = await paystackAxios.get(`/subscription/${sub_code}`);
+        const fetchedSub = response.data.data;
+        const paystackCode = fetchedSub.plan.plan_code;
+        const next_payment_date = fetchedSub.next_payment_date;
+        const status = fetchedSub.status;
+        if (paystackCode == subscription.paystackSubscriptionId) {
+          subscription.subscriptionCode = sub_code;
+          subscription.nextPaymentDate = next_payment_date;
+          subscription.status = status;
+          subscription.save();
+        }
+      }
+
+      const plan = subscription.planId;
+
+      const category = plan?.categories?.find(
+        (cat) => cat._id.toString() === subscription.categoryId?.toString()
+      );
+
+      subscription = subscription.toObject();
+      subscription.categoryId = category || null;
+
       return BaseService.sendSuccessResponse({
-        message: "No active subscription",
-        subscription: null,
+        message: "Subscription state retrieved successfully",
+        subscription,
       });
-    }
-
-    const plan = subscription.planId;
-
-    const category = plan?.categories?.find(
-      (cat) => cat._id.toString() === subscription.categoryId?.toString()
-    );
-
-    subscription = subscription.toObject();
-    subscription.categoryId = category || null;
-
-    return BaseService.sendSuccessResponse({
-      message: "Subscription state retrieved successfully",
-      subscription,
-    });
-
     } catch (error) {
       console.error("Subscription error:", error);
       return BaseService.sendFailedResponse({ error: error.message });
@@ -2255,8 +2264,10 @@ class UserService extends BaseService {
       const { couponCode } = req.body;
       const userId = req.user.id;
 
-      if(!couponCode){
-        return BaseService.sendFailedResponse({ error: "CouponCode is required" });
+      if (!couponCode) {
+        return BaseService.sendFailedResponse({
+          error: "CouponCode is required",
+        });
       }
 
       // Fetch user
@@ -3208,7 +3219,7 @@ class UserService extends BaseService {
       <p>${message}</p>
       `;
       await sendEmail({
-        subject: 'Incoming email from contact',
+        subject: "Incoming email from contact",
         to: email,
         html: emailHtml,
       });
@@ -3948,8 +3959,6 @@ class UserService extends BaseService {
           select: "-password -otp -emailToken", // remove sensitive fields
         })
         .lean();
-
-        console.log(subscriptions,'the sub')
 
       const users = subscriptions.map((sub) => sub.user).filter(Boolean);
 
