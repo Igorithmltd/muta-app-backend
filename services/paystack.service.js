@@ -188,7 +188,7 @@ class PaystackService extends BaseService {
 
       const paystackPayload = {
         email, // payer email
-        ...(isGift && {amount}),
+        amount,
         reference,
         channels: ["card"],
         ...(!isGift && { plan: paystackPlanCode }),
@@ -211,7 +211,6 @@ class PaystackService extends BaseService {
           }),
         },
       }
-      console.log({paystackPayload})
 
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
