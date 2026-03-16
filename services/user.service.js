@@ -40,7 +40,7 @@ const otpSend = require("../util/otpSend");
 const paystackAxios = require("./paystack.client.service");
 
 class UserService extends BaseService {
-  async createUser(req, res) {
+  async createUser(req) {
     const session = await mongoose.startSession();
     session.startTransaction();
 

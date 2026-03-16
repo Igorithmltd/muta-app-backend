@@ -147,7 +147,7 @@ class PaystackService extends BaseService {
         const giftQuery = {
           // paystackSubscriptionId: paystackPlanCode,
           status: "active",
-          user: gifteeUser._id || "",
+          user: gifteeUser?._id || "",
           // ...(recipientEmail && { recipientEmail }),
           // ...(phoneNumber && { phoneNumber }),
         };
