@@ -279,14 +279,11 @@ async function handleGiftSubscription(data, sender, metadata) {
     ========================== */
     if (recipientEmail) {
       await sendEmail({
-        from: "Muta App <no-reply@fitnessapp.com>",
         to: recipientEmail,
         subject: "🎁 You received a gift subscription!",
         html: `
           <p>Hello!</p>
-          <p>${sender.firstName} ${
-          sender.lastName
-        } gifted you a fitness subscription 💪</p>
+          <p>${sender.firstName} ${sender.lastName} gifted you a fitness subscription 💪</p>
           <p><strong>Coupon Code:</strong> ${couponCode}</p>
           <p>${giftMessage || ""}</p>
           <p>Open the Muta app and redeem your gift.</p>
