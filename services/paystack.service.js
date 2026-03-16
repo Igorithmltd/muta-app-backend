@@ -166,16 +166,12 @@ class PaystackService extends BaseService {
           $or: [{ email: recipientEmail }, { phoneNumber }],
         });
 
-        const giftQuery = {
-          // paystackSubscriptionId: paystackPlanCode,
-          status: "active",
-          user: gifteeUser._id,
-          // ...(recipientEmail && { recipientEmail }),
-          // ...(phoneNumber && { phoneNumber }),
-        };
 
         if (gifteeUser && gifteeUser._id) {
-          const existingGift = await SubscriptionModel.findOne(giftQuery);
+          const existingGift = await SubscriptionModel.findOne({
+            status: "active",
+            user: gifteeUser._id,
+          });
           if (existingGift) {
             return BaseService.sendFailedResponse({
               error:
