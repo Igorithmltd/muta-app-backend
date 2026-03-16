@@ -184,6 +184,8 @@ class PaystackService extends BaseService {
       /* --------------------
          Initialize Paystack
       ---------------------*/
+      const reference = generateReference(userId);
+
       const paystackPayload = {
         email, // payer email
         ...(isGift && {amount}),
@@ -211,7 +213,6 @@ class PaystackService extends BaseService {
       }
       console.log({paystackPayload})
 
-      const reference = generateReference(userId);
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         paystackPayload
