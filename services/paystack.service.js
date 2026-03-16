@@ -196,7 +196,6 @@ class PaystackService extends BaseService {
         }
       );
 
-      await SubscriptionModel.findOneAndDelete({ user: userId });
 
       return BaseService.sendSuccessResponse({
         message: response.data,
