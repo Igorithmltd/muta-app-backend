@@ -6,6 +6,7 @@ const validateData = require("../util/validate");
 const BaseService = require("./base");
 const axios = require("axios");
 const paystackAxios = require("./paystack.client.service");
+const { generateReference } = require("../util/constants");
 
 /**
  * test:
@@ -71,9 +72,21 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
 
+      if (email !== user.email) {
+        return BaseService.sendFailedResponse({
+          error: "Email must match the authenticated user",
+        });
+      }
+
       const plan = await PlanModel.findById(planId);
       if (!plan) {
         return BaseService.sendFailedResponse({ error: "Plan not found" });
+      }
+
+      if (!plan.categories?.length) {
+        return BaseService.sendFailedResponse({
+          error: "Plan categories not configured",
+        });
       }
 
       const category = plan.categories.find(
@@ -84,6 +97,12 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: "Invalid category" });
       }
 
+      if (!category.price || !category.paystackSubscriptionId || !category.duration) {
+        return BaseService.sendFailedResponse({
+          error: "Invalid plan configuration",
+        });
+      }
+
       const amount = category.price * 100; // Paystack uses kobo
       const paystackPlanCode = category.paystackSubscriptionId;
       const duration = category.duration;
@@ -91,18 +110,16 @@ class PaystackService extends BaseService {
       /* --------------------
          Gift validation
       ---------------------*/
-      if (isGift) {
-        if (!recipientEmail && !phoneNumber) {
-          return BaseService.sendFailedResponse({
-            error: "Recipient email or phone number is required for gifts",
-          });
-        }
-
-        if (recipientEmail && phoneNumber) {
-          return BaseService.sendFailedResponse({
-            error: "Provide only one gift delivery method (email OR phone)",
-          });
-        }
+      if (isGift && !(recipientEmail || phoneNumber)) {
+        return BaseService.sendFailedResponse({
+          error: "Recipient email or phone number is required for gifts",
+        });
+      }
+      
+      if (recipientEmail && phoneNumber) {
+        return BaseService.sendFailedResponse({
+          error: "Provide only one gift delivery method (email OR phone)",
+        });
       }
 
       /* --------------------
@@ -113,9 +130,14 @@ class PaystackService extends BaseService {
           `/customer/${user.email}`
         );
         const subscriptions =
-          existingPaystackSubscription.data.data.subscriptions;
+          existingPaystackSubscription.data.data.subscriptions || [];
         if (subscriptions.length > 0) {
-          if (subscriptions[0].status == "active" || subscriptions[1].status == "active") {
+
+          const hasActiveSubscription = subscriptions.some(
+            (sub) => sub.status === "active"
+          );
+          
+          if (hasActiveSubscription) {
             return BaseService.sendSuccessResponse({
               message: "Subscription already active",
             });
@@ -147,12 +169,12 @@ class PaystackService extends BaseService {
         const giftQuery = {
           // paystackSubscriptionId: paystackPlanCode,
           status: "active",
-          user: gifteeUser?._id || "",
+          user: gifteeUser._id,
           // ...(recipientEmail && { recipientEmail }),
           // ...(phoneNumber && { phoneNumber }),
         };
 
-        if (gifteeUser) {
+        if (gifteeUser && gifteeUser._id) {
           const existingGift = await SubscriptionModel.findOne(giftQuery);
           if (existingGift) {
             return BaseService.sendFailedResponse({
@@ -166,18 +188,18 @@ class PaystackService extends BaseService {
       /* --------------------
          Initialize Paystack
       ---------------------*/
-      const reference = `REF_${Date.now()}_${userId}`;
+      const reference = generateReference(userId);
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         {
           email, // payer email
-          amount,
+          ...(isGift && {amount}),
           reference,
           channels: ["card"],
           ...(!isGift && { plan: paystackPlanCode }),
           // ...(planId && !isGift && {plan: paystackPlanCode}),
           metadata: {
-            type: "subscription",
+            type: isGift ? "gift" : "subscription",
             payerId: userId,
             planId,
             categoryId,

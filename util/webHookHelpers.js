@@ -47,7 +47,7 @@ async function handleChargeSuccess(data) {
       metadata,
     });
 
-    console.log("Payment recorded:", reference);
+    console.log("Payment recorded:", reference, {metadata});
 
     // ==========================
     // 🛒 ORDER PAYMENT FLOW
@@ -60,7 +60,7 @@ async function handleChargeSuccess(data) {
     // ==========================
     // 🎁 GIFT SUBSCRIPTION
     // ==========================
-    if (metadata.type === "subscription" && metadata.isGift == "true") {
+    if (metadata.type === "gift") {
       await handleGiftSubscription(data, user, metadata);
       return;
     }

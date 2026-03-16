@@ -6,7 +6,7 @@ const PaymentSchema = new mongoose.Schema({
     amount: { type: Number, required: true }, // in your base currency
     reference: { type: String, required: true, unique: true }, // from Paystack
     status: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
-    type: { type: String, enum: ['order', 'subscription'], required: true },
+    type: { type: String, enum: ['order', 'subscription','gift'], required: true },
     metadata: { type: mongoose.Schema.Types.Mixed },
     channel: { type: String }, // card, bank, etc.
     paidAt: { type: Date },

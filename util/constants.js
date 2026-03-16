@@ -15,9 +15,13 @@ const ANALYSIS_RANGES = {
     ROLE_SUBSCRIBER: 2,
   };
 
+  const generateReference = (userId) =>
+    `REF_${Date.now()}_${userId}`;
+
 module.exports = {
     EXPIRES_AT,
     DELIVERY_CHARGE,
     ANALYSIS_RANGES,
-    RtcRole
+    RtcRole,
+    generateReference
 }
