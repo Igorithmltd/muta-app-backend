@@ -184,34 +184,37 @@ class PaystackService extends BaseService {
       /* --------------------
          Initialize Paystack
       ---------------------*/
+      const paystackPayload = {
+        email, // payer email
+        ...(isGift && {amount}),
+        reference,
+        channels: ["card"],
+        ...(!isGift && { plan: paystackPlanCode }),
+        // ...(planId && !isGift && {plan: paystackPlanCode}),
+        metadata: {
+          type: isGift ? "gift" : "subscription",
+          payerId: userId,
+          planId,
+          categoryId,
+          duration,
+          coachId,
+          paystackSubscriptionCode: paystackPlanCode,
+          isGift,
+          ...(isGift && {
+            gift: {
+              recipientEmail,
+              phoneNumber,
+              giftMessage,
+            },
+          }),
+        },
+      }
+      console.log({paystackPayload})
+
       const reference = generateReference(userId);
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
-        {
-          email, // payer email
-          ...(isGift && {amount}),
-          reference,
-          channels: ["card"],
-          ...(!isGift && { plan: paystackPlanCode }),
-          // ...(planId && !isGift && {plan: paystackPlanCode}),
-          metadata: {
-            type: isGift ? "gift" : "subscription",
-            payerId: userId,
-            planId,
-            categoryId,
-            duration,
-            coachId,
-            paystackSubscriptionCode: paystackPlanCode,
-            isGift,
-            ...(isGift && {
-              gift: {
-                recipientEmail,
-                phoneNumber,
-                giftMessage,
-              },
-            }),
-          },
-        }
+        paystackPayload
       );
 
 
