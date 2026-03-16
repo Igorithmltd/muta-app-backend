@@ -280,7 +280,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     if (recipientEmail) {
       await sendEmail({
         to: recipientEmail,
-        subject: "🎁 You received a gift subscription!",
+        subject: "You received a gift subscription!",
         html: `
           <p>Hello!</p>
           <p>${sender.firstName} ${sender.lastName} gifted you a fitness subscription 💪</p>
