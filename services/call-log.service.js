@@ -664,8 +664,8 @@ class CallLogService extends BaseService {
       .populate({
         path: 'call',
         populate: [
-          { path: 'callerId', select: 'name email' },   // choose fields you want
-          { path: 'receiverId', select: 'name email' }
+          { path: 'callerId', select: 'firstName lastName email image _id' },   // choose fields you want
+          { path: 'receiverId', select: 'firstName lastName email image _id' }
         ]
       })
 
