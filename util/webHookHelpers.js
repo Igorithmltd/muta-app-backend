@@ -189,16 +189,16 @@ async function handleSubscriptionCreate(data) {
         subscription.subscriptionCode
       );
     } else {
-      console.log(new Date(), "Creating create subscription with start date");
-      await SubscriptionModel.create({
-        nextPaymentDate: data.next_payment_date,
-        status: "active",
-        subscriptionCode: data.subscription_code,
-        paystackSubscriptionId: data.plan.plan_code,
-        paystackAuthorizationToken: authorizationCode,
-        user: user._id,
-        currentPeriodEnd: new Date(data.next_payment_date),
-      });
+      // console.log(new Date(), "Creating create subscription with start date");
+      // await SubscriptionModel.create({
+      //   nextPaymentDate: data.next_payment_date,
+      //   status: "active",
+      //   subscriptionCode: data.subscription_code,
+      //   paystackSubscriptionId: data.plan.plan_code,
+      //   paystackAuthorizationToken: authorizationCode,
+      //   user: user._id,
+      //   currentPeriodEnd: new Date(data.next_payment_date),
+      // });
     }
   } catch (error) {
     console.error("Error in handleSubscriptionCreate:", error);

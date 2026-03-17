@@ -532,16 +532,16 @@ class CallLogService extends BaseService {
         });
       }
 
-      const scheduleCallData = {
-        coachId,
-        userId,
-        callType,
-        callDate,
-        startTime,
-        endTime,
-        channelId: sessionId,
-        ...post,
-      };
+      // const scheduleCallData = {
+      //   coachId,
+      //   userId,
+      //   callType,
+      //   callDate,
+      //   startTime,
+      //   endTime,
+      //   channelId: sessionId,
+      //   ...post,
+      // };
 
       const callConflict = await ScheduledCallModel.findOne({
         coachId,
@@ -566,6 +566,18 @@ class CallLogService extends BaseService {
         callType,
         sessionId,
       })
+
+      const scheduleCallData = {
+        coachId,
+        userId,
+        callType,
+        callDate,
+        startTime,
+        endTime,
+        channelId: sessionId,
+        call: call._id,
+        ...post,
+      };
       
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
 
@@ -608,8 +620,9 @@ class CallLogService extends BaseService {
         notificationType: "scheduledCall",
       });
 
+      const { call: _, ...rest } = scheduledCall.toObject();
       const response = {
-        ...scheduledCall.toObject(),
+        ...rest,
         call
       }
       return BaseService.sendSuccessResponse({
@@ -627,11 +640,12 @@ class CallLogService extends BaseService {
       const scheduledCalls = await ScheduledCallModel.find({
         $or: [{ coachId: userId }, { userId: userId }],
         status: { $in: ["scheduled", "completed"] },
-      });
+      })
+      .populate('call');
 
       return BaseService.sendSuccessResponse({
         message: scheduledCalls,
-      });
+      })
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse({ error: this.server_error_message });
@@ -646,7 +660,8 @@ class CallLogService extends BaseService {
         $or: [{ coachId: userId }, { userId: userId }],
         _id: callId,
         status: { $in: ["scheduled", "completed"] },
-      });
+      })
+      .populate('call');
 
       return BaseService.sendSuccessResponse({
         message: scheduledCall,
