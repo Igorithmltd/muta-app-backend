@@ -249,6 +249,64 @@ router.post(ROUTE_UPDATE_STATUS, [auth], (req, res)=>{
  *                 $ref: '#/components/schemas/CallLog'
  *       404:
  *         description: No call logs found for user
+ *
+ * components:
+ *   schemas:
+ *     CallLog:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: "65f1a2b3c4d5e6f7890a1234"
+ *         callerId:
+ *           type: string
+ *           description: User ID of the caller
+ *           example: "65f1a2b3c4d5e6f7890a1111"
+ *         receiverId:
+ *           type: string
+ *           description: User ID of the receiver
+ *           example: "65f1a2b3c4d5e6f7890a2222"
+ *         callType:
+ *           type: string
+ *           enum: [audio, video]
+ *           example: "audio"
+ *         status:
+ *           type: string
+ *           enum: [incoming, missed, received, rejected, ended, ringing, scheduled]
+ *           example: "missed"
+ *         startTime:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-03-17T10:00:00Z"
+ *         endTime:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-03-17T10:05:00Z"
+ *         duration:
+ *           type: number
+ *           description: Duration in seconds
+ *           example: 300
+ *         platform:
+ *           type: string
+ *           enum: [mobile, web]
+ *           example: "mobile"
+ *         sessionId:
+ *           type: string
+ *           example: "abc123-session"
+ *         recordingUrl:
+ *           type: string
+ *           example: "https://example.com/recording.mp4"
+ *         isRead:
+ *           type: boolean
+ *           example: false
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-03-17T09:59:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-03-17T10:06:00Z"
  */
 router.get(ROUTE_GET_USER_CALL_LOGS, [auth], (req, res)=>{
     const callController = new CallController()
