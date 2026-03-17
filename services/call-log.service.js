@@ -641,7 +641,13 @@ class CallLogService extends BaseService {
         $or: [{ coachId: userId }, { userId: userId }],
         status: { $in: ["scheduled", "completed"] },
       })
-      .populate('call');
+      .populate({
+        path: 'call',
+        populate: [
+          { path: 'callerId', select: 'firstName lastName email image _id' },   // choose fields you want
+          { path: 'receiverId', select: 'firstName lastName email image _id' }
+        ]
+      })
 
       return BaseService.sendSuccessResponse({
         message: scheduledCalls,
