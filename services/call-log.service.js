@@ -661,7 +661,13 @@ class CallLogService extends BaseService {
         _id: callId,
         status: { $in: ["scheduled", "completed"] },
       })
-      .populate('call');
+      .populate({
+        path: 'call',
+        populate: [
+          { path: 'callerId', select: 'name email' },   // choose fields you want
+          { path: 'receiverId', select: 'name email' }
+        ]
+      })
 
       return BaseService.sendSuccessResponse({
         message: scheduledCall,
