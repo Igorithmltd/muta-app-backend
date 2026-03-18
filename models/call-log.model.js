@@ -23,7 +23,7 @@ const CallLogSchema = new mongoose.Schema(
     endTime: { type: Date },
     duration: { type: Number }, // in seconds
     platform: { type: String, enum: ["mobile", "web"], default: "mobile" },
-    sessionId: { type: String }, // Agora/Twilio session id
+    channelId: { type: String }, // Agora/Twilio session id
     recordingUrl: { type: String },
     isRead: { type: Boolean, default: false },
     // createdAt: { type: Date, default: Date.now },

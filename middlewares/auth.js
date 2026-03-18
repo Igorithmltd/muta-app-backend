@@ -43,6 +43,7 @@ async function auth(req, res, next) {
     };
     next();
   } catch (error) {
+    console.log(error,'from auth middleware')
     if(error.message == 'jwt expired'){
       return res.status(401).json({
         success: false,
@@ -54,7 +55,7 @@ async function auth(req, res, next) {
     return res.status(401).json({
       success: false,
       data: {
-        message: "Internal Server Error",
+        message: "Jwt auth malformed",
       }
     });
   }

@@ -21,7 +21,7 @@ const router = require('express').Router()
  *               - callerId
  *               - receiverId
  *               - callType
- *               - sessionId
+ *               - channelId
  *             properties:
  *               receiverId:
  *                 type: string
@@ -57,9 +57,9 @@ router.post(ROUTE_INITIATE_CALL, [auth], (req, res)=>{
  *           schema:
  *             type: object
  *             required:
- *               - sessionId
+ *               - channelId
  *             properties:
- *               sessionId:
+ *               channelId:
  *                 type: string
  *                 description: Call session ID
  *     responses:
@@ -90,9 +90,9 @@ router.post(ROUTE_RECEIVE_CALL, [auth], (req, res)=>{
  *           schema:
  *             type: object
  *             required:
- *               - sessionId
+ *               - channelId
  *             properties:
- *               sessionId:
+ *               channelId:
  *                 type: string
  *                 description: Call session ID
  *     responses:
@@ -125,13 +125,13 @@ router.post(ROUTE_END_CALL, [auth], (req, res)=>{
  *             required:
  *               - callerId
  *               - receiverId
- *               - sessionId
+ *               - channelId
  *             properties:
  *               callerId:
  *                 type: string
  *               receiverId:
  *                 type: string
- *               sessionId:
+ *               channelId:
  *                 type: string
  *                 description: Call session ID
  *     responses:
@@ -162,9 +162,9 @@ router.post(ROUTE_MISS_CALL, [auth], (req, res)=>{
  *           schema:
  *             type: object
  *             required:
- *               - sessionId
+ *               - channelId
  *             properties:
- *               sessionId:
+ *               channelId:
  *                 type: string
  *                 description: Call session ID
  *     responses:
@@ -195,10 +195,10 @@ router.post(ROUTE_REJECT_CALL, [auth], (req, res)=>{
  *           schema:
  *             type: object
  *             required:
- *               - sessionId
+ *               - channelId
  *               - status
  *             properties:
- *               sessionId:
+ *               channelId:
  *                 type: string
  *                 description: Unique call session ID
  *                 example: "session_12345"
@@ -290,7 +290,7 @@ router.post(ROUTE_UPDATE_STATUS, [auth], (req, res)=>{
  *           type: string
  *           enum: [mobile, web]
  *           example: "mobile"
- *         sessionId:
+ *         channelId:
  *           type: string
  *           example: "abc123-session"
  *         recordingUrl:

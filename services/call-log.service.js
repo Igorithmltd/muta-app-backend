@@ -22,10 +22,8 @@ class CallLogService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        // sessionId: "string|required",
         callType: "string|required",
         receiverId: "string|required",
-        // callerId: "string|required",
       };
 
       const validateMessage = {
@@ -40,7 +38,7 @@ class CallLogService extends BaseService {
       }
 
       const { receiverId, callType } = post;
-      const sessionId = uuidv4();
+      const channelId = uuidv4();
 
       const receiver = await UserModel.findById(receiverId);
       const user = await UserModel.findById(userId);
@@ -65,7 +63,7 @@ class CallLogService extends BaseService {
         receiverId,
         callType,
         status: "incoming",
-        sessionId,
+        channelId,
         startTime: new Date(),
       });
 
@@ -76,11 +74,11 @@ class CallLogService extends BaseService {
       const receiverUid = 2;
 
       const getUserAgoraToken = await this.getAgoraToken({
-        channelName: sessionId,
+        channelName: channelId,
         uid: userUid,
       });
       const getReceiverAgoraToken = await this.getAgoraToken({
-        channelName: sessionId,
+        channelName: channelId,
         uid: receiverUid,
       });
 
@@ -113,7 +111,7 @@ class CallLogService extends BaseService {
 
       const callObject = {
         callId: callLog._id,
-        channelId: sessionId,
+        channelId: channelId,
         token: userAgoraToken,
         agoraUid: userUid,
         caller: {
@@ -164,7 +162,7 @@ class CallLogService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        sessionId: "string|required",
+        channelId: "string|required",
       };
 
       const validateMessage = {
@@ -178,9 +176,9 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { sessionId } = post;
+      const { channelId } = post;
 
-      const callLog = await CallLogModel.findOne({ sessionId });
+      const callLog = await CallLogModel.findOne({ channelId });
       if (!callLog)
         return BaseService.sendFailedResponse({ error: "Call not found" });
 
@@ -203,7 +201,7 @@ class CallLogService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        sessionId: "string|required",
+        channelId: "string|required",
         receiverId: "string|required",
       };
 
@@ -218,14 +216,14 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { receiverId, sessionId } = post;
+      const { receiverId, channelId } = post;
 
       const callLog = new CallLogModel({
         callerId: userId,
         receiverId,
         callType: "video",
         status: "missed",
-        sessionId,
+        channelId,
       });
 
       await callLog.save();
@@ -243,7 +241,7 @@ class CallLogService extends BaseService {
       const post = req.body;
 
       const validateRule = {
-        sessionId: "string|required",
+        channelId: "string|required",
       };
 
       const validateMessage = {
@@ -257,9 +255,9 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { sessionId } = post;
+      const { channelId } = post;
 
-      const callLog = await CallLogModel.findOne({ sessionId });
+      const callLog = await CallLogModel.findOne({ channelId });
       if (!callLog) return res.status(404).json({ message: "Call not found" });
 
       callLog.status = "received";
@@ -280,7 +278,7 @@ class CallLogService extends BaseService {
       const userId = req.user.id;
 
       const validateRule = {
-        sessionId: "string|required",
+        channelId: "string|required",
       };
 
       const validateMessage = {
@@ -294,9 +292,9 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { sessionId } = post;
+      const { channelId } = post;
 
-      const callLog = await CallLogModel.findOne({ sessionId });
+      const callLog = await CallLogModel.findOne({ channelId });
       if (!callLog) return res.status(404).json({ message: "Call not found" });
 
       callLog.status = "rejected";
@@ -320,7 +318,7 @@ class CallLogService extends BaseService {
 
       // 1️⃣ Validate incoming data
       const validateRule = {
-        sessionId: "string|required",
+        channelId: "string|required",
         status: "string|required|in:ringing,received,missed,ended,rejected",
       };
 
@@ -337,10 +335,10 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const { sessionId, status } = post;
+      const { channelId, status } = post;
 
       // 2️⃣ Find the call log
-      const callLog = await CallLogModel.findOne({ sessionId })
+      const callLog = await CallLogModel.findOne({ channelId })
         .populate("callerId", "firstName lastName email image _id")
         .populate("receiverId", "firstName lastName email image _id");
 
@@ -521,7 +519,7 @@ class CallLogService extends BaseService {
 
       const receiver = await UserModel.findById(userId);
       const sender = await UserModel.findById(coachId);
-      const sessionId = uuidv4();
+      const channelId = uuidv4();
 
 
       const receiverDeviceToken = receiver.deviceToken;
@@ -539,7 +537,7 @@ class CallLogService extends BaseService {
       //   callDate,
       //   startTime,
       //   endTime,
-      //   channelId: sessionId,
+      //   channelId: channelId,
       //   ...post,
       // };
 
@@ -558,13 +556,13 @@ class CallLogService extends BaseService {
 
 
   //   duration: { type: Number }, // in seconds
-  //   sessionId: { type: String }, // Agora/Twilio session id
+  //   channelId: { type: String }, // Agora/Twilio session id
   //   recordingUrl: { type: String },
       const call = await CallLogModel.create({
         receiverId: userId,
         callerId: coachId,
         callType,
-        sessionId,
+        channelId,
       })
 
       const scheduleCallData = {
@@ -574,7 +572,7 @@ class CallLogService extends BaseService {
         callDate,
         startTime,
         endTime,
-        channelId: sessionId,
+        channelId: channelId,
         call: call._id,
         ...post,
       };
@@ -583,7 +581,7 @@ class CallLogService extends BaseService {
 
       const callObject = {
         callId: call._id,
-        channelId: sessionId,
+        channelId: channelId,
         // token: userAgoraToken,
         // agoraUid: userUid,
         caller: {
@@ -804,10 +802,10 @@ class CallLogService extends BaseService {
         userUid = 2
       }
 
-      const sessionId = call.sessionId;
+      const channelId = call.channelId;
 
       const getAgoraToken = await this.getAgoraToken({
-          channelName: sessionId,
+          channelName: channelId,
           uid: userUid,
         });
 
@@ -825,7 +823,7 @@ class CallLogService extends BaseService {
 
       const callObject = {
         callId: call._id,
-        channelId: sessionId,
+        channelId: channelId,
         token: token,
         agoraUid: userUid,
         user: {

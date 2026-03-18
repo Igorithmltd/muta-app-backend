@@ -47,9 +47,9 @@ const ScheduledCallSchema = new mongoose.Schema(
       enum: ["scheduled", "completed", "cancelled"],
       default: "scheduled",
     },
-    channelId: {
-      type: String,
-    },
+    // channelId: {
+    //   type: String,
+    // },
 
     // createdBy: {
     //   type: mongoose.Schema.Types.ObjectId,
