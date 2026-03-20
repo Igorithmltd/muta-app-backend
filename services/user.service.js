@@ -1140,6 +1140,11 @@ class UserService extends BaseService {
         body: "Thank you for completing your onboarding process.",
       });
       if (user.deviceToken) {
+        // const notificationData = {
+        //   notification: receiverData,
+        //   notificationType: "chat",
+        // };
+
         sendPushNotification({
           deviceToken: user.deviceToken,
           title: "Welcome to Muta App!",

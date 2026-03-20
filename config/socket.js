@@ -178,11 +178,17 @@ function setupSocket(httpServer) {
               message: message,
               // notificationType: "chat",
             };
+
+            const notificationData = {
+              notification: receiverData,
+              notificationType: "chat"
+            }
+
             sendPushNotification({
               deviceToken: receiver.deviceToken,
               title: "Incoming Chat Message",
               body: `You have a new message`,
-              data: receiverData,
+              data: notificationData,
               notificationType: "chat",
             });
           }else{
@@ -203,12 +209,17 @@ function setupSocket(httpServer) {
                 message: message,
                 // notificationType: "chat",
               };
+
+              const notificationData = {
+                notification: receiverData,
+                notificationType: "forum"
+              }
   
               sendPushNotification({
                 deviceToken: receiver.deviceToken,
                 title: "New Forum message",
                 body: `${sender.firstName} sent a message in the forum`,
-                data: receiverData,
+                data: notificationData,
                 notificationType: "forum",
               });
             });

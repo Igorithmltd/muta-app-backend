@@ -1,5 +1,6 @@
 const ChallengeModel = require("../models/challenge.model");
 const ChallengeActionModel = require("../models/challengeAction.model");
+const NotificationModel = require("../models/notification.model");
 const UserModel = require("../models/user.model");
 const { empty } = require("../util");
 const { getCurrentWeekNumber } = require("../util/helper");
@@ -11,7 +12,7 @@ class ChallengeService extends BaseService {
   async createChallenge(req) {
     try {
       const post = req.body;
-  
+
       const validateRule = {
         title: "string|required",
         goal: "string|required",
@@ -26,20 +27,20 @@ class ChallengeService extends BaseService {
         "image.imageUrl": "string|required",
         "image.publicId": "string|required",
       };
-  
+
       const validateMessage = {
         required: ":attribute is required",
         "email.email": "Please provide a valid :attribute.",
         "in.difficulty": "Please provide a valid :attribute level.",
         array: ":attribute must be an array.",
       };
-  
+
       const validateResult = validateData(post, validateRule, validateMessage);
-  
+
       if (!validateResult.success) {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
-  
+
       const existingChallenge = await ChallengeModel.findOne({
         title: post.title,
       });
@@ -48,16 +49,16 @@ class ChallengeService extends BaseService {
           error: "Challenge with this title already exists",
         });
       }
-  
+
       const startDate = new Date(post.startDate);
       let endDate = new Date(startDate);
-  
+
       if (post.type === "weekly") {
         endDate.setDate(startDate.getDate() + 6);
       } else {
         endDate = startDate;
       }
-  
+
       const newChallenge = {
         title: post.title,
         goal: post.goal,
@@ -72,19 +73,19 @@ class ChallengeService extends BaseService {
         startDate,
         endDate,
       };
-  
+
       if (post.type == "weekly" && post.end_date) {
         const today = new Date();
         const daysToAdd = 6;
-  
+
         const endDate = new Date(today);
         endDate.setDate(today.getDate() + daysToAdd);
         newChallenge.endDate = endDate;
       }
-  
+
       const challenge = new ChallengeModel(newChallenge);
       const savedChallenge = await challenge.save();
-  
+
       // --- Notification creation for all users (non-coach/admin) ---
       const users = await UserModel.find({ userType: "user" }, "_id");
       const notifications = users.map((u) => ({
@@ -94,11 +95,23 @@ class ChallengeService extends BaseService {
         time: new Date(),
         type: "challenge",
       }));
-  
+
       // Bulk insert notifications
       await NotificationModel.insertMany(notifications);
-      await sendPushNotification({topic: 'all-users', title: `New challenge: ${savedChallenge.title}`, body: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`});
-  
+
+      const receiverData = {
+        topic: "all-users",
+        title: `New challenge: ${savedChallenge.title}`,
+        body: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`,
+      };
+
+      const notificationData = {
+        notification: receiverData,
+        // notificationType: "all-users",
+      };
+
+      await sendPushNotification(receiverData);
+
       return BaseService.sendSuccessResponse({
         message: "Challenge created successfully",
       });
@@ -106,7 +119,7 @@ class ChallengeService extends BaseService {
       console.log(error, "the error");
       return BaseService.sendFailedResponse("Internal server error");
     }
-  }  
+  }
   async getChallenges(req) {
     try {
       const type = req.query.type || "";
@@ -141,7 +154,7 @@ class ChallengeService extends BaseService {
   async updateChallenge(req) {
     try {
       const challengeId = req.params.id;
-      const post = req.body
+      const post = req.body;
 
       const challenge = await ChallengeModel.findById(challengeId);
       if (!challenge) {
@@ -267,93 +280,93 @@ class ChallengeService extends BaseService {
   async markChallengeTask(req) {
     const userId = req.user.id;
     const post = req.body;
-  
+
     const validateRule = {
       challengeTaskId: "string|required",
       challengeId: "string|required",
     };
-  
+
     const validateMessage = {
       required: ":attribute is required",
     };
-  
+
     const validateResult = validateData(post, validateRule, validateMessage);
-  
+
     if (!validateResult.success) {
       return BaseService.sendFailedResponse({ error: validateResult.data });
     }
-  
+
     // Load challenge
     const challenge = await ChallengeModel.findById(post.challengeId);
     if (!challenge) {
       return BaseService.sendFailedResponse({ error: "Challenge not found" });
     }
-  
+
     // Load user's challenge action
     const challengeAction = await ChallengeActionModel.findOne({
       userId,
       challengeId: post.challengeId,
     }).populate("challengeId");
-  
+
     if (!challengeAction) {
       return BaseService.sendFailedResponse({
         error: "You have not joined this challenge",
       });
     }
-  
+
     // Find the task to mark
     const challengeTask = challengeAction.tasks.find(
       (task) => task._id.toString() === post.challengeTaskId
     );
-  
+
     if (!challengeTask) {
       return BaseService.sendFailedResponse({
         error: "Challenge task not found",
       });
     }
-  
+
     // If challenge already completed, return
     if (challengeAction.status === "completed") {
       return BaseService.sendSuccessResponse({
         message: "You have already completed this challenge",
       });
     }
-  
+
     // If task already completed, return
     if (challengeTask.status === "completed") {
       return BaseService.sendSuccessResponse({
         message: "You have already completed this task",
       });
     }
-  
+
     // Mark the task as completed
     challengeTask.status = "completed";
-  
+
     // Check if all tasks are now completed
     const allTasksCompleted = challengeAction.tasks.every(
       (task) => task.status === "completed"
     );
-  
+
     if (allTasksCompleted) {
       challengeAction.status = "completed";
     }
-  
+
     await challengeAction.save();
-  
+
     // Update streaks
     const user = await UserModel.findById(userId);
     if (!user) {
       return BaseService.sendFailedResponse({ error: "User not found" });
     }
-  
+
     const challengeStart = new Date(challenge.startDate);
     const challengeDateStr = challengeStart.toDateString();
-  
+
     if (challenge.type === "daily") {
       const missedTask = challengeAction.tasks.some(
         (task) => task.status !== "completed"
       );
-  
+
       if (missedTask) {
         user.dailyStreak = 0;
         user.lastDailyStreakDate = null;
@@ -367,19 +380,19 @@ class ChallengeService extends BaseService {
         }
       }
     }
-  
+
     if (challenge.type === "weekly") {
       const challengeWeek = getWeekNumber(challengeStart);
-  
+
       const dailyChallengesThisWeek = await this.getUserDailyChallengesForWeek(
         userId,
         challengeWeek
       );
-  
+
       const missedDayExists = dailyChallengesThisWeek.some((dc) =>
         dc.tasks.some((task) => task.status !== "completed")
       );
-  
+
       if (missedDayExists) {
         user.weeklyStreak = 0;
         user.lastWeeklyStreakWeek = null;
@@ -390,9 +403,9 @@ class ChallengeService extends BaseService {
         }
       }
     }
-  
+
     await user.save();
-  
+
     return BaseService.sendSuccessResponse({
       message: "Task marked as completed",
     });
@@ -483,10 +496,9 @@ class ChallengeService extends BaseService {
       const startOfWeek = new Date(today);
       const day = startOfWeek.getDay() || 7;
       startOfWeek.setDate(startOfWeek.getDate() - day + 1);
-  
+
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
-
 
       const user = await UserModel.findById(userId);
 
@@ -507,7 +519,6 @@ class ChallengeService extends BaseService {
       //     error: "Challenge not found",
       //   });
       // }
-
 
       return BaseService.sendSuccessResponse({
         message: {

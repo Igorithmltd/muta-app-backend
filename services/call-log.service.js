@@ -11,11 +11,9 @@ const ScheduledCallModel = require("../models/scheduledCall.model");
 const { RtcRole } = require("../util/constants");
 const RtcTokenBuilder = AgoraToken.RtcTokenBuilder;
 
-
 const appID = process.env.AGORA_APP_ID;
 const appCertificate = process.env.AGORA_APP_CERTIFICATE;
 class CallLogService extends BaseService {
-  
   async initiateCall(req) {
     try {
       const post = req.body;
@@ -141,11 +139,16 @@ class CallLogService extends BaseService {
       };
 
       // const sendPushNotification = async ({ deviceToken, topic, title, body, data = {} }) => {
+      const notificationData = {
+        notification: receiverData,
+        notificationType: "call",
+      };
+
       sendPushNotification({
         deviceToken: receiverDeviceToken,
         title: "Incoming Call",
         body: `You have an incoming ${callType} call`,
-        data: receiverData,
+        data: notificationData,
         notificationType: "call",
       });
       await callLog.save();
@@ -494,7 +497,7 @@ class CallLogService extends BaseService {
   async scheduleCall(req) {
     try {
       const post = req.body;
-      const coachId = req.user.id
+      const coachId = req.user.id;
 
       const validateRule = {
         userId: "string|required",
@@ -520,7 +523,6 @@ class CallLogService extends BaseService {
       const receiver = await UserModel.findById(userId);
       const sender = await UserModel.findById(coachId);
       const channelId = uuidv4();
-
 
       const receiverDeviceToken = receiver.deviceToken;
 
@@ -554,16 +556,15 @@ class CallLogService extends BaseService {
         });
       }
 
-
-  //   duration: { type: Number }, // in seconds
-  //   channelId: { type: String }, // Agora/Twilio session id
-  //   recordingUrl: { type: String },
+      //   duration: { type: Number }, // in seconds
+      //   channelId: { type: String }, // Agora/Twilio session id
+      //   recordingUrl: { type: String },
       const call = await CallLogModel.create({
         receiverId: userId,
         callerId: coachId,
         callType,
         channelId,
-      })
+      });
 
       const scheduleCallData = {
         coachId,
@@ -576,7 +577,7 @@ class CallLogService extends BaseService {
         call: call._id,
         ...post,
       };
-      
+
       const scheduledCall = await ScheduledCallModel.create(scheduleCallData);
 
       const callObject = {
@@ -605,24 +606,29 @@ class CallLogService extends BaseService {
       const receiverData = {
         call: callObject,
         callDate: scheduledCall.callDate,
-	      startTime: scheduledCall.startTime,
-	      endTime: scheduledCall.endTime,
-	      description: scheduledCall.description,
+        startTime: scheduledCall.startTime,
+        endTime: scheduledCall.endTime,
+        description: scheduledCall.description,
       };
+
+      const notificationData = {
+        notification: receiverData,
+        notificationType: "scheduledCall"
+      }
 
       sendPushNotification({
         deviceToken: receiverDeviceToken,
         title: "Incoming Scheduled call",
         body: `${sender.firstName} scheduled an ${callType} call with you`,
-        data: receiverData,
+        data: notificationData,
         notificationType: "scheduledCall",
       });
 
       const { call: _, ...rest } = scheduledCall.toObject();
       const response = {
         ...rest,
-        call
-      }
+        call,
+      };
       return BaseService.sendSuccessResponse({
         message: response,
       });
@@ -638,18 +644,17 @@ class CallLogService extends BaseService {
       const scheduledCalls = await ScheduledCallModel.find({
         $or: [{ coachId: userId }, { userId: userId }],
         status: { $in: ["scheduled", "completed"] },
-      })
-      .populate({
-        path: 'call',
+      }).populate({
+        path: "call",
         populate: [
-          { path: 'callerId', select: 'firstName lastName email image _id' },   // choose fields you want
-          { path: 'receiverId', select: 'firstName lastName email image _id' }
-        ]
-      })
+          { path: "callerId", select: "firstName lastName email image _id" }, // choose fields you want
+          { path: "receiverId", select: "firstName lastName email image _id" },
+        ],
+      });
 
       return BaseService.sendSuccessResponse({
         message: scheduledCalls,
-      })
+      });
     } catch (error) {
       console.log(error, "the error");
       BaseService.sendFailedResponse({ error: this.server_error_message });
@@ -664,14 +669,13 @@ class CallLogService extends BaseService {
         $or: [{ coachId: userId }, { userId: userId }],
         _id: callId,
         status: { $in: ["scheduled", "completed"] },
-      })
-      .populate({
-        path: 'call',
+      }).populate({
+        path: "call",
         populate: [
-          { path: 'callerId', select: 'firstName lastName email image _id' },   // choose fields you want
-          { path: 'receiverId', select: 'firstName lastName email image _id' }
-        ]
-      })
+          { path: "callerId", select: "firstName lastName email image _id" }, // choose fields you want
+          { path: "receiverId", select: "firstName lastName email image _id" },
+        ],
+      });
 
       return BaseService.sendSuccessResponse({
         message: scheduledCall,
@@ -733,7 +737,7 @@ class CallLogService extends BaseService {
           error: "Channel name is required",
         });
       }
-      
+
       // const role = RtcRole.PUBLISHER;
       const expirationTimeInSeconds = 3600; // 1 hour
       const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -762,7 +766,7 @@ class CallLogService extends BaseService {
   async generateAgoraToken(req) {
     try {
       const post = req.body;
-      const userId = req.user.id
+      const userId = req.user.id;
 
       const validateRule = {
         callId: "string|required",
@@ -779,35 +783,34 @@ class CallLogService extends BaseService {
         return BaseService.sendFailedResponse({ error: validateResult.data });
       }
 
-      const {callId} = post
+      const { callId } = post;
 
       const call = await CallLogModel.findById(callId);
       const user = await UserModel.findById(userId);
 
-      if(!call){
-        return BaseService.sendFailedResponse({error: "Call not found"})
+      if (!call) {
+        return BaseService.sendFailedResponse({ error: "Call not found" });
       }
-      if(!user){
-        return BaseService.sendFailedResponse({error: "User not found"})
+      if (!user) {
+        return BaseService.sendFailedResponse({ error: "User not found" });
       }
-
 
       let userUid = null;
 
       const userType = req.user.userType;
 
-      if(userType === 'coach'){
-        userUid = 1
-      }else if(userType === 'user'){
-        userUid = 2
+      if (userType === "coach") {
+        userUid = 1;
+      } else if (userType === "user") {
+        userUid = 2;
       }
 
       const channelId = call.channelId;
 
       const getAgoraToken = await this.getAgoraToken({
-          channelName: channelId,
-          uid: userUid,
-        });
+        channelName: channelId,
+        uid: userUid,
+      });
 
       if (!getAgoraToken.success) {
         return BaseService.sendFailedResponse({
@@ -815,7 +818,10 @@ class CallLogService extends BaseService {
         });
       }
 
-      const token = getAgoraToken.data && getAgoraToken.data.message ? getAgoraToken.data.message : null;
+      const token =
+        getAgoraToken.data && getAgoraToken.data.message
+          ? getAgoraToken.data.message
+          : null;
       const userJwtToken = await user.generateAccessToken(
         process.env.ACCESS_TOKEN_SECRET,
         "10m"
@@ -836,15 +842,13 @@ class CallLogService extends BaseService {
         jwtToken: userJwtToken,
       };
 
-      if(!call.startTime){
+      if (!call.startTime) {
         call.startTime = new Date();
-      }else if(call.startTime){
-        call.status = 'received';
+      } else if (call.startTime) {
+        call.status = "received";
       }
 
-
       return BaseService.sendSuccessResponse({ message: callObject });
-
     } catch (error) {
       console.log("Error", error);
       return BaseService.sendFailedResponse({
