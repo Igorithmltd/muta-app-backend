@@ -9,6 +9,7 @@ const {
   ROUTE_INITIALIZE_PAYMENT,
   ROUTE_DOCUMENT_UPLOAD,
   ROUTE_SEND_CUSTOM_MAIL,
+  ROUTE_VERIFY_REFERENCE,
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -319,6 +320,70 @@ router.post(
 router.post(ROUTE_INITIALIZE_PAYMENT, auth, (req, res) => {
   const utilController = new UtilController();
   return utilController.initializePayment(req, res);
+});
+
+/**
+ * @swagger
+ * /utils/verify-reference/{referenceId}:
+ *   get:
+ *     summary: Verify a reference id
+ *     description: Checks if a reference id exists and returns its details, including associated email or phone number if applicable.
+ *     tags:
+ *       - Payments
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: referenceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "REF-12991999ujdkwk"
+ *         description: The reference id to verify
+ *     responses:
+ *       200:
+ *         description: Coupon verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: object
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: "GIFT-ABC-123"
+ *                     email:
+ *                       type: string
+ *                       example: "abc@gmail.com"
+ *                       description: Optional recipient email associated with the code
+ *                     phoneNumber:
+ *                       type: string
+ *                       example: "081111587342"
+ *                       description: Optional phone number associated with the code
+ *       404:
+ *         description: Coupon not found or invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid or expired coupon code"
+ *       500:
+ *         description: Server error
+ */
+router.get(ROUTE_VERIFY_REFERENCE+"/:referenceId", auth, (req, res) => {
+  const utilController = new UtilController();
+  return utilController.verifyReference(req, res);
 });
 
 router.post(ROUTE_SEND_CUSTOM_MAIL, (req, res) => {

@@ -7,6 +7,7 @@ const BaseService = require("./base");
 const axios = require("axios");
 const paystackAxios = require("./paystack.client.service");
 const { generateReference } = require("../util/constants");
+const CouponModel = require("../models/coupon.model");
 
 /**
  * test:
@@ -97,7 +98,11 @@ class PaystackService extends BaseService {
         return BaseService.sendFailedResponse({ error: "Invalid category" });
       }
 
-      if (!category.price || !category.paystackSubscriptionId || !category.duration) {
+      if (
+        !category.price ||
+        !category.paystackSubscriptionId ||
+        !category.duration
+      ) {
         return BaseService.sendFailedResponse({
           error: "Invalid plan configuration",
         });
@@ -115,7 +120,7 @@ class PaystackService extends BaseService {
           error: "Recipient email or phone number is required for gifts",
         });
       }
-      
+
       if (recipientEmail && phoneNumber) {
         return BaseService.sendFailedResponse({
           error: "Provide only one gift delivery method (email OR phone)",
@@ -132,11 +137,10 @@ class PaystackService extends BaseService {
         const subscriptions =
           existingPaystackSubscription.data.data.subscriptions || [];
         if (subscriptions.length > 0) {
-
           const hasActiveSubscription = subscriptions.some(
             (sub) => sub.status === "active"
           );
-          
+
           if (hasActiveSubscription) {
             return BaseService.sendSuccessResponse({
               message: "Subscription already active",
@@ -152,7 +156,8 @@ class PaystackService extends BaseService {
 
           if (existingSubscription) {
             return BaseService.sendSuccessResponse({
-              message: "Subscription already exists. Disable your subscription current subscription",
+              message:
+                "Subscription already exists. Disable your subscription current subscription",
             });
           }
         }
@@ -165,7 +170,6 @@ class PaystackService extends BaseService {
         const gifteeUser = await UserModel.findOne({
           $or: [{ email: recipientEmail }, { phoneNumber }],
         });
-
 
         if (gifteeUser && gifteeUser._id) {
           const existingGift = await SubscriptionModel.findOne({
@@ -210,13 +214,12 @@ class PaystackService extends BaseService {
             },
           }),
         },
-      }
+      };
 
       const response = await this.axiosInstance.post(
         "/transaction/initialize",
         paystackPayload
       );
-
 
       return BaseService.sendSuccessResponse({
         message: response.data,
@@ -225,6 +228,39 @@ class PaystackService extends BaseService {
       console.error("Initialize payment failed:", error);
       return BaseService.sendFailedResponse({
         error: this.server_error_message,
+      });
+    }
+  }
+
+  async verifyReference(req) {
+    try {
+      const reference = "REF_1773664488632_69b7f5d824c2786534a24cdb";
+      // const reference = req.params.referenceId
+
+      const response = await this.axiosInstance.get(
+        `/transaction/verify/${reference}`
+      );
+
+      if(!response.data.status){
+        return BaseService.sendFailedResponse({error: 'We are trying to verify your payment. Please try again later'})
+      }
+
+      const couponExists = await CouponModel.findOne({ reference });
+
+      return BaseService.sendSuccessResponse({
+        message: {
+          code: couponExists.code,
+          ...(couponExists.recipientEmail && {
+            email: couponExists.recipientEmail,
+          }),
+          ...(couponExists.phoneNumber && {
+            phoneNumber: couponExists.phoneNumber,
+          }),
+        },
+      });
+    } catch (error) {
+      return BaseService.sendFailedResponse({
+        error: "Something went wrong. Please try again later",
       });
     }
   }

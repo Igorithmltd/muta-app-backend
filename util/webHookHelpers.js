@@ -229,6 +229,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       gift = {},
       paystackSubscriptionCode,
     } = metadata;
+    const reference = data?.reference ?? ""
 
     const { recipientEmail, phoneNumber, giftMessage } = gift;
     console.log({ metadata, gift }, "handleGiftSubscription");
@@ -272,6 +273,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       phoneNumber: phoneNumber || "",
       expiresAt,
       used: false,
+      reference
     });
 
     /* ==========================
