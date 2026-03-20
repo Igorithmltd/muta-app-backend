@@ -619,7 +619,7 @@ class CallLogService extends BaseService {
       sendPushNotification({
         deviceToken: receiverDeviceToken,
         title: "Incoming Scheduled call",
-        body: `${sender.firstName} scheduled an ${callType} call with you`,
+        body: `${sender.firstName} scheduled ${callType == 'video' ? 'a' : 'an'} ${callType} call with you`,
         data: notificationData,
         notificationType: "scheduledCall",
       });
