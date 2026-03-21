@@ -27,9 +27,6 @@ const router = require('express').Router()
  *                 type: string
  *                 format: password
  *                 example: gRDERIdiidfjii@
- *               phoneNumber:
- *                 type: string
- *                 example: 09039384838
  *               userType:
  *                 type: string
  *                 format: password
@@ -323,15 +320,11 @@ router.post(ROUTE_RESET_PASSWORD, (req, res)=>{
  *             type: object
  *             required:
  *               - email
- *               - phoneNumber
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
  *                 example: user@example.com
- *               phoneNumber:
- *                 type: string
- *                 example: 08012345678
  *     responses:
  *       200:
  *         description: Email verified successfully
@@ -368,22 +361,12 @@ router.post(ROUTE_SEND_OTP, (req, res)=>{
  *             required:
  *               - email
  *               - otp
- *               - phoneNumber
- *               - otpPhoneNumber
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
  *                 example: user@example.com
- *               phoneNumber:
- *                 type: string
- *                 format: email
- *                 example: 08012345678
  *               otp:
- *                 type: string
- *                 format: string
- *                 example: 123456
- *               otpPhoneNumber:
  *                 type: string
  *                 format: string
  *                 example: 123456
