@@ -80,7 +80,6 @@ class UserService extends BaseService {
       }
 
       const [_, otpEmail] = generateOTP();
-      const [otpPhoneMessage, otpPhone] = generateOTP();
 
       const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
@@ -105,15 +104,6 @@ class UserService extends BaseService {
         });
 
         await user.save({ session });
-      }
-
-      if (!otpResult.success) {
-        await session.abortTransaction();
-        session.endSession();
-
-        return BaseService.sendFailedResponse({
-          error: "Failed to send OTP",
-        });
       }
 
       // Send Email OTP
