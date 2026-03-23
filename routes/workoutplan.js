@@ -1811,7 +1811,7 @@ router.get(ROUTE_POPULAR_WORKOUTPLANS, auth, (req, res) => {
 
 /**
  * @swagger
- * /rate-workoutplan/{id}:
+ * /workoutplan/rate-workoutplan/{id}:
  *   post:
  *     summary: Rate a workout plan
  *     tags:

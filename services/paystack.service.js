@@ -130,36 +130,85 @@ class PaystackService extends BaseService {
       /* --------------------
          Self subscription checks
       ---------------------*/
+      // if (!isGift) {
+      //   const existingCustomerCode = await paystackAxios.get(
+      //     `/customer/${user.customerCode}`
+      //   );
+      //   if (existingCustomerCode) {
+      //     const subscriptions =
+      //       existingCustomerCode.data.data.subscriptions || [];
+      //     if (subscriptions.length > 0) {
+      //       const hasActiveSubscription = subscriptions.some(
+      //         (sub) => sub.status === "active"
+      //       );
+
+      //       if (hasActiveSubscription) {
+      //         return BaseService.sendSuccessResponse({
+      //           message: "Subscription already active",
+      //         });
+      //       }
+
+      //       const existingSubscription = await SubscriptionModel.findOne({
+      //         user: user._id,
+      //         // paystackSubscriptionId: paystackPlanCode,
+      //         status: "active",
+      //         // categoryId,
+      //       });
+
+      //       if (existingSubscription) {
+      //         return BaseService.sendSuccessResponse({
+      //           message:
+      //             "Subscription already exists. Disable your subscription current subscription",
+      //         });
+      //       }
+      //     }
+      //   }
+      // }
+
       if (!isGift) {
-        const existingPaystackSubscription = await paystackAxios.get(
-          `/customer/${user.email}`
+        let subscriptions = [];
+      
+        if (user.customerCode) {
+          try {
+            const response = await paystackAxios.get(
+              `/customer/${user.customerCode}`
+            );
+      
+            subscriptions = response.data?.data?.subscriptions || [];
+          } catch (error) {
+            console.log("Error from paystack customer check", error)
+            if (error.response?.status === 404) {
+              // Customer does not exist on Paystack → treat as no subscription
+              subscriptions = [];
+            } else {
+              return BaseService.sendFailedResponse({
+                error: "Error occured while attempting to subscribe",
+              });
+            }
+          }
+        }
+      
+        const hasActiveSubscription = subscriptions.some(
+          (sub) => sub.status === "active"
         );
-        const subscriptions =
-          existingPaystackSubscription.data.data.subscriptions || [];
-        if (subscriptions.length > 0) {
-          const hasActiveSubscription = subscriptions.some(
-            (sub) => sub.status === "active"
-          );
-
-          if (hasActiveSubscription) {
-            return BaseService.sendSuccessResponse({
-              message: "Subscription already active",
-            });
-          }
-
-          const existingSubscription = await SubscriptionModel.findOne({
-            user: user._id,
-            // paystackSubscriptionId: paystackPlanCode,
-            status: "active",
-            // categoryId,
+      
+        if (hasActiveSubscription) {
+          return BaseService.sendSuccessResponse({
+            message: "Subscription already active",
           });
-
-          if (existingSubscription) {
-            return BaseService.sendSuccessResponse({
-              message:
-                "Subscription already exists. Disable your subscription current subscription",
-            });
-          }
+        }
+      
+        // 🔥 Your DB check is still important (good job keeping it)
+        const existingSubscription = await SubscriptionModel.findOne({
+          user: user._id,
+          status: "active",
+        });
+      
+        if (existingSubscription) {
+          return BaseService.sendSuccessResponse({
+            message:
+              "Subscription already exists. Disable your current subscription",
+          });
         }
       }
 
@@ -241,8 +290,10 @@ class PaystackService extends BaseService {
         `/transaction/verify/${reference}`
       );
 
-      if(!response.data.status){
-        return BaseService.sendFailedResponse({error: 'We are trying to verify your payment. Please try again later'})
+      if (!response.data.status) {
+        return BaseService.sendFailedResponse({
+          error: "We are trying to verify your payment. Please try again later",
+        });
       }
 
       const couponExists = await CouponModel.findOne({ reference });

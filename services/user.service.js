@@ -67,7 +67,7 @@ class UserService extends BaseService {
 
       // Find user by email OR phone
       let user = await UserModel.findOne({
-        $or: [{ email: post.email }, { phoneNumber: post.phoneNumber || '' }],
+        $or: [{ email: post.email }, { phoneNumber: post.phoneNumber || "" }],
       }).session(session);
 
       if (user && user.isVerified) {
@@ -434,7 +434,7 @@ class UserService extends BaseService {
 
       const { email, otp, phoneNumber, otpPhoneNumber } = post;
 
-      const user = await UserModel.findOne({email});
+      const user = await UserModel.findOne({ email });
 
       if (!user) {
         return BaseService.sendFailedResponse({
@@ -793,7 +793,6 @@ class UserService extends BaseService {
         to: email,
         html: emailHtml,
       });
-
 
       return BaseService.sendSuccessResponse({
         message: "Otp sent. Please verify your email",
@@ -2285,7 +2284,18 @@ class UserService extends BaseService {
       }
 
       // Validate recipient
-      if (coupon.recipientEmail?.toLowerCase() !== user.email?.toLowerCase()) {
+      const normalizePhone = (phone) => phone?.replace(/\D/g, "");
+
+      const emailMatches =
+        coupon.recipientEmail?.toLowerCase() === user.email?.toLowerCase();
+
+      const phoneMatches =
+        coupon.phoneNumber && user.phoneNumber
+          ? normalizePhone(coupon.phoneNumber) ===
+            normalizePhone(user.phoneNumber)
+          : false;
+
+      if (!emailMatches && !phoneMatches) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
         });
