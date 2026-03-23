@@ -713,6 +713,9 @@ class UserService extends BaseService {
       // }
 
       userExists.password = password;
+      if(userExists.servicePlatform == 'google' || userExists.servicePlatform == 'apple'){
+        userExists.servicePlatform = 'both'
+      }
       // userExists.markModified("password");
       await userExists.save();
 
@@ -2285,6 +2288,7 @@ class UserService extends BaseService {
             normalizePhone(user.phoneNumber)
           : false;
 
+          console.log({phoneMatches, emailMatches})
       if (!emailMatches && !phoneMatches) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
@@ -2297,6 +2301,7 @@ class UserService extends BaseService {
         status: "active",
         expiryDate: { $gt: new Date() },
       });
+
       if (existingSub) {
         return BaseService.sendFailedResponse({
           error: "User already has an active subscription",
@@ -2322,51 +2327,10 @@ class UserService extends BaseService {
 
       if (!category) {
         return BaseService.sendFailedResponse({
-          error: `Plan category '${categoryId}' not found`,
+          error: `Plan category not found`,
         });
       }
 
-      // Validate authorizationCode and customerCode presence
-      // if (!authorizationCode || !customerCode) {
-      //   return BaseService.sendFailedResponse({
-      //     error:
-      //       "Authorization and customer codes are required to redeem subscription",
-      //   });
-      // }
-
-      // Create Paystack subscription
-      // let resp;
-      // try {
-      //   resp = await axios.post(
-      //     "https://api.paystack.co/subscription",
-      //     {
-      //       customer: customerCode,
-      //       plan: category.paystackSubscriptionId, // use category's subscription plan id
-      //       authorization: authorizationCode,
-      //     },
-      //     {
-      //       headers: {
-      //         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-      //       },
-      //     }
-      //   );
-      // } catch (error) {
-      //   console.error(
-      //     "Error creating Paystack subscription:",
-      //     error.response?.data || error.message
-      //   );
-      //   return BaseService.sendFailedResponse({
-      //     error: "Failed to create subscription with payment provider",
-      //   });
-      // }
-
-      // if (!resp.data.status) {
-      //   return BaseService.sendFailedResponse({
-      //     error: "Paystack subscription creation failed",
-      //   });
-      // }
-
-      // Calculate expiry date based on category duration
       let expiryDate = new Date();
       if (category.duration === "monthly") {
         expiryDate.setMonth(expiryDate.getMonth() + 1);
@@ -2391,6 +2355,9 @@ class UserService extends BaseService {
       // Mark coupon as used
       coupon.used = true;
       coupon.usedByUserId = userId;
+      await coupon.save();
+
+      console.log(coupon,'the coupon')
       await NotificationModel.create({
         userId,
         title: "Coupon Redeemed",
@@ -2402,25 +2369,6 @@ class UserService extends BaseService {
         title: "Subscription Gift Redeemed",
         body: `Your gifted subscription coupon has been redeemed by ${user.firstName} ${user.lastName}.`,
       });
-      // coupon.usedAt = new Date();
-      await coupon.save();
-
-      // const emailToken = resp.data.data.email_token || ""
-      // const subscriptionCode = resp.data.data.subscription_code || "";
-
-      // const response = await axios.post(
-      //   "https://api.paystack.co/subscription/disable",
-      //   {
-      //     code: subscriptionCode,
-      //     token: emailToken,
-      //   },
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // );
 
       return BaseService.sendSuccessResponse({
         message: "Subscription redeemed successfully",

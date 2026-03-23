@@ -94,7 +94,7 @@ const UserSchema = new mongoose.Schema(
     servicePlatform: {
       type: String,
       // default: "local",
-      enum: ["local", "google", "apple"],
+      enum: ["local", "google", "apple", "both"],
     },
     status: {
       type: String,
