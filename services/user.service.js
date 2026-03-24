@@ -2441,6 +2441,7 @@ class UserService extends BaseService {
       await subscription.save();
       console.log({subscription})
 
+      console.log({userId, isGift: subscription.isGift})
       if(!subscription.isGift){
         const subscriptionCode = subscription.subscriptionCode;
         const token = subscription.paystackAuthorizationToken;
