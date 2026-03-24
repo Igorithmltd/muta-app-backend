@@ -2283,6 +2283,7 @@ class UserService extends BaseService {
 
       // Validate recipient
       const normalizePhone = (phone) => phone?.replace(/\D/g, "");
+      console.log({userEmail: user.email, couponEmail: coupon.recipientEmail, userPhone: user.phoneNumber, couponPhone: coupon.phoneNumber})
 
       const emailMatches =
         coupon.recipientEmail?.toLowerCase() === user.email?.toLowerCase();
