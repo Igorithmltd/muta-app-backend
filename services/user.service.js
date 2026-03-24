@@ -2743,7 +2743,7 @@ class UserService extends BaseService {
       };
 
       const notifications = await NotificationModel.find(filter).sort({
-        timestamp: -1,
+        createdAt: -1,
       });
 
       const formattedNotifications = notifications.map((notif) => ({
