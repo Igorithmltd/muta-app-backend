@@ -2423,7 +2423,7 @@ class UserService extends BaseService {
     }
   }
 
-  async cancelPlan(req, res) {
+  async cancelPlan(req) {
     try {
       const userId = req.user.id;
       const message = req.body.message || "";
@@ -2442,13 +2442,14 @@ class UserService extends BaseService {
       const paystackSubscriptionId = subscription.subscriptionCode;
       const token = subscription.paystackAuthorizationToken;
 
-      if (paystackSubscriptionId) {
+      if (paystackSubscriptionId && token) {
         const paystackService = new PaystackService();
         const cancelPaystackSubscription =
           await paystackService.disableSubscription(
             paystackSubscriptionId,
             token
           );
+          console.log({cancelPaystackSubscription})
       }
 
       subscription.status = "cancelled";
@@ -2458,7 +2459,7 @@ class UserService extends BaseService {
         message: "Subscription plan cancelled",
       });
     } catch (error) {
-      console.error("Create plan error:");
+      console.error("Create plan error:", error);
       return BaseService.sendFailedResponse({ error: "Failed to cancel plan" });
     }
   }
