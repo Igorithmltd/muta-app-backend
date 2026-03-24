@@ -1887,7 +1887,7 @@ router.get(ROUTE_POPULAR_WORKOUTPLANS, auth, (req, res) => {
  *                   type: string
  *                   example: "Server error while rating workout plan"
  */
-router.post(ROUTE_RATE_WORKOUTPLAN, auth, (req, res) => {
+router.post(ROUTE_RATE_WORKOUTPLAN+ "/:id", auth, (req, res) => {
   const workoutplanController = new WorkoutplanController();
   return workoutplanController.rateWorkoutplan(req, res);
 });

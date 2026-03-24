@@ -543,6 +543,11 @@ class UserService extends BaseService {
         );
       }
 
+      const platform = userExists.servicePlatform;
+      const isPasswordLogin = !!password;
+
+
+
       if (userExists.servicePlatform === "google") {
         // If the user signed up via Google, prevent local login attempt
         if (password) {
