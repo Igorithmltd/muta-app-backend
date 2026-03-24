@@ -2424,7 +2424,6 @@ class UserService extends BaseService {
   async cancelPlan(req) {
     try {
       const userId = req.user.id;
-      const message = req.body.message || "";
 
       const subscription = await SubscriptionModel.findOne({
         user: userId,
@@ -2440,6 +2439,7 @@ class UserService extends BaseService {
       subscription.status = "cancelled";
       subscription.cancelledAt = new Date()
       await subscription.save();
+      console.log({subscription})
 
       if(!subscription.isGift){
         const subscriptionCode = subscription.subscriptionCode;
@@ -2455,14 +2455,19 @@ class UserService extends BaseService {
 
             if(!cancelPaystackSubscription.success){
               return BaseService.sendFailedResponse({error: cancelPaystackSubscription.error})
+            }else{
+              return BaseService.sendSuccessResponse({
+                message: "Subscription plan cancelled",
+              });
             }
         }
+      }else{
+        return BaseService.sendSuccessResponse({
+          message: "Subscription plan cancelled",
+        });
       }
 
 
-      return BaseService.sendSuccessResponse({
-        message: "Subscription plan cancelled",
-      });
     } catch (error) {
       console.error("Create plan error:", error);
       return BaseService.sendFailedResponse({ error: "Failed to cancel plan" });
