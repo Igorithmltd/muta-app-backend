@@ -2175,8 +2175,6 @@ class UserService extends BaseService {
 
       // Populate user with subscription and plan
       const user = await UserModel.findById(userId);
-      // .populate("subscription") // SubscriptionModel
-      // .populate("subscriptionPlan"); // PlanModel
 
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
@@ -2204,8 +2202,26 @@ class UserService extends BaseService {
 
       // const paystackSub = await paystackAxios.get(`/customer/CUS_x6v87jhw28rdwq6`)
 
-      const paystackSub = await paystackAxios.get(`/customer/${user.email}`);
-      const subscriptionList = paystackSub.data.data.subscriptions;
+      let subscriptionList = [];
+      
+      if (user.customerCode) {
+        try {
+          const paystackSub = await paystackAxios.get(`/customer/${user.customerCode}`);
+          subscriptionList = paystackSub.data.data.subscriptions || [];
+    
+        } catch (error) {
+          console.log("Error from paystack customer check", error)
+          if (error.response?.status === 404) {
+            // Customer does not exist on Paystack → treat as no subscription
+            subscriptionList = [];
+          } else {
+            return BaseService.sendFailedResponse({
+              error: "Error occured in getting the subscription status",
+            });
+          }
+        }
+      }
+
 
       for (const sub of subscriptionList) {
         const sub_code = sub.subscription_code;
@@ -2306,7 +2322,6 @@ class UserService extends BaseService {
       const existingSub = await SubscriptionModel.findOne({
         user: userId,
         status: "active",
-        expiryDate: { $gt: new Date() },
       });
 
       if (existingSub) {
