@@ -2231,6 +2231,7 @@ class UserService extends BaseService {
 
       subscription = subscription.toObject();
       subscription.categoryId = category || null;
+      console.log({subscription, userEmail: user.email})
 
       return BaseService.sendSuccessResponse({
         message: "Subscription state retrieved successfully",
