@@ -2455,6 +2455,9 @@ class UserService extends BaseService {
               token
             );
             console.log({cancelPaystackSubscription})
+            if(!cancelPaystackSubscription.success){
+              return BaseService.sendFailedResponse({error: cancelPaystackSubscription.message})
+            }
         }
       }
 

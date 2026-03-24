@@ -350,21 +350,27 @@ class PaystackService extends BaseService {
     }
   }
   async disableSubscription(paystackSubscriptionId, token) {
-    console.log({paystackSubscriptionId, token})
-    const resp = await this.axiosInstance.post(
-      "/subscription/disable",
-      {
-        code: paystackSubscriptionId,
-        token,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
+    try {
+      
+      console.log({paystackSubscriptionId, token})
+      const resp = await this.axiosInstance.post(
+        "/subscription/disable",
+        {
+          code: paystackSubscriptionId,
+          token,
         },
-      }
-    );
-    return resp.data;
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return {success: true, message: resp.data};
+    } catch (error) {
+      console.log(error,'from disable')
+      return {success: false, error: 'Something went wrong disabling the subscription'}
+    }
   }
   isInputEmail(input) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
