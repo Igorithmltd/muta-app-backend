@@ -41,7 +41,6 @@ const {
   ROUTE_DELETE_NOTIFICATION,
   ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS,
   ROUTE_GET_USER_WEIGHT_LOSS,
-  ROUTE_DELETE_ALL_NOTIFICATION,
   ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ,
   ROUTE_GET_VERIFIED_COACHES,
   ROUTE_UPDATE_USER,
@@ -63,7 +62,8 @@ const {
   ROUTE_BMI_ANALYSIS,
   ROUTE_GET_COACH_SUBSCRIBED_USERS,
   ROUTE_GET_CLIENT_GROWTH_STATS,
-  ROUTE_GET_COACH_PERFORMANCE_GRAPH
+  ROUTE_GET_COACH_PERFORMANCE_GRAPH,
+  ROUTE_DELETE_ALL_NOTIFICATIONS
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -2308,7 +2308,7 @@ router.post(ROUTE_MARK_NOTIFICATION_AS_READ, auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post(ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ, adminAuth, (req, res) => {
+router.post(ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ, auth, (req, res) => {
   const userController = new UserController();
   return userController.markAllNotificationsAsRead(req, res);
 });
@@ -2345,7 +2345,7 @@ router.post(ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ, adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_NOTIFICATION, adminAuth, (req, res) => {
+router.delete(ROUTE_DELETE_NOTIFICATION, auth, (req, res) => {
   const userController = new UserController();
   return userController.deleteNotifications(req, res);
 });
@@ -2369,7 +2369,7 @@ router.delete(ROUTE_DELETE_NOTIFICATION, adminAuth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_ALL_NOTIFICATION, adminAuth, (req, res) => {
+router.delete(ROUTE_DELETE_ALL_NOTIFICATIONS, auth, (req, res) => {
   const userController = new UserController();
   return userController.deleteAllNotifications(req, res);
 });

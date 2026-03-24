@@ -2463,6 +2463,7 @@ class UserService extends BaseService {
             }
         }
       }else{
+        console.log({userId, isGift: subscription.isGift}, 'Must be called...')
         return BaseService.sendSuccessResponse({
           message: "Subscription plan cancelled",
         });
@@ -2983,9 +2984,9 @@ class UserService extends BaseService {
       // const message = otp;
 
       const otpResult = await otpSend(phoneNumber, otpMessage);
-      // console.log({otpResult: otpResult.data})
+      console.log({otpResult})
 
-      if (otpResult.code == "ok") {
+      if (otpResult.success) {
         const expiresAt = new Date(Date.now() + EXPIRES_AT);
 
         user.otp = otp;
@@ -2997,7 +2998,7 @@ class UserService extends BaseService {
         });
       } else {
         return BaseService.sendFailedResponse({
-          error: "Failed to sent otp to ths number",
+          error: "Failed to send otp to ths number",
         });
       }
     } catch (error) {
