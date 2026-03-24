@@ -14,6 +14,9 @@ if (!admin.apps.length) {
 
 const sendPushNotification = async ({ deviceToken, topic, title=null, body=null, data = {}, notificationType="general" }) => {
     try {
+      if (!deviceToken && !topic) {
+        throw new Error("Either deviceToken or topic must be provided");
+      }
       const stringifiedData = {};
       Object.entries(data).forEach(([key, value]) => {
         stringifiedData[key] =

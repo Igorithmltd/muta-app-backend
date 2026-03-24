@@ -105,11 +105,6 @@ class ChallengeService extends BaseService {
         body: `Push your limits with our latest challenge "${savedChallenge.title}". Join now and achieve your goals!`,
       };
 
-      const notificationData = {
-        notification: receiverData,
-        // notificationType: "all-users",
-      };
-
       await sendPushNotification(receiverData);
 
       return BaseService.sendSuccessResponse({
