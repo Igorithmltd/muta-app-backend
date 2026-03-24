@@ -38,6 +38,7 @@ const VerificationApplicationModel = require("../models/verification-application
 const CoachGuidanceModel = require("../models/coach-guidance.model");
 const otpSend = require("../util/otpSend");
 const paystackAxios = require("./paystack.client.service");
+const ChatRoomModel = require("../models/chatModel");
 
 class UserService extends BaseService {
   async createUser(req) {
@@ -2379,7 +2380,19 @@ class UserService extends BaseService {
       coupon.usedByUserId = userId;
       await coupon.save();
 
-      console.log(coupon,'the coupon')
+
+      let chat = await ChatRoomModel.findOne({
+        type: "private",
+        participants: { $all: [user._id, coupon.coachId] },
+      });
+
+      if (!chat) {
+        chat = await ChatRoomModel.create({
+          type: "private",
+          participants: [user._id, coupon.coachId],
+        });
+      }
+
       await NotificationModel.create({
         userId,
         title: "Coupon Redeemed",
