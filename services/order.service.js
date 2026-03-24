@@ -103,6 +103,7 @@ class OrderService extends BaseService {
       );
 
       await CartModel.findOneAndUpdate({ user: userId }, { items: [] });
+      console.log(paymentData.data,'from order')
 
       return BaseService.sendSuccessResponse({
         message: "Order created successfully",
