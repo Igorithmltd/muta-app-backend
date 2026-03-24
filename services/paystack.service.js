@@ -350,6 +350,7 @@ class PaystackService extends BaseService {
     }
   }
   async disableSubscription(paystackSubscriptionId, token) {
+    console.log({paystackSubscriptionId, token})
     const resp = await this.axiosInstance.post(
       "/subscription/disable",
       {

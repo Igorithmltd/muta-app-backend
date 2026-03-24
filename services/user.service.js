@@ -2439,21 +2439,25 @@ class UserService extends BaseService {
         });
       }
 
-      const paystackSubscriptionId = subscription.subscriptionCode;
-      const token = subscription.paystackAuthorizationToken;
+      subscription.status = "cancelled";
+      subscription.cancelledAt = new Date()
+      await subscription.save();
 
-      if (paystackSubscriptionId && token) {
-        const paystackService = new PaystackService();
-        const cancelPaystackSubscription =
-          await paystackService.disableSubscription(
-            paystackSubscriptionId,
-            token
-          );
-          console.log({cancelPaystackSubscription})
+      if(!subscription.isGift){
+        const subscriptionCode = subscription.subscriptionCode;
+        const token = subscription.paystackAuthorizationToken;
+  
+        if (subscriptionCode && token) {
+          const paystackService = new PaystackService();
+          const cancelPaystackSubscription =
+            await paystackService.disableSubscription(
+              subscriptionCode,
+              token
+            );
+            console.log({cancelPaystackSubscription})
+        }
       }
 
-      subscription.status = "cancelled";
-      await subscription.save();
 
       return BaseService.sendSuccessResponse({
         message: "Subscription plan cancelled",
