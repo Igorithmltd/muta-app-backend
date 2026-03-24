@@ -2248,7 +2248,6 @@ class UserService extends BaseService {
 
       subscription = subscription.toObject();
       subscription.categoryId = category || null;
-      console.log({subscription, userEmail: user.email})
 
       return BaseService.sendSuccessResponse({
         message: "Subscription state retrieved successfully",
@@ -2301,7 +2300,6 @@ class UserService extends BaseService {
 
       // Validate recipient
       const normalizePhone = (phone) => phone?.replace(/\D/g, "");
-      console.log({userEmail: user.email, couponEmail: coupon.recipientEmail, userPhone: user.phoneNumber, couponPhone: coupon.phoneNumber})
 
       const emailMatches =
         coupon.recipientEmail?.toLowerCase() === user.email?.toLowerCase();
@@ -2312,7 +2310,7 @@ class UserService extends BaseService {
             normalizePhone(user.phoneNumber)
           : false;
 
-          console.log({phoneMatches, emailMatches})
+
       if (!emailMatches && !phoneMatches) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
@@ -2446,7 +2444,6 @@ class UserService extends BaseService {
       if(!subscription.isGift){
         const subscriptionCode = subscription.subscriptionCode;
         const token = subscription.paystackAuthorizationToken;
-        console.log({subscriptionCode, token})
   
         if (subscriptionCode && token) {
           const paystackService = new PaystackService();
@@ -2455,9 +2452,9 @@ class UserService extends BaseService {
               subscriptionCode,
               token
             );
-            console.log({cancelPaystackSubscription})
+
             if(!cancelPaystackSubscription.success){
-              return BaseService.sendFailedResponse({error: cancelPaystackSubscription.message})
+              return BaseService.sendFailedResponse({error: cancelPaystackSubscription.error})
             }
         }
       }

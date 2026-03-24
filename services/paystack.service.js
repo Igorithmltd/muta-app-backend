@@ -225,6 +225,7 @@ class PaystackService extends BaseService {
             status: "active",
             user: gifteeUser._id,
           });
+          console.log(existingGift, 'existing gift')
           if (existingGift) {
             return BaseService.sendFailedResponse({
               error:
@@ -281,7 +282,7 @@ class PaystackService extends BaseService {
     }
   }
 
-  async verifyReference(req) {
+  async verifyReference() {
     try {
       const reference = "REF_1773664488632_69b7f5d824c2786534a24cdb";
       // const reference = req.params.referenceId
@@ -352,7 +353,6 @@ class PaystackService extends BaseService {
   async disableSubscription(paystackSubscriptionId, token) {
     try {
       
-      console.log({paystackSubscriptionId, token})
       const resp = await this.axiosInstance.post(
         "/subscription/disable",
         {
@@ -368,8 +368,12 @@ class PaystackService extends BaseService {
       );
       return {success: true, message: resp.data};
     } catch (error) {
-      console.log(error,'from disable')
-      return {success: false, error: 'Something went wrong disabling the subscription'}
+      const message = error.response.data.message
+      console.log(error.response.data.messsage,'from disable')
+      if(error.status == 404 || message == 'Subscription with code not found or already inactive'){
+        return {success: true, message: 'Already disabled'}
+      }
+      return {success: false, error: message || 'Something went wrong disabling the subscription'}
     }
   }
   isInputEmail(input) {
