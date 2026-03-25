@@ -109,10 +109,75 @@ class UserService extends BaseService {
 
       // Send Email OTP
       const emailHtml = `
-        <h1>Verify Your Email</h1>
-        <p>Hi <strong>${post.email}</strong>,</p>
-        <p>Your OTP is <b>${otpEmail}</b></p>
-      `;
+      <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+          <tr>
+            <td align="center">
+              
+              <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                
+                <!-- Header -->
+                <tr>
+                  <td style="background:#38bdf8; padding:20px; text-align:center;">
+                    <h1 style="margin:0; color:#ffffff; font-size:20px;">
+                      Verify Your Email Address
+                    </h1>
+                  </td>
+                </tr>
+    
+                <!-- Body -->
+                <tr>
+                  <td style="padding:30px 25px; color:#444;">
+                    
+                    <p style="margin:0 0 10px;">
+                      Hi <strong>${post.email}</strong>,
+                    </p>
+    
+                    <p style="margin:0 0 15px;">
+                      Welcome! To complete your signup, please use the One-Time Password (OTP) below to verify your email address.
+                    </p>
+    
+                    <!-- OTP Box -->
+                    <div style="text-align:center; margin:20px 0;">
+                      <span style="
+                        display:inline-block;
+                        padding:14px 28px;
+                        background:#e0f2fe;
+                        color:#0369a1;
+                        font-size:22px;
+                        font-weight:bold;
+                        letter-spacing:4px;
+                        border-radius:8px;
+                      ">
+                        ${otpEmail}
+                      </span>
+                    </div>
+    
+                    <p style="margin:20px 0;">
+                      This code is valid for a limited time. Please do not share it with anyone for security reasons.
+                    </p>
+    
+                    <p style="font-size:12px; color:#999; text-align:center;">
+                      If you did not request this, you can safely ignore this email.
+                    </p>
+    
+                  </td>
+                </tr>
+    
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                    © ${new Date().getFullYear()} Your App. All rights reserved.
+                  </td>
+                </tr>
+    
+              </table>
+    
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
 
       await sendEmail({
         subject: "Verify Your email",
@@ -227,10 +292,76 @@ class UserService extends BaseService {
 
       // Send OTP email
       const emailHtml = `
-         <h1>Registration successful</h1>
-      <p>Hi <strong>${newUser.email}</strong>,</p>
-      <p>You have successfully sign up:</p>
-      `;
+  <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+      <tr>
+        <td align="center">
+          
+          <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+            
+            <!-- Header -->
+            <tr>
+              <td style="background:#38bdf8; padding:20px; text-align:center;">
+                <h1 style="margin:0; color:#ffffff; font-size:20px;">
+                  Registration Successful
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:30px 25px; color:#444;">
+                
+                <p style="margin:0 0 10px;">
+                  Hi <strong>${newUser.email}</strong>,
+                </p>
+
+                <p style="margin:0 0 15px;">
+                  Your account has been successfully created.
+                </p>
+
+                <p style="margin:0 0 20px;">
+                  Welcome aboard! You can now explore all the features available and start your journey with us.
+                </p>
+
+                <!-- CTA Button -->
+                <div style="text-align:center; margin:25px 0;">
+                  <a href="https://muta.fit" style="
+                    display:inline-block;
+                    padding:12px 24px;
+                    background:#38bdf8;
+                    color:#ffffff;
+                    text-decoration:none;
+                    border-radius:25px;
+                    font-weight:bold;
+                    font-size:14px;
+                  ">
+                    Get Started
+                  </a>
+                </div>
+
+                <p style="font-size:12px; color:#999; text-align:center;">
+                  If you did not create this account, please contact support immediately.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                © ${new Date().getFullYear()} Your App. All rights reserved.
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </div>
+       `;
+
       await sendEmail({
         subject: "Welcome to Muta App",
         to: newUser.email,
@@ -378,10 +509,76 @@ class UserService extends BaseService {
 
       // 11. Send a welcome email or confirmation email to the user
       const emailHtml = `
-        <h1>Registration successful</h1>
-        <p>Hi <strong>${newUser.email}</strong>,</p>
-        <p>You have successfully signed up with Apple.</p>
-      `;
+      <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+          <tr>
+            <td align="center">
+              
+              <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                
+                <!-- Header -->
+                <tr>
+                  <td style="background:#38bdf8; padding:20px; text-align:center;">
+                    <h1 style="margin:0; color:#ffffff; font-size:20px;">
+                      Registration Successful
+                    </h1>
+                  </td>
+                </tr>
+    
+                <!-- Body -->
+                <tr>
+                  <td style="padding:30px 25px; color:#444;">
+                    
+                    <p style="margin:0 0 10px;">
+                      Hi <strong>${newUser.email}</strong>,
+                    </p>
+    
+                    <p style="margin:0 0 15px;">
+                      Your account has been successfully created.
+                    </p>
+    
+                    <p style="margin:0 0 20px;">
+                      Welcome aboard! You can now explore all the features available and start your journey with us.
+                    </p>
+    
+                    <!-- CTA Button -->
+                    <div style="text-align:center; margin:25px 0;">
+                      <a href="https://muta.fit" style="
+                        display:inline-block;
+                        padding:12px 24px;
+                        background:#38bdf8;
+                        color:#ffffff;
+                        text-decoration:none;
+                        border-radius:25px;
+                        font-weight:bold;
+                        font-size:14px;
+                      ">
+                        Get Started
+                      </a>
+                    </div>
+    
+                    <p style="font-size:12px; color:#999; text-align:center;">
+                      If you did not create this account, please contact support immediately.
+                    </p>
+    
+                  </td>
+                </tr>
+    
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                    © ${new Date().getFullYear()} Your App. All rights reserved.
+                  </td>
+                </tr>
+    
+              </table>
+    
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
       await sendEmail({
         subject: "Welcome to Muta App",
         to: newUser.email,
@@ -472,9 +669,60 @@ class UserService extends BaseService {
       );
 
       const emailHtml = `
-        <h1>Your email has been verified</h1>
-        <p>Hi <strong>${email}</strong>,</p>
-        <p>Your account has been successfully verified.</p>
+<div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background:#38bdf8; padding:20px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:20px;">Email Verified</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:30px 25px; color:#444;">
+              <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+              <p style="margin:0 0 15px;">Congratulations! Your email has been successfully verified.</p>
+              <p style="margin:0 0 20px;">You can now access all the features of your account and get started with your journey.</p>
+
+              <!-- CTA Button -->
+              <div style="text-align:center; margin:25px 0;">
+                <a href="https://muta.fit" style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  background:#38bdf8;
+                  color:#ffffff;
+                  text-decoration:none;
+                  border-radius:25px;
+                  font-weight:bold;
+                  font-size:14px;
+                ">
+                  Go to Dashboard
+                </a>
+              </div>
+
+              <p style="font-size:12px; color:#999; text-align:center;">
+                If you did not verify this account, please contact support immediately.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+              © ${new Date().getFullYear()} Your App. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
       `;
 
       await sendEmail({
@@ -546,8 +794,6 @@ class UserService extends BaseService {
 
       const platform = userExists.servicePlatform;
       const isPasswordLogin = !!password;
-
-
 
       if (userExists.servicePlatform === "google") {
         // If the user signed up via Google, prevent local login attempt
@@ -662,10 +908,49 @@ class UserService extends BaseService {
       await userExists.save();
       // Send OTP email
       const emailHtml = `
-      <h1>Password Reset Request</h1>
-       <p>Hi <strong>${email}</strong>,</p>
-       <p>Your password reset code is ${otp}</p>
-    `;
+      <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+          <tr>
+            <td align="center">
+              <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                
+                <!-- Header -->
+                <tr>
+                  <td style="background:#38bdf8; padding:20px; text-align:center;">
+                    <h1 style="margin:0; color:#ffffff; font-size:20px;">Password Reset Request</h1>
+                  </td>
+                </tr>
+      
+                <!-- Body -->
+                <tr>
+                  <td style="padding:30px 25px; color:#444;">
+                    <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+                    <p style="margin:0 0 15px;">We received a request to reset your password.</p>
+                    <p style="margin:0 0 20px; font-size:18px; font-weight:bold; text-align:center; background:#e0f2fe; padding:10px 0; border-radius:6px;">
+                      ${otp}
+                    </p>
+                    <p style="margin:0 0 15px;">Enter this code in the app to reset your password. If you did not request this, you can safely ignore this email.</p>
+      
+                    <p style="font-size:12px; color:#999; text-align:center;">
+                      If you didn't request a password reset, please ignore this email.
+                    </p>
+                  </td>
+                </tr>
+      
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                    © ${new Date().getFullYear()} Your App. All rights reserved.
+                  </td>
+                </tr>
+      
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+      `;
+
       await sendEmail({
         subject: "Password Reset Request",
         to: email,
@@ -719,18 +1004,72 @@ class UserService extends BaseService {
       // }
 
       userExists.password = password;
-      if(userExists.servicePlatform == 'google' || userExists.servicePlatform == 'apple'){
-        userExists.servicePlatform = 'both'
+      if (
+        userExists.servicePlatform == "google" ||
+        userExists.servicePlatform == "apple"
+      ) {
+        userExists.servicePlatform = "both";
       }
       // userExists.markModified("password");
       await userExists.save();
 
       // Send OTP email
       const emailHtml = `
-          <h1>Password Reset</h1>
-          <p>Hi <strong>${email}</strong>,</p>
-          <p>Your Password has been reset successfully</p>
+<div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#38bdf8; padding:20px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:20px;">Password Reset Successful</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:30px 25px; color:#444;">
+              <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+              <p style="margin:0 0 15px;">Your password has been reset successfully. You can now log in using your new password.</p>
+
+              <!-- Optional CTA button -->
+              <div style="text-align:center; margin:25px 0;">
+                <a href="https://muta.fit" style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  background:#38bdf8;
+                  color:#ffffff;
+                  text-decoration:none;
+                  border-radius:25px;
+                  font-weight:bold;
+                  font-size:14px;
+                ">
+                  Log In
+                </a>
+              </div>
+
+              <p style="font-size:12px; color:#999; text-align:center;">
+                If you did not perform this action, please contact support immediately.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+              © ${new Date().getFullYear()} Your App. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
       `;
+
       await sendEmail({
         subject: "Password Reset Confirmation",
         to: email,
@@ -783,10 +1122,49 @@ class UserService extends BaseService {
 
       // Send OTP email
       const emailHtml = `
-         <h1>Verify Your Email</h1>
-      <p>Hi <strong>${email}</strong>,</p>
-      <p>Here is your One-Time Password: <b>${otp1}</b> to complete the verification:</p>
+      <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+          <tr>
+            <td align="center">
+              <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+      
+                <!-- Header -->
+                <tr>
+                  <td style="background:#38bdf8; padding:20px; text-align:center;">
+                    <h1 style="margin:0; color:#ffffff; font-size:20px;">Verify Your Email</h1>
+                  </td>
+                </tr>
+      
+                <!-- Body -->
+                <tr>
+                  <td style="padding:30px 25px; color:#444;">
+                    <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+                    <p style="margin:0 0 15px;">Your One-Time Password (OTP) to complete email verification is:</p>
+      
+                    <p style="font-size:24px; font-weight:bold; text-align:center; margin:20px 0; color:#38bdf8;">
+                      ${otp1}
+                    </p>
+      
+                    <p style="font-size:12px; color:#999; text-align:center;">
+                      If you did not request this, please ignore this email.
+                    </p>
+                  </td>
+                </tr>
+      
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                    © ${new Date().getFullYear()} Your App. All rights reserved.
+                  </td>
+                </tr>
+      
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
       `;
+
       await sendEmail({
         subject: "Verify Your email",
         to: email,
@@ -842,10 +1220,49 @@ class UserService extends BaseService {
 
       // Send OTP email
       const emailHtml = `
-         <h1>Verify Your Email</h1>
-      <p>Hi <strong>${email}</strong>,</p>
-      <p>Here is your One-Time Password: <b>${otp}</b> to complete the verification:</p>
+<div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#38bdf8; padding:20px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:22px;">Verify Your Email</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:30px 25px; color:#444;">
+              <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+              <p style="margin:0 0 15px;">Here is your One-Time Password (OTP) to complete the verification:</p>
+
+              <p style="font-size:24px; font-weight:bold; text-align:center; margin:20px 0; color:#38bdf8;">
+                ${otp}
+              </p>
+
+              <p style="font-size:12px; color:#999; text-align:center;">
+                If you did not request this, please ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+              © ${new Date().getFullYear()} Your App. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
       `;
+
       await sendEmail({
         subject: "Verify Your email",
         to: email,
@@ -907,10 +1324,42 @@ class UserService extends BaseService {
 
       // Send OTP email
       const emailHtml = `
-          <h1>Your password OTP has been verified</h1>
-          <p>Hi <strong>${email}</strong>,</p>
-          <p>You have successfully reset your password</p>
+<div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#38bdf8; padding:20px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:22px;">Password OTP Verified</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:30px 25px; color:#444;">
+              <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+              <p style="margin:0 0 15px;">Your password OTP has been successfully verified.</p>
+              <p style="margin:0 0 15px;">You can now safely use your new password to log in.</p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+              © ${new Date().getFullYear()} Your App. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
       `;
+
       await sendEmail({
         subject: "Password Reset Verification",
         to: email,
@@ -973,10 +1422,42 @@ class UserService extends BaseService {
 
       // Send OTP email
       const emailHtml = `
-          <h1>Password Reset</h1>
-          <p>Hi <strong>${email}</strong>,</p>
-          <p>Your Password has been reset successfully</p>
+      <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+          <tr>
+            <td align="center">
+              <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+      
+                <!-- Header -->
+                <tr>
+                  <td style="background:#38bdf8; padding:20px; text-align:center;">
+                    <h1 style="margin:0; color:#ffffff; font-size:22px;">Password Reset</h1>
+                  </td>
+                </tr>
+      
+                <!-- Body -->
+                <tr>
+                  <td style="padding:30px 25px; color:#444;">
+                    <p style="margin:0 0 10px;">Hi <strong>${email}</strong>,</p>
+                    <p style="margin:0 0 15px;">Your password has been successfully reset.</p>
+                    <p style="margin:0 0 15px;">You can now log in with your new password.</p>
+                  </td>
+                </tr>
+      
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                    © ${new Date().getFullYear()} Your App. All rights reserved.
+                  </td>
+                </tr>
+      
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
       `;
+
       await sendEmail({
         subject: "Password Reset Confirmation",
         to: email,
@@ -2204,14 +2685,15 @@ class UserService extends BaseService {
       // const paystackSub = await paystackAxios.get(`/customer/CUS_x6v87jhw28rdwq6`)
 
       let subscriptionList = [];
-      
+
       if (user.customerCode) {
         try {
-          const paystackSub = await paystackAxios.get(`/customer/${user.customerCode}`);
+          const paystackSub = await paystackAxios.get(
+            `/customer/${user.customerCode}`
+          );
           subscriptionList = paystackSub.data.data.subscriptions || [];
-    
         } catch (error) {
-          console.log("Error from paystack customer check", error)
+          console.log("Error from paystack customer check", error);
           if (error.response?.status === 404) {
             // Customer does not exist on Paystack → treat as no subscription
             subscriptionList = [];
@@ -2222,7 +2704,6 @@ class UserService extends BaseService {
           }
         }
       }
-
 
       for (const sub of subscriptionList) {
         const sub_code = sub.subscription_code;
@@ -2310,7 +2791,6 @@ class UserService extends BaseService {
             normalizePhone(user.phoneNumber)
           : false;
 
-
       if (!emailMatches && !phoneMatches) {
         return BaseService.sendFailedResponse({
           error: "Coupon not valid for this user",
@@ -2378,7 +2858,6 @@ class UserService extends BaseService {
       coupon.usedByUserId = userId;
       await coupon.save();
 
-
       let chat = await ChatRoomModel.findOne({
         type: "private",
         participants: { $all: [user._id, coupon.coachId] },
@@ -2437,39 +2916,42 @@ class UserService extends BaseService {
       }
 
       subscription.status = "cancelled";
-      subscription.cancelledAt = new Date()
+      subscription.cancelledAt = new Date();
       await subscription.save();
-      console.log({subscription})
+      console.log({ subscription });
 
-      if(!subscription.isGift){
-        console.log({userId, isGift: subscription.isGift}, 'should not be called...')
+      if (!subscription.isGift) {
+        console.log(
+          { userId, isGift: subscription.isGift },
+          "should not be called..."
+        );
         const subscriptionCode = subscription.subscriptionCode;
         const token = subscription.paystackAuthorizationToken;
-  
+
         if (subscriptionCode && token) {
           const paystackService = new PaystackService();
           const cancelPaystackSubscription =
-            await paystackService.disableSubscription(
-              subscriptionCode,
-              token
-            );
+            await paystackService.disableSubscription(subscriptionCode, token);
 
-            if(!cancelPaystackSubscription.success){
-              return BaseService.sendFailedResponse({error: cancelPaystackSubscription.error})
-            }else{
-              return BaseService.sendSuccessResponse({
-                message: "Subscription plan cancelled",
-              });
-            }
+          if (!cancelPaystackSubscription.success) {
+            return BaseService.sendFailedResponse({
+              error: cancelPaystackSubscription.error,
+            });
+          } else {
+            return BaseService.sendSuccessResponse({
+              message: "Subscription plan cancelled",
+            });
+          }
         }
-      }else{
-        console.log({userId, isGift: subscription.isGift}, 'Must be called...')
+      } else {
+        console.log(
+          { userId, isGift: subscription.isGift },
+          "Must be called..."
+        );
         return BaseService.sendSuccessResponse({
           message: "Subscription plan cancelled",
         });
       }
-
-
     } catch (error) {
       console.error("Create plan error:", error);
       return BaseService.sendFailedResponse({ error: "Failed to cancel plan" });
@@ -2984,7 +3466,7 @@ class UserService extends BaseService {
       // const message = otp;
 
       const otpResult = await otpSend(phoneNumber, otpMessage);
-      console.log({otpResult})
+      console.log({ otpResult });
 
       if (otpResult.success) {
         const expiresAt = new Date(Date.now() + EXPIRES_AT);
@@ -3196,9 +3678,45 @@ class UserService extends BaseService {
       }
 
       const emailHtml = `
-         <h1>Message from ${name}</h1>
-      <p>${message}</p>
+      <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+          <tr>
+            <td align="center">
+              <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+      
+                <!-- Header -->
+                <tr>
+                  <td style="background:#38bdf8; padding:20px; text-align:center;">
+                    <h1 style="margin:0; color:#ffffff; font-size:22px;">Message from ${name}</h1>
+                  </td>
+                </tr>
+      
+                <!-- Body -->
+                <tr>
+                  <td style="padding:30px 25px; color:#444;">
+                    <p style="margin:0 0 10px;">${message}</p>
+                    ${
+                      phoneNumber
+                        ? `<p style="margin:10px 0 0;">Phone: <strong>${phoneNumber}</strong></p>`
+                        : ""
+                    }
+                  </td>
+                </tr>
+      
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                    © ${new Date().getFullYear()} Your App. All rights reserved.
+                  </td>
+                </tr>
+      
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
       `;
+
       await sendEmail({
         subject: "Incoming email from contact",
         to: email,

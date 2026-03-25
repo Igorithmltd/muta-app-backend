@@ -47,7 +47,7 @@ async function handleChargeSuccess(data) {
       metadata,
     });
 
-    console.log("Payment recorded:", reference, {metadata});
+    console.log("Payment recorded:", reference, { metadata });
 
     // ==========================
     // 🛒 ORDER PAYMENT FLOW
@@ -229,7 +229,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       gift = {},
       paystackSubscriptionCode,
     } = metadata;
-    const reference = data?.reference ?? ""
+    const reference = data?.reference ?? "";
 
     const { recipientEmail, phoneNumber, giftMessage } = gift;
     console.log({ metadata, gift }, "handleGiftSubscription");
@@ -273,23 +273,117 @@ async function handleGiftSubscription(data, sender, metadata) {
       phoneNumber: phoneNumber || "",
       expiresAt,
       used: false,
-      reference
+      reference,
     });
 
     /* ==========================
        📧 EMAIL DELIVERY
     ========================== */
     if (recipientEmail) {
+      const emailHtml = `
+  <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+      <tr>
+        <td align="center">
+          
+          <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+            
+            <!-- Header -->
+            <tr>
+              <td style="background:#38bdf8; padding:20px; text-align:center;">
+                <h1 style="margin:0; color:#ffffff; font-size:20px;">
+                  You’ve Received a Gift 🎁
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:30px 25px; color:#444;">
+                
+                <p style="margin:0 0 15px; font-size:16px;">
+                  Hey <strong>${recipientEmail}</strong>! 🎉
+                </p>
+
+                <p style="margin:0 0 15px;">
+                  You’ve just been gifted a fitness boost by 
+                  <strong>${sender.firstName} ${sender.lastName}</strong>! 💪
+                </p>
+
+                <p style="margin:0 0 15px;">
+                  Muta Fitness is cheering you on — because someone believes in your goals and your glow-up! ✨
+                </p>
+
+                <!-- Coupon Box -->
+                <div style="text-align:center; margin:20px 0;">
+                  <span style="
+                    display:inline-block;
+                    padding:14px 24px;
+                    background:#e0f2fe;
+                    color:#0369a1;
+                    font-size:18px;
+                    font-weight:bold;
+                    border-radius:8px;
+                    letter-spacing:2px;
+                  ">
+                    ${couponCode}
+                  </span>
+                </div>
+
+                ${
+                  giftMessage
+                    ? `<p style="margin:15px 0; font-style:italic; color:#555;">
+                        "${giftMessage}"
+                      </p>`
+                    : ""
+                }
+
+                <p style="margin:20px 0;">
+                  Open your Muta app, claim your gift, and start your journey to a healthier, stronger, and happier YOU! 🏋🏽‍♀️
+                </p>
+
+                <!-- CTA Button -->
+                <div style="text-align:center; margin:25px 0;">
+                  <a href="https://muta.fit" style="
+                    display:inline-block;
+                    padding:12px 24px;
+                    background:#38bdf8;
+                    color:#ffffff;
+                    text-decoration:none;
+                    border-radius:25px;
+                    font-weight:bold;
+                    font-size:14px;
+                  ">
+                    Redeem Gift
+                  </a>
+                </div>
+
+                <p style="font-size:12px; color:#999; text-align:center;">
+                  If you have any issues redeeming your gift, please contact support.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+                © ${new Date().getFullYear()} Muta Fitness. All rights reserved.
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </div>
+       `;
+
       await sendEmail({
         to: recipientEmail,
         subject: "You received a gift subscription!",
-        html: `
-          <p>Hello!</p>
-          <p>${sender.firstName} ${sender.lastName} gifted you a fitness subscription 💪</p>
-          <p><strong>Coupon Code:</strong> ${couponCode}</p>
-          <p>${giftMessage || ""}</p>
-          <p>Open the Muta app and redeem your gift.</p>
-        `,
+        html: emailHtml,
       });
     }
 

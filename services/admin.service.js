@@ -1,4 +1,3 @@
-const sendEmail = require("../util/emailService");
 const BaseService = require("./base");
 const UserModel = require("../models/user.model");
 const { empty } = require("../util");
