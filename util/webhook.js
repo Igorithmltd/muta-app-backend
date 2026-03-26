@@ -22,12 +22,12 @@ const webhookFunction = async (req, res) => {
 
     switch (event.event) {
       case "charge.success":
-        console.log("📩 Paystack webhook 2", event.data);
+        console.log("📩 Paystack webhook 2");
         await handleChargeSuccess(event.data);
         break;
 
       case "subscription.create":
-        console.log("📩 Paystack webhook 3: subscription.create", event.data);
+        console.log("📩 Paystack webhook 3: subscription.create");
         await handleSubscriptionCreate(event.data);
         break;
 

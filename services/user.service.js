@@ -2675,7 +2675,6 @@ class UserService extends BaseService {
         "planId"
       );
 
-
       if (!subscription) {
         return BaseService.sendSuccessResponse({
           message: "No active subscription",
@@ -2689,7 +2688,6 @@ class UserService extends BaseService {
 
       if (user.customerCode) {
         try {
-          console.log('called... ', error)
           const paystackSub = await paystackAxios.get(
             `/customer/${user.customerCode}`
           );
@@ -2714,11 +2712,13 @@ class UserService extends BaseService {
         const fetchedSub = response.data.data;
         const paystackCode = fetchedSub.plan.plan_code;
         const next_payment_date = fetchedSub.next_payment_date;
+        const email_token = fetchedSub.email_token;
         const status = fetchedSub.status;
         if (paystackCode == subscription.paystackSubscriptionId) {
           subscription.subscriptionCode = sub_code;
           subscription.nextPaymentDate = next_payment_date;
           subscription.status = status;
+          subscription.paystackEmailToken = email_token;
           subscription.save();
         }
       }
@@ -2921,38 +2921,41 @@ class UserService extends BaseService {
       // subscription.cancelledAt = new Date();
       // await subscription.save();
       const sub_code = subscription.subscriptionCode;
-      const token = subscription.paystackAuthorizationToken;
-      console.log({ sub_code, token });
+      const token = subscription.paystackEmailToken;
+      let subscriptionStatus = "";
 
       if (!subscription.isGift) {
         try {
           const response = await paystackAxios.get(`/subscription/${sub_code}`);
           const isSubActive = response.data.data.status;
-          if (isSubActive == "active") {
-          const response = await paystackAxios.post("/subscription/disable", {
-            code: sub_code,
-            token: token
-          });
-          console.log(response.data,'the cancel')
-          }
 
-          console.log(isSubActive, "active");
+          subscriptionStatus = isSubActive;
+
+          if (isSubActive == "active") {
+            const response = await paystackAxios.post("/subscription/disable", {
+              code: sub_code,
+              token: token,
+            });
+          }
         } catch (error) {
-          const message = error.response.data.message
+          const message = error.response.data.message;
           console.log(message, "error from paystack");
           return BaseService.sendFailedResponse({
-            error: message || "Something went wrong disabling this subscription",
+            error:
+              message || "Something went wrong disabling this subscription",
           });
         }
-      } else {
-        subscription.status = "cancelled";
-        subscription.cancelledAt = new Date();
-        await subscription.save();
-        console.log("called non gift");
       }
 
+      subscription.status = "cancelled";
+      subscription.cancelledAt = new Date();
+      await subscription.save();
+
       return BaseService.sendSuccessResponse({
-        message: "Subscription cancelled",
+        message:
+          subscriptionStatus === "active"
+            ? "Subscription cancelled Successfully"
+            : "You have already cancelled your subscription",
       });
     } catch (error) {
       console.error("Create plan error:", error);

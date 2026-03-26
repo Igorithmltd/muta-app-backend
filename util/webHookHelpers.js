@@ -47,8 +47,6 @@ async function handleChargeSuccess(data) {
       metadata,
     });
 
-    console.log("Payment recorded:", reference, { metadata });
-
     // ==========================
     // 🛒 ORDER PAYMENT FLOW
     // ==========================
@@ -132,6 +130,7 @@ async function handlePaymentFailed(data) {
 }
 
 async function handleSubscriptionDisable(data) {
+  console.log(data, 'handleSubscriptionDisable')
   try {
     await SubscriptionModel.findOneAndUpdate(
       { subscriptionCode: data.subscription_code },
@@ -151,6 +150,7 @@ async function handleSubscriptionCreate(data) {
     const email = data.customer.email;
     const planCode = data.plan.plan_code;
     const authorizationCode = data.authorization.authorization_code;
+    const customerCode = data.customer.customer_code || ""
     // console.log(data, "handle subscription create");
 
     const user = await UserModel.findOne({ email });
@@ -167,6 +167,8 @@ async function handleSubscriptionCreate(data) {
       paystackAuthorizationToken: authorizationCode,
       paystackSubscriptionId: planCode,
     };
+    user.customerCode = customerCode
+    await user.save()
 
     const subscription = await SubscriptionModel.findOne(filter);
     console.log(
@@ -177,6 +179,7 @@ async function handleSubscriptionCreate(data) {
     if (subscription) {
       subscription.subscriptionCode = data.subscription_code;
       subscription.paystackSubscriptionId = data.plan.plan_code;
+      subscription.paystackEmailToken = data.email_token | ""
       subscription.status = data.status || "active";
       subscription.nextPaymentDate = data.next_payment_date
         ? new Date(data.next_payment_date)
