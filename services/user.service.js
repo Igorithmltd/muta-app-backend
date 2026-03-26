@@ -2947,9 +2947,7 @@ class UserService extends BaseService {
         }
       }
 
-      subscription.status = "cancelled";
-      subscription.cancelledAt = new Date();
-      await subscription.save();
+      await SubscriptionModel.findByIdAndDelete(subscription._id)
 
       return BaseService.sendSuccessResponse({
         message:
