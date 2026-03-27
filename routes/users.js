@@ -38,7 +38,7 @@ const {
   ROUTE_GET_SUBSCRIPTION_STATUS,
   ROUTE_UPDATE_DEVICE_TOKEN,
   ROUTE_MARK_NOTIFICATION_AS_READ,
-  ROUTE_DELETE_NOTIFICATION,
+  ROUTE_DELETE_NOTIFICATIONS,
   ROUTE_GET_WEIGHT_IMPROVEMENT_TIPS,
   ROUTE_GET_USER_WEIGHT_LOSS,
   ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ,
@@ -2345,7 +2345,7 @@ router.post(ROUTE_MARK_ALL_NOTIFICATIONS_AS_READ, auth, (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete(ROUTE_DELETE_NOTIFICATION, auth, (req, res) => {
+router.delete(ROUTE_DELETE_NOTIFICATIONS, auth, (req, res) => {
   const userController = new UserController();
   return userController.deleteNotifications(req, res);
 });
