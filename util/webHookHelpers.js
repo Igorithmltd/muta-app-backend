@@ -528,6 +528,7 @@ async function handleOrderPayment(metadata, reference) {
     }
 
     order.paymentStatus = "success";
+    order.orderStatus = "processing";
     order.paymentReference = reference;
     order.paymentDate = new Date();
     order.paymentMethod = "paystack";
