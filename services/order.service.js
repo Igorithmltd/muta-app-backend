@@ -42,11 +42,18 @@ class OrderService extends BaseService {
       }
 
       const user = await UserModel.findById(userId)
+      const orderId = post.orderId
       
       if(!user){
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
+      
+      let totalAmount = 0;
+      let amount = 0;
+      let order = null
 
+      if(!orderId){
+        // start here
       const cart = await CartModel.findOne({ user: userId }).populate(
         "items.product"
       );
@@ -54,7 +61,6 @@ class OrderService extends BaseService {
         return BaseService.sendFailedResponse({ error: "Cart is empty" });
       }
 
-      let totalAmount = 0;
 
       const orderItems = cart.items.map((item) => {
         const variation = item.product.variations.find(
@@ -80,7 +86,7 @@ class OrderService extends BaseService {
        // Add delivery to order total
        totalAmount = parseFloat((totalAmount + totalDelivery).toFixed(2));
 
-      const newOrder = await OrderModel.create({
+      order = await OrderModel.create({
         userId,
         paymentMethod: post.paymentMethod,
         items: orderItems,
@@ -89,7 +95,24 @@ class OrderService extends BaseService {
         deliveryPrice: totalDelivery,
       });
 
-      const amount = Math.round(Number(totalAmount) * 100);
+      amount = Math.round(Number(totalAmount) * 100);
+
+      }else{
+        order = await OrderModel.findById(orderId)
+        if(!order){
+          return BaseService.sendFailedResponse({error: 'Order not found. Please try again later.'})
+        }
+        if(order.paymentStatus == 'success'){
+          return BaseService.sendSuccessResponse({message: 'Payment has already been made for this order'})
+        }
+
+        amount = Math.round(Number(order.totalAmount))
+      }
+
+      if(amount < 1){
+        return BaseService.sendFailedResponse({error: 'This amount is invalid'})
+      }
+      
 
       const paymentData = await this.axiosInstance.post(
         "/transaction/initialize",
@@ -98,7 +121,7 @@ class OrderService extends BaseService {
           amount, // e.g. 4500000 for ₦45,000.00
           metadata: {
             type: "order",
-            orderId: newOrder._id,
+            orderId: order._id,
           }, // VERY helpful for mapping webhooks -> user
           // callback_url: 'https://yourapp.com/pay/callback' // optional
         }
@@ -108,7 +131,7 @@ class OrderService extends BaseService {
 
       return BaseService.sendSuccessResponse({
         message: "Order created successfully",
-        order: newOrder,
+        order: order,
         paymentLink: paymentData.data,
       });
     } catch (error) {

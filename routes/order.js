@@ -23,10 +23,9 @@ const adminAuth = require("../middlewares/adminAuth");
  *               - paymentMethod
  *               - shippingAddress
  *             properties:
- *               paymentMethod:
+ *               orderId:
  *                 type: string
- *                 enum: [paystack, on-delivery]
- *                 example: paystack
+ *                 example: 69b80f2902ca5006a251031b
  *               shippingAddress:
  *                 type: object
  *                 required:
