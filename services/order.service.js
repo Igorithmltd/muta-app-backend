@@ -302,7 +302,7 @@ class OrderService extends BaseService {
     }
   }
   static calculateDelivery(items) {
-    const baseRate = 500;      // base delivery charge
+    const baseRate = 50;      // base delivery charge
     const weightFactor = 50;   // per kg
     const priceFactor = 0.01;  // 1% of product price
   
