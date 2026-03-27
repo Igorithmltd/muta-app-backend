@@ -282,10 +282,9 @@ class PaystackService extends BaseService {
     }
   }
 
-  async verifyReference() {
+  async verifyReference(req) {
     try {
-      const reference = "REF_1773664488632_69b7f5d824c2786534a24cdb";
-      // const reference = req.params.referenceId
+      const reference = req.params.referenceId
 
       const response = await this.axiosInstance.get(
         `/transaction/verify/${reference}`
@@ -299,6 +298,10 @@ class PaystackService extends BaseService {
 
       const couponExists = await CouponModel.findOne({ reference });
 
+      if(!couponExists){
+        return BaseService.sendFailedResponse({error: 'Reference not valid or not found'})
+      }
+
       return BaseService.sendSuccessResponse({
         message: {
           code: couponExists.code,
@@ -311,6 +314,7 @@ class PaystackService extends BaseService {
         },
       });
     } catch (error) {
+      console.log(error)
       return BaseService.sendFailedResponse({
         error: "Something went wrong. Please try again later",
       });
