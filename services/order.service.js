@@ -23,7 +23,7 @@ class OrderService extends BaseService {
       const post = req.body;
 
       const validateRule = {
-        paymentMethod: "string|required",
+        // paymentMethod: "string|required",
         shippingAddress: "object|required",
         "shippingAddress.fullName": "string|required",
         "shippingAddress.phoneNumber": "string|required",
@@ -89,11 +89,13 @@ class OrderService extends BaseService {
         deliveryPrice: totalDelivery,
       });
 
+      const amount = Math.round(Number(totalAmount) * 100);
+
       const paymentData = await this.axiosInstance.post(
         "/transaction/initialize",
         {
           email: user.email,
-          amount: totalAmount * 100, // e.g. 4500000 for ₦45,000.00
+          amount, // e.g. 4500000 for ₦45,000.00
           metadata: {
             type: "order",
             orderId: newOrder._id,
@@ -103,7 +105,6 @@ class OrderService extends BaseService {
       );
 
       await CartModel.findOneAndUpdate({ user: userId }, { items: [] });
-      console.log(paymentData.data,'from order')
 
       return BaseService.sendSuccessResponse({
         message: "Order created successfully",
