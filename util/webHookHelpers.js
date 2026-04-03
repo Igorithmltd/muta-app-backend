@@ -119,7 +119,7 @@ async function handlePaymentFailed(data) {
   try {
     if (!data.subscription) return;
 
-    await Subscription.findOneAndUpdate(
+    await SubscriptionModel.findOneAndUpdate(
       { subscriptionCode: data.subscription.subscription_code },
       { status: "failed" }
     );
@@ -132,12 +132,8 @@ async function handlePaymentFailed(data) {
 async function handleSubscriptionDisable(data) {
   console.log(data, 'handleSubscriptionDisable')
   try {
-    await SubscriptionModel.findOneAndUpdate(
-      { subscriptionCode: data.subscription_code },
-      {
-        status: "cancelled",
-        cancelledAt: new Date(),
-      }
+    await SubscriptionModel.findOneAndDelete(
+      { subscriptionCode: data.subscription_code }
     );
   } catch (error) {
     console.error("Error in handleSubscriptionDisable:", error);

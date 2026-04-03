@@ -190,7 +190,7 @@ UserSchema.methods.isSubscriptionActive = function () {
 
 UserSchema.methods.generateAccessToken = async function (
   secretToken,
-  expiresIn = "1w"
+  expiresIn = "24h"
 ) {
   const token = jwt.sign(
     {
