@@ -2651,17 +2651,15 @@ class UserService extends BaseService {
     return newSub;
   }
 
-  async getSubscriptionStatus(req, res) {
+  async getCurrentSubscription(req) {
     try {
       const userId = req.user.id;
-
-      // Populate user with subscription and plan
+  
       const user = await UserModel.findById(userId);
-
       if (!user) {
         return BaseService.sendFailedResponse({ error: "User not found" });
       }
-
+  
       const filter = {
         user: userId,
         status: "active",
@@ -2670,22 +2668,18 @@ class UserService extends BaseService {
           { currentPeriodEnd: { $exists: false } },
         ],
       };
-
-      let subscription = await SubscriptionModel.findOne(filter).populate(
-        "planId"
-      );
-
+  
+      let subscription = await SubscriptionModel.findOne(filter).populate("planId");
+  
       if (!subscription) {
         return BaseService.sendSuccessResponse({
           message: "No active subscription",
           subscription: null,
         });
       }
-
-      // const paystackSub = await paystackAxios.get(`/customer/CUS_x6v87jhw28rdwq6`)
-
+  
       let subscriptionList = [];
-
+  
       if (user.customerCode) {
         try {
           const paystackSub = await paystackAxios.get(
@@ -2694,8 +2688,8 @@ class UserService extends BaseService {
           subscriptionList = paystackSub.data.data.subscriptions || [];
         } catch (error) {
           console.log("Error from paystack customer check", error);
+  
           if (error.response?.status === 404) {
-            // Customer does not exist on Paystack → treat as no subscription
             subscriptionList = [];
           } else {
             return BaseService.sendFailedResponse({
@@ -2704,41 +2698,57 @@ class UserService extends BaseService {
           }
         }
       }
-
-      for (const sub of subscriptionList) {
-        const sub_code = sub.subscription_code;
-
-        const response = await paystackAxios.get(`/subscription/${sub_code}`);
-        const fetchedSub = response.data.data;
-        const paystackCode = fetchedSub.plan.plan_code;
-        const next_payment_date = fetchedSub.next_payment_date;
-        const email_token = fetchedSub.email_token;
-        const status = fetchedSub.status;
-        if (paystackCode == subscription.paystackSubscriptionId) {
-          subscription.subscriptionCode = sub_code;
-          subscription.nextPaymentDate = next_payment_date;
-          subscription.status = status;
-          subscription.paystackEmailToken = email_token;
-          subscription.save();
+  
+      // ✅ Optimized: Parallel fetching instead of sequential loop
+      if (subscriptionList.length) {
+        const fetchedSubscriptions = await Promise.all(
+          subscriptionList.map(async (sub) => {
+            try {
+              const res = await paystackAxios.get(
+                `/subscription/${sub.subscription_code}`
+              );
+              return res.data.data;
+            } catch (err) {
+              console.log("Error fetching subscription:", err);
+              return null;
+            }
+          })
+        );
+  
+        const matchedSub = fetchedSubscriptions.find(
+          (sub) =>
+            sub &&
+            sub.plan?.plan_code === subscription.paystackSubscriptionId
+        );
+  
+        if (matchedSub) {
+          subscription.subscriptionCode = matchedSub.subscription_code;
+          subscription.nextPaymentDate = matchedSub.next_payment_date;
+          subscription.status = matchedSub.status;
+          subscription.paystackEmailToken = matchedSub.email_token;
+  
+          await subscription.save(); // ✅ single save
         }
       }
-
+  
       const plan = subscription.planId;
-
+  
       const category = plan?.categories?.find(
         (cat) => cat._id.toString() === subscription.categoryId?.toString()
       );
-
+  
       subscription = subscription.toObject();
       subscription.categoryId = category || null;
-
+  
       return BaseService.sendSuccessResponse({
         message: "Subscription state retrieved successfully",
         subscription,
       });
     } catch (error) {
-      console.error("Subscription error:", error);
-      return BaseService.sendFailedResponse({ error: error.message });
+      console.log("Error in:", error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
     }
   }
   async redeemCoupon(req) {
