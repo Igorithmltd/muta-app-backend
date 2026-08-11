@@ -8,6 +8,7 @@ const axios = require("axios");
 const paystackAxios = require("./paystack.client.service");
 const { generateReference } = require("../util/constants");
 const CouponModel = require("../models/coupon.model");
+const CouponBalanceModel = require("../models/couponBalance");
 
 /**
  * test:
@@ -38,7 +39,7 @@ class PaystackService extends BaseService {
       const validateRule = {
         email: "string|required",
         planId: "string|required",
-        coachId: "string|required",
+        // coachId: "string|required",
         categoryId: "string|required",
         isGift: "boolean|required",
         recipientEmail: "string|email",
@@ -61,7 +62,6 @@ class PaystackService extends BaseService {
         email,
         planId,
         categoryId,
-        coachId,
         isGift,
         recipientEmail,
         phoneNumber,
@@ -108,7 +108,30 @@ class PaystackService extends BaseService {
         });
       }
 
-      const amount = category.price * 100; // Paystack uses kobo
+      let amount = category.price * 100; // Amount in kobo
+
+      if (isGift) {
+        const couponBalance = await CouponBalanceModel.findOne({
+          userId: req.user._id,
+        });
+
+        if (couponBalance && Number(couponBalance.balance) > 0) {
+          // Convert balance to kobo
+          const availableBalance = Number(couponBalance.balance) * 100;
+
+          // Amount to deduct from coupon balance
+          const deduction = Math.min(availableBalance, amount);
+
+          // Reduce payable amount
+          amount -= deduction;
+
+          couponBalance.balance = (availableBalance - deduction) / 100;
+          await couponBalance.save();
+        }
+      }
+
+      amount = Math.max(amount, 0);
+
       const paystackPlanCode = category.paystackSubscriptionId;
       const duration = category.duration;
 
@@ -127,56 +150,18 @@ class PaystackService extends BaseService {
         });
       }
 
-      /* --------------------
-         Self subscription checks
-      ---------------------*/
-      // if (!isGift) {
-      //   const existingCustomerCode = await paystackAxios.get(
-      //     `/customer/${user.customerCode}`
-      //   );
-      //   if (existingCustomerCode) {
-      //     const subscriptions =
-      //       existingCustomerCode.data.data.subscriptions || [];
-      //     if (subscriptions.length > 0) {
-      //       const hasActiveSubscription = subscriptions.some(
-      //         (sub) => sub.status === "active"
-      //       );
-
-      //       if (hasActiveSubscription) {
-      //         return BaseService.sendSuccessResponse({
-      //           message: "Subscription already active",
-      //         });
-      //       }
-
-      //       const existingSubscription = await SubscriptionModel.findOne({
-      //         user: user._id,
-      //         // paystackSubscriptionId: paystackPlanCode,
-      //         status: "active",
-      //         // categoryId,
-      //       });
-
-      //       if (existingSubscription) {
-      //         return BaseService.sendSuccessResponse({
-      //           message:
-      //             "Subscription already exists. Disable your subscription current subscription",
-      //         });
-      //       }
-      //     }
-      //   }
-      // }
-
       if (!isGift) {
         let subscriptions = [];
-      
+
         if (user.customerCode) {
           try {
             const response = await paystackAxios.get(
               `/customer/${user.customerCode}`
             );
-      
+
             subscriptions = response.data?.data?.subscriptions || [];
           } catch (error) {
-            console.log("Error from paystack customer check", error)
+            console.log("Error from paystack customer check", error);
             if (error.response?.status === 404) {
               // Customer does not exist on Paystack → treat as no subscription
               subscriptions = [];
@@ -187,23 +172,23 @@ class PaystackService extends BaseService {
             }
           }
         }
-      
+
         const hasActiveSubscription = subscriptions.some(
           (sub) => sub.status === "active"
         );
-      
+
         if (hasActiveSubscription) {
           return BaseService.sendSuccessResponse({
             message: "Subscription already active",
           });
         }
-      
+
         // 🔥 Your DB check is still important (good job keeping it)
         const existingSubscription = await SubscriptionModel.findOne({
           user: user._id,
           status: "active",
         });
-      
+
         if (existingSubscription) {
           return BaseService.sendSuccessResponse({
             message:
@@ -212,9 +197,6 @@ class PaystackService extends BaseService {
         }
       }
 
-      /* --------------------
-         Optional: Gift duplication check
-      ---------------------*/
       if (isGift) {
         const gifteeUser = await UserModel.findOne({
           $or: [{ email: recipientEmail }, { phoneNumber }],
@@ -225,7 +207,7 @@ class PaystackService extends BaseService {
             status: "active",
             user: gifteeUser._id,
           });
-          console.log(existingGift, 'existing gift')
+          console.log(existingGift, "existing gift");
           if (existingGift) {
             return BaseService.sendFailedResponse({
               error:
@@ -241,7 +223,7 @@ class PaystackService extends BaseService {
       const reference = generateReference(userId);
 
       const paystackPayload = {
-        email, // payer email
+        email,
         amount,
         reference,
         channels: ["card"],
@@ -249,11 +231,11 @@ class PaystackService extends BaseService {
         // ...(planId && !isGift && {plan: paystackPlanCode}),
         metadata: {
           type: isGift ? "gift" : "subscription",
+          amount,
           payerId: userId,
           planId,
           categoryId,
           duration,
-          coachId,
           paystackSubscriptionCode: paystackPlanCode,
           isGift,
           ...(isGift && {
@@ -284,7 +266,7 @@ class PaystackService extends BaseService {
 
   async verifyReference(req) {
     try {
-      const reference = req.params.referenceId
+      const reference = req.params.referenceId;
 
       const response = await this.axiosInstance.get(
         `/transaction/verify/${reference}`
@@ -298,8 +280,10 @@ class PaystackService extends BaseService {
 
       const couponExists = await CouponModel.findOne({ reference });
 
-      if(!couponExists){
-        return BaseService.sendFailedResponse({error: 'Reference not valid or not found'})
+      if (!couponExists) {
+        return BaseService.sendFailedResponse({
+          error: "Reference not valid or not found",
+        });
       }
 
       return BaseService.sendSuccessResponse({
@@ -314,7 +298,7 @@ class PaystackService extends BaseService {
         },
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return BaseService.sendFailedResponse({
         error: "Something went wrong. Please try again later",
       });
@@ -356,7 +340,6 @@ class PaystackService extends BaseService {
   }
   async disableSubscription(paystackSubscriptionId, token) {
     try {
-      
       const resp = await this.axiosInstance.post(
         "/subscription/disable",
         {
@@ -370,14 +353,20 @@ class PaystackService extends BaseService {
           },
         }
       );
-      return {success: true, message: resp.data};
+      return { success: true, message: resp.data };
     } catch (error) {
-      const message = error.response.data.message
-      console.log(error.response.data.messsage,'from disable')
-      if(error.status == 404 || message == 'Subscription with code not found or already inactive'){
-        return {success: true, message: 'Already disabled'}
+      const message = error.response.data.message;
+      console.log(error.response.data.messsage, "from disable");
+      if (
+        error.status == 404 ||
+        message == "Subscription with code not found or already inactive"
+      ) {
+        return { success: true, message: "Already disabled" };
       }
-      return {success: false, error: message || 'Something went wrong disabling the subscription'}
+      return {
+        success: false,
+        error: message || "Something went wrong disabling the subscription",
+      };
     }
   }
   isInputEmail(input) {

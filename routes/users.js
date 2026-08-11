@@ -63,7 +63,9 @@ const {
   ROUTE_GET_COACH_SUBSCRIBED_USERS,
   ROUTE_GET_CLIENT_GROWTH_STATS,
   ROUTE_GET_COACH_PERFORMANCE_GRAPH,
-  ROUTE_DELETE_ALL_NOTIFICATIONS
+  ROUTE_DELETE_ALL_NOTIFICATIONS,
+  ROUTE_MY_COUPONS,
+  ROUTE_COUPON_BALANCE
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -3321,7 +3323,7 @@ router.get(ROUTE_GET_CLIENT_GROWTH_STATS, [coachAuth], (req, res) => {
  *     summary: Get weekly performance statistics for a coach
  *     tags:
  *       - Users
- *     description: >
+ *     description:
  *       Returns weekly performance statistics (total chats, calls, and subscriptions)
  *       grouped by day (Monday to Sunday) for this week and last week
  *       for the logged-in coach.
@@ -3398,6 +3400,126 @@ router.get(ROUTE_GET_CLIENT_GROWTH_STATS, [coachAuth], (req, res) => {
 router.get(ROUTE_GET_COACH_PERFORMANCE_GRAPH, [coachAuth], (req, res) => {
   const userController = new UserController();
   return userController.getCoachWeeklyPerformanceGraph(req, res);
+});
+
+/**
+ * @swagger
+ * /users/my-coupons:
+ *   get:
+ *     summary: Get all coupons created by the authenticated user
+ *     tags:
+ *       - Coupon
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of coupons created by the authenticated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     example: 64f1a2b3c4d5e6f789012345
+ *                   giftedByUserId:
+ *                     type: string
+ *                     example: 64f1a2b3c4d5e6f789012346
+ *                   usedByUserId:
+ *                     type: string
+ *                     nullable: true
+ *                     example: 64f1a2b3c4d5e6f789012347
+ *                   planId:
+ *                     type: string
+ *                     example: premium-monthly
+ *                   code:
+ *                     type: string
+ *                     example: GIFT-ABC123
+ *                   recipientEmail:
+ *                     type: string
+ *                     example: user@example.com
+ *                   phoneNumber:
+ *                     type: string
+ *                     example: +2348012345678
+ *                   expiresAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2026-12-31T23:59:59.000Z
+ *                   used:
+ *                     type: boolean
+ *                     example: false
+ *                   reference:
+ *                     type: string
+ *                     example: PSK_123456789
+ *                   subscriptionCode:
+ *                     type: string
+ *                     nullable: true
+ *                     example: SUB_xxxxxxxxx
+ *                   amount:
+ *                     type: number
+ *                     example: 5000
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2026-07-31T10:15:30.000Z
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2026-07-31T10:15:30.000Z
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_MY_COUPONS, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.myCoupons(req, res);
+});
+
+
+/**
+ * @swagger
+ * /users/coupon-balance:
+ *   get:
+ *     summary: Get the authenticated user's coupon balance
+ *     tags:
+ *       - Coupon
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Coupon balance retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userId:
+ *                   type: string
+ *                   example: 64f1a2b3c4d5e6f789012346
+ *                 balance:
+ *                   type: number
+ *                   example: 7500
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2026-07-31T10:15:30.000Z
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2026-08-01T08:20:10.000Z
+ *       404:
+ *         description: Coupon balance not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.couponBalance(req, res);
 });
 
 

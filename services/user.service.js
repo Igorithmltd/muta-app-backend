@@ -39,6 +39,7 @@ const CoachGuidanceModel = require("../models/coach-guidance.model");
 const otpSend = require("../util/otpSend");
 const paystackAxios = require("./paystack.client.service");
 const ChatRoomModel = require("../models/chatModel");
+const CouponBalanceModel = require("../models/couponBalance");
 
 class UserService extends BaseService {
   async createUser(req) {
@@ -2753,12 +2754,18 @@ class UserService extends BaseService {
   }
   async redeemCoupon(req) {
     try {
-      const { couponCode } = req.body;
+      const { couponCode, coachId } = req.body;
       const userId = req.user.id;
 
       if (!couponCode) {
         return BaseService.sendFailedResponse({
           error: "CouponCode is required",
+        });
+      }
+
+      if (!coachId) {
+        return BaseService.sendFailedResponse({
+          error: "Coach Id is required",
         });
       }
 
@@ -2860,7 +2867,7 @@ class UserService extends BaseService {
         startDate: new Date(),
         expiryDate,
         paystackSubscriptionId: paystackSubscriptionId,
-        coachId: coupon.coachId,
+        coachId: coachId,
         currentPeriodEnd: coupon.expiresAt,
         isGift: true,
       });
@@ -2872,13 +2879,13 @@ class UserService extends BaseService {
 
       let chat = await ChatRoomModel.findOne({
         type: "private",
-        participants: { $all: [user._id, coupon.coachId] },
+        participants: { $all: [user._id, coachId] },
       });
 
       if (!chat) {
         chat = await ChatRoomModel.create({
           type: "private",
-          participants: [user._id, coupon.coachId],
+          participants: [user._id, coachId],
         });
       }
 
@@ -2889,7 +2896,7 @@ class UserService extends BaseService {
       });
 
       await NotificationModel.create({
-        userId: coupon.coachId,
+        userId: coachId,
         title: "Subscription Gift Redeemed",
         body: `Your gifted subscription coupon has been redeemed by ${user.firstName} ${user.lastName}.`,
       });
@@ -4599,6 +4606,58 @@ class UserService extends BaseService {
         lastWeek: lastWeekData,
       },
     });
+  }
+
+  async couponBalance(req) {
+    try {
+      const userId = req.user.id;
+  
+      let balance = await CouponBalanceModel.findOne({
+        userId,
+      }).lean();
+  
+      // Return a default balance if none exists
+      if (!balance) {
+        balance = {
+          userId,
+          balance: 0,
+        };
+      }
+  
+      return BaseService.sendSuccessResponse({
+        message: balance,
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
+  }
+  
+  async myCoupons(req) {
+    try {
+      const userId = req.user.id;
+  
+      const coupons = await CouponModel.find({
+        giftedByUserId: userId,
+      })
+        .populate({
+          path: "usedByUserId",
+          select: "-password -otp -emailToken",
+        })
+        .sort({ createdAt: -1 })
+        .lean();
+  
+      return BaseService.sendSuccessResponse({
+        message: coupons,
+      });
+    } catch (error) {
+      console.error(error);
+      return BaseService.sendFailedResponse({
+        error: this.server_error_message,
+      });
+    }
   }
 
   static calculateExpiryDateBasedOnPlan(paystackPlanCode) {

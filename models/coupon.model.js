@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 
 const CouponSchema = new mongoose.Schema(
   {
-    coachId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    // coachId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "User",
+    //   required: true,
+    // },
     giftedByUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -30,6 +30,7 @@ const CouponSchema = new mongoose.Schema(
     // authorizationCode: { type: String, required: true },
     // customerCode: { type: String, required: true },
     subscriptionCode: { type: String, default: null },
+    amount: { type: Number, required: true },
   },
   { timestamps: true }
 );

@@ -223,7 +223,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     const {
       planId,
       categoryId,
-      coachId,
+      // coachId,
       duration,
       gift = {},
       paystackSubscriptionCode,
@@ -233,7 +233,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     const { recipientEmail, phoneNumber, giftMessage } = gift;
     console.log({ metadata, gift }, "handleGiftSubscription");
 
-    if (!planId || !categoryId || !coachId) {
+    if (!planId || !categoryId) {
       console.warn("Invalid gift subscription metadata", metadata);
       return;
     }
@@ -265,11 +265,12 @@ async function handleGiftSubscription(data, sender, metadata) {
     // Save coupon
     await CouponModel.create({
       code: couponCode,
-      coachId,
+      // coachId,
       planId: paystackSubscriptionCode,
       giftedByUserId: sender._id,
       recipientEmail: recipientEmail || null,
       phoneNumber: phoneNumber || "",
+      amount: metadata.amount / 100,
       expiresAt,
       used: false,
       reference,

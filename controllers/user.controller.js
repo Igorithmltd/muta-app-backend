@@ -571,6 +571,22 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, getCoachWeeklyPerformanceGraph.data)
     }
+    async myCoupons(req, res){
+        const userService = new UserService()
+        const myCoupons = await userService.myCoupons(req, res)
+        if(!myCoupons.success){
+            return BaseController.sendFailedResponse(res, myCoupons.data)
+        }
+        return BaseController.sendSuccessResponse(res, myCoupons.data)
+    }
+    async couponBalance(req, res){
+        const userService = new UserService()
+        const couponBalance = await userService.couponBalance(req, res)
+        if(!couponBalance.success){
+            return BaseController.sendFailedResponse(res, couponBalance.data)
+        }
+        return BaseController.sendSuccessResponse(res, couponBalance.data)
+    }
 }
 
 module.exports = UserController
