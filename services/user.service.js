@@ -52,7 +52,7 @@ class UserService extends BaseService {
       const validateRule = {
         email: "email|required",
         password: "string|required",
-        // phoneNumber: "string|required",
+        phoneNumber: "string|required",
         userType: "string|required",
       };
 

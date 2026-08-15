@@ -27,6 +27,9 @@ const router = require('express').Router()
  *                 type: string
  *                 format: password
  *                 example: gRDERIdiidfjii@
+ *               phoneNumber:
+ *                 type: string
+ *                 example: 07192384832
  *               userType:
  *                 type: string
  *                 format: password
