@@ -23,6 +23,7 @@ const CouponSchema = new mongoose.Schema(
     },
     code: { type: String, required: true },
     recipientEmail: { type: String },
+    recipientName: { type: String },
     phoneNumber: { type: String },
     expiresAt: { type: Date, required: true },
     used: { type: Boolean, default: false },

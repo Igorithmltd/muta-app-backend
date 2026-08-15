@@ -43,6 +43,7 @@ class PaystackService extends BaseService {
         categoryId: "string|required",
         isGift: "boolean|required",
         recipientEmail: "string|email",
+        recipientName: "string",
         phoneNumber: "string",
         giftMessage: "string",
       };
@@ -64,6 +65,7 @@ class PaystackService extends BaseService {
         categoryId,
         isGift,
         recipientEmail,
+        recipientName,
         phoneNumber,
         giftMessage,
       } = post;
@@ -241,6 +243,7 @@ class PaystackService extends BaseService {
           ...(isGift && {
             gift: {
               recipientEmail,
+              recipientName,
               phoneNumber,
               giftMessage,
             },

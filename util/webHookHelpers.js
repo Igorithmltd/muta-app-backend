@@ -230,7 +230,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     } = metadata;
     const reference = data?.reference ?? "";
 
-    const { recipientEmail, phoneNumber, giftMessage } = gift;
+    const { recipientEmail, phoneNumber, giftMessage, recipientName } = gift;
     console.log({ metadata, gift }, "handleGiftSubscription");
 
     if (!planId || !categoryId) {
@@ -269,6 +269,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       planId: paystackSubscriptionCode,
       giftedByUserId: sender._id,
       recipientEmail: recipientEmail || null,
+      recipientName: recipientName || null,
       phoneNumber: phoneNumber || "",
       amount: metadata.amount / 100,
       expiresAt,
@@ -302,7 +303,7 @@ async function handleGiftSubscription(data, sender, metadata) {
               <td style="padding:30px 25px; color:#444;">
                 
                 <p style="margin:0 0 15px; font-size:16px;">
-                  Hey <strong>${recipientEmail}</strong>! 🎉
+                  Hey <strong>${recipientName || recipientEmail}</strong>! 🎉
                 </p>
 
                 <p style="margin:0 0 15px;">
