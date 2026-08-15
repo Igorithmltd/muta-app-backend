@@ -5,7 +5,6 @@ const OrderModel = require("../models/order.model");
 const PaymentModel = require("../models/payment.model");
 const SubscriptionModel = require("../models/subscription.model");
 const UserModel = require("../models/user.model");
-const paystackAxios = require("../services/paystack.client.service");
 const sendEmail = require("./emailService");
 const otpSend = require("./otpSend");
 
@@ -132,9 +131,9 @@ async function handlePaymentFailed(data) {
 async function handleSubscriptionDisable(data) {
   console.log(data, 'handleSubscriptionDisable')
   try {
-    await SubscriptionModel.findOneAndDelete(
-      { subscriptionCode: data.subscription_code }
-    );
+    // await SubscriptionModel.findOneAndDelete(
+    //   { subscriptionCode: data.subscription_code }
+    // );
   } catch (error) {
     console.error("Error in handleSubscriptionDisable:", error);
     return;

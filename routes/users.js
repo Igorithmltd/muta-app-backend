@@ -65,7 +65,8 @@ const {
   ROUTE_GET_COACH_PERFORMANCE_GRAPH,
   ROUTE_DELETE_ALL_NOTIFICATIONS,
   ROUTE_MY_COUPONS,
-  ROUTE_COUPON_BALANCE
+  ROUTE_COUPON_BALANCE,
+  ROUTE_GET_SUBSCRIPTION_STATS
 } = require("../util/page-route");
 
 const router = require("express").Router();
@@ -3520,6 +3521,361 @@ router.get(ROUTE_MY_COUPONS, [auth], (req, res) => {
 router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
   const userController = new UserController();
   return userController.couponBalance(req, res);
+});
+
+/**
+ * @swagger
+ * /users/get-subscription-stats:
+ *   get:
+ *     summary: Get the authenticated user's subscription and coupon statistics
+ *     description: |
+ *       Retrieves the authenticated user's coupon usage, gifts sent,
+ *       gifts received, current subscription, subscription history,
+ *       and the number of days remaining on the active subscription.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Subscription and coupon statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 coupons:
+ *                   type: object
+ *                   properties:
+ *                     used:
+ *                       type: array
+ *                       description: Coupons used by the authenticated user
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012346
+ *                           code:
+ *                             type: string
+ *                             example: SUMMER2026
+ *                           planId:
+ *                             type: string
+ *                             example: plan_premium_monthly
+ *                           giftedByUserId:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012347
+ *                           usedByUserId:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012346
+ *                           recipientEmail:
+ *                             type: string
+ *                             example: user@example.com
+ *                           recipientName:
+ *                             type: string
+ *                             example: John Doe
+ *                           expiresAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-09-01T00:00:00.000Z
+ *                           used:
+ *                             type: boolean
+ *                             example: true
+ *                           reference:
+ *                             type: string
+ *                             example: COUPON-REF-12345
+ *                           subscriptionCode:
+ *                             type: string
+ *                             nullable: true
+ *                             example: SUB_123456
+ *                           amount:
+ *                             type: number
+ *                             example: 5000
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-07-31T10:15:30.000Z
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-08-01T08:20:10.000Z
+ *                     usedCount:
+ *                       type: integer
+ *                       example: 2
+ *
+ *                     giftsSent:
+ *                       type: array
+ *                       description: Coupons gifted by the authenticated user
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012348
+ *                           code:
+ *                             type: string
+ *                             example: GIFT2026
+ *                           planId:
+ *                             type: string
+ *                             example: plan_premium_monthly
+ *                           giftedByUserId:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012346
+ *                           recipientEmail:
+ *                             type: string
+ *                             example: friend@example.com
+ *                           recipientName:
+ *                             type: string
+ *                             example: Jane Doe
+ *                           phoneNumber:
+ *                             type: string
+ *                             example: "+2348012345678"
+ *                           expiresAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-09-15T00:00:00.000Z
+ *                           used:
+ *                             type: boolean
+ *                             example: false
+ *                           amount:
+ *                             type: number
+ *                             example: 10000
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-08-01T10:15:30.000Z
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-08-01T10:15:30.000Z
+ *                     giftsSentCount:
+ *                       type: integer
+ *                       example: 3
+ *
+ *                     giftsReceived:
+ *                       type: array
+ *                       description: Coupons received by the authenticated user
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012349
+ *                           code:
+ *                             type: string
+ *                             example: FRIENDGIFT2026
+ *                           planId:
+ *                             type: string
+ *                             example: plan_premium_monthly
+ *                           giftedByUserId:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012350
+ *                           recipientEmail:
+ *                             type: string
+ *                             example: user@example.com
+ *                           recipientName:
+ *                             type: string
+ *                             example: John Doe
+ *                           expiresAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-09-30T00:00:00.000Z
+ *                           used:
+ *                             type: boolean
+ *                             example: false
+ *                           amount:
+ *                             type: number
+ *                             example: 7500
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-08-05T10:15:30.000Z
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-08-05T10:15:30.000Z
+ *                     giftsReceivedCount:
+ *                       type: integer
+ *                       example: 2
+ *
+ *                 subscription:
+ *                   type: object
+ *                   properties:
+ *                     active:
+ *                       type: boolean
+ *                       description: Whether the user currently has an active subscription
+ *                       example: true
+ *
+ *                     current:
+ *                       type: object
+ *                       nullable: true
+ *                       description: The user's current active subscription
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: 64f1a2b3c4d5e6f789012351
+ *                         user:
+ *                           type: string
+ *                           example: 64f1a2b3c4d5e6f789012346
+ *                         planId:
+ *                           type: object
+ *                           nullable: true
+ *                           description: Populated subscription plan
+ *                         coachId:
+ *                           type: object
+ *                           nullable: true
+ *                           description: Populated coach
+ *                         categoryId:
+ *                           type: string
+ *                           nullable: true
+ *                           example: 64f1a2b3c4d5e6f789012352
+ *                         status:
+ *                           type: string
+ *                           enum:
+ *                             - active
+ *                             - pending
+ *                             - cancelled
+ *                             - expired
+ *                           example: active
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2026-07-22T00:00:00.000Z
+ *                         paystackSubscriptionId:
+ *                           type: string
+ *                           example: SUB_123456789
+ *                         subscriptionCode:
+ *                           type: string
+ *                           example: I-123456789
+ *                         currentPeriodEnd:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2026-09-08T00:00:00.000Z
+ *                         nextPaymentDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2026-09-08T00:00:00.000Z
+ *                         cancelledAt:
+ *                           type: string
+ *                           format: date-time
+ *                           nullable: true
+ *                           example: null
+ *                         lastPaymentAt:
+ *                           type: string
+ *                           format: date-time
+ *                           nullable: true
+ *                           example: 2026-08-08T00:00:00.000Z
+ *                         isGift:
+ *                           type: boolean
+ *                           example: false
+ *                         planCode:
+ *                           type: string
+ *                           example: PREMIUM_MONTHLY
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2026-07-22T00:00:00.000Z
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2026-08-08T00:00:00.000Z
+ *
+ *                     daysLeft:
+ *                       type: integer
+ *                       description: Number of days remaining on the current active subscription
+ *                       example: 24
+ *
+ *                     history:
+ *                       type: array
+ *                       description: Complete subscription history for the authenticated user
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012351
+ *                           user:
+ *                             type: string
+ *                             example: 64f1a2b3c4d5e6f789012346
+ *                           planId:
+ *                             type: object
+ *                             nullable: true
+ *                             description: Populated subscription plan
+ *                           coachId:
+ *                             type: object
+ *                             nullable: true
+ *                             description: Populated coach
+ *                           status:
+ *                             type: string
+ *                             enum:
+ *                               - active
+ *                               - pending
+ *                               - cancelled
+ *                               - expired
+ *                             example: expired
+ *                           startDate:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-06-22T00:00:00.000Z
+ *                           currentPeriodEnd:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-07-22T00:00:00.000Z
+ *                           isGift:
+ *                             type: boolean
+ *                             example: false
+ *                           planCode:
+ *                             type: string
+ *                             example: PREMIUM_MONTHLY
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-06-22T00:00:00.000Z
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2026-07-22T00:00:00.000Z
+ *
+ *                     historyCount:
+ *                       type: integer
+ *                       example: 5
+ *
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ *
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get(ROUTE_GET_SUBSCRIPTION_STATS, [auth], (req, res) => {
+  const userController = new UserController();
+  return userController.getSubscriptionStats(req, res);
 });
 
 

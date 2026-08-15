@@ -59,6 +59,7 @@ exports.ROUTE_GET_COACH_PERFORMANCE_GRAPH = '/get-coach-performance-graph'
 // coupons
 exports.ROUTE_MY_COUPONS = '/my-coupons'
 exports.ROUTE_COUPON_BALANCE = '/coupon-balance'
+exports.ROUTE_GET_SUBSCRIPTION_STATS = '/get-subscription-stats'
 
 //plans
 exports.ROUTE_CREATE_PLAN = '/create-plan'

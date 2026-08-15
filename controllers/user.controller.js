@@ -579,6 +579,14 @@ class UserController extends BaseController{
         }
         return BaseController.sendSuccessResponse(res, myCoupons.data)
     }
+    async getSubscriptionStats(req, res){
+        const userService = new UserService()
+        const getSubscriptionStats = await userService.getSubscriptionStats(req, res)
+        if(!getSubscriptionStats.success){
+            return BaseController.sendFailedResponse(res, getSubscriptionStats.data)
+        }
+        return BaseController.sendSuccessResponse(res, getSubscriptionStats.data)
+    }
     async couponBalance(req, res){
         const userService = new UserService()
         const couponBalance = await userService.couponBalance(req, res)

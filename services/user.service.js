@@ -2964,7 +2964,7 @@ class UserService extends BaseService {
         }
       }
 
-      await SubscriptionModel.findByIdAndDelete(subscription._id)
+      // await SubscriptionModel.findByIdAndDelete(subscription._id)
 
       return BaseService.sendSuccessResponse({
         message:
@@ -4659,6 +4659,133 @@ class UserService extends BaseService {
       });
     }
   }
+
+  async getSubscriptionStats(userId){
+    try {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return BaseService.sendFailedResponse({error: "Invalid user ID"});
+      }
+  
+      const user = await UserModel.findById(userId).select(
+        "_id firstName lastName email phoneNumber"
+      );
+  
+      if (!user) {
+        return BaseService.sendFailedResponse({error: "User not found"});
+      }
+  
+      /**
+       * ---------------------------------------------------------
+       * 1. COUPONS USED
+       * ---------------------------------------------------------
+       * Coupons that this user has actually redeemed.
+       */
+      const couponsUsed = await CouponModel.find({
+        usedByUserId: userId,
+        used: true,
+      })
+        .sort({ updatedAt: -1 })
+        .lean();
+  
+      /**
+       * ---------------------------------------------------------
+       * 2. GIFTS SENT
+       * ---------------------------------------------------------
+       * Coupons created/gifted by this user.
+       */
+      const giftsSent = await CouponModel.find({
+        giftedByUserId: userId,
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+  
+      /**
+       * ---------------------------------------------------------
+       * 3. GIFTS RECEIVED
+       * ---------------------------------------------------------
+       * There isn't a `recipientUserId` in your Coupon model.
+       *
+       * So the most reliable field currently available is
+       * recipientEmail.
+       */
+      const giftsReceived = await CouponModel.find({
+        recipientEmail: user.email,
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+  
+      /**
+       * ---------------------------------------------------------
+       * 4. SUBSCRIPTION HISTORY
+       * ---------------------------------------------------------
+       */
+      const subscriptionHistory = await SubscriptionModel.find({
+        user: userId,
+      })
+        .populate("planId")
+        .populate("coachId", "firstName lastName email")
+        .sort({ createdAt: -1 })
+        .lean();
+  
+      /**
+       * ---------------------------------------------------------
+       * 5. CURRENT ACTIVE SUBSCRIPTION
+       * ---------------------------------------------------------
+       */
+      const activeSubscription = await SubscriptionModel.findOne({
+        user: userId,
+        status: "active",
+        currentPeriodEnd: { $exists: true },
+      })
+        .populate("planId")
+        .sort({ currentPeriodEnd: -1 })
+        .lean();
+  
+      let subscriptionDaysLeft = 0;
+  
+      if (activeSubscription?.currentPeriodEnd) {
+        const now = new Date();
+        const expiryDate = new Date(activeSubscription.currentPeriodEnd);
+  
+        const difference =
+          expiryDate.getTime() - now.getTime();
+  
+        if (difference > 0) {
+          subscriptionDaysLeft = Math.ceil(
+            difference / (1000 * 60 * 60 * 24)
+          );
+        }
+      }
+  
+      return {
+        coupons: {
+          used: couponsUsed,
+          usedCount: couponsUsed.length,
+  
+          giftsSent,
+          giftsSentCount: giftsSent.length,
+  
+          giftsReceived,
+          giftsReceivedCount: giftsReceived.length,
+        },
+  
+        subscription: {
+          active: !!activeSubscription,
+  
+          current: activeSubscription,
+  
+          daysLeft: subscriptionDaysLeft,
+  
+          history: subscriptionHistory,
+  
+          historyCount: subscriptionHistory.length,
+        },
+      };
+    } catch (error) {
+      console.error("getSubscriptionStats error:", error);
+      throw error;
+    }
+  };
 
   static calculateExpiryDateBasedOnPlan(paystackPlanCode) {
     const now = new Date();
