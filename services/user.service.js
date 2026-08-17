@@ -4758,7 +4758,7 @@ class UserService extends BaseService {
         }
       }
   
-      return {
+      const responseObject = {
         coupons: {
           used: couponsUsed,
           usedCount: couponsUsed.length,
@@ -4782,6 +4782,7 @@ class UserService extends BaseService {
           historyCount: subscriptionHistory.length,
         },
       };
+      return BaseService.sendSuccessResponse({message: responseObject})
     } catch (error) {
       console.error("getSubscriptionStats error:", error);
       throw error;
