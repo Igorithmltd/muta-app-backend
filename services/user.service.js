@@ -4660,8 +4660,9 @@ class UserService extends BaseService {
     }
   }
 
-  async getSubscriptionStats(userId){
+  async getSubscriptionStats(req){
     try {
+      const userId = req.user.id
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return BaseService.sendFailedResponse({error: "Invalid user ID"});
       }
