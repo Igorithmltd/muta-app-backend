@@ -1490,6 +1490,9 @@ router.post(ROUTE_SUBSCRIBE_PLAN, auth, (req, res) => {
  *               couponCode:
  *                 type: string
  *                 description: The coupon code to redeem
+ *               coachId:
+ *                 type: string
+ *                 description: The coach id of the chosen coach
  *     responses:
  *       200:
  *         description: Subscription redeemed successfully
