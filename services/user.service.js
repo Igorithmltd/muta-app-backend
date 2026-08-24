@@ -4683,7 +4683,7 @@ class UserService extends BaseService {
        */
       const couponsUsed = await CouponModel.find({
         usedByUserId: userId,
-        used: true,
+        // used: true,
       })
         .sort({ updatedAt: -1 })
         .lean();
