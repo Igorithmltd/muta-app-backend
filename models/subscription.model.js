@@ -35,7 +35,8 @@ const SubscriptionSchema = new mongoose.Schema(
     isGift: { type: Boolean, default: false },
     planCode: {type: String},
     authorizationCode: {type: String},
-    paystackEmailToken: {type: String}
+    paystackEmailToken: {type: String},
+    amount: {type: Number}
   },
   { timestamps: true }
 );

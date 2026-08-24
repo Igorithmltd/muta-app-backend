@@ -2870,6 +2870,7 @@ class UserService extends BaseService {
         coachId: coachId,
         currentPeriodEnd: coupon.expiresAt,
         isGift: true,
+        amount: category.price
       });
 
       // Mark coupon as used
@@ -4685,6 +4686,14 @@ class UserService extends BaseService {
         usedByUserId: userId,
         // used: true,
       })
+      .populate({
+        path: "giftedByUserId",
+        select: "firstName lastName email",
+      })
+      .populate({
+        path: "usedByUserId",
+        select: "firstName lastName email",
+      })
         .sort({ updatedAt: -1 })
         .lean();
   
@@ -4697,8 +4706,16 @@ class UserService extends BaseService {
       const giftsSent = await CouponModel.find({
         giftedByUserId: userId,
       })
-        .sort({ createdAt: -1 })
-        .lean();
+      .populate({
+        path: "giftedByUserId",
+        select: "firstName lastName email",
+      })
+      .populate({
+        path: "usedByUserId",
+        select: "firstName lastName email",
+      })
+      .sort({ createdAt: -1 })
+      .lean();
   
       /**
        * ---------------------------------------------------------
@@ -4712,6 +4729,14 @@ class UserService extends BaseService {
       const giftsReceived = await CouponModel.find({
         recipientEmail: user.email,
       })
+      .populate({
+        path: "giftedByUserId",
+        select: "firstName lastName email",
+      })
+      .populate({
+        path: "usedByUserId",
+        select: "firstName lastName email",
+      })
         .sort({ createdAt: -1 })
         .lean();
   
@@ -4723,8 +4748,13 @@ class UserService extends BaseService {
       const subscriptionHistory = await SubscriptionModel.find({
         user: userId,
       })
-        .populate("planId")
-        .populate("coachId", "firstName lastName email")
+        .populate({
+          path: "planId",
+        })
+        .populate({
+          path: "coachId",
+          select: "firstName lastName email",
+        })
         .sort({ createdAt: -1 })
         .lean();
   

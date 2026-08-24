@@ -472,6 +472,7 @@ async function handleNormalSubscription(data) {
         status: "active",
         currentPeriodEnd: nextPaymentDate,
         nextPaymentDate: nextPaymentDate,
+        amount: metadata.amount
       });
 
       let chat = await ChatRoomModel.findOne({
@@ -495,6 +496,7 @@ async function handleNormalSubscription(data) {
         (subscription.coachId = metadata.coachId),
         (subscription.categoryId = metadata.categoryId),
         (subscription.planId = metadata.planId),
+        (subscription.amount = metadata.amount),
         (subscription.user = user._id),
         (subscription.lastPaymentAt = new Date(data.paid_at));
       await subscription.save();

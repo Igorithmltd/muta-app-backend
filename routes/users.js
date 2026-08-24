@@ -3526,6 +3526,7 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
   return userController.couponBalance(req, res);
 });
 
+
 /**
  * @swagger
  * /users/get-subscription-stats:
@@ -3550,61 +3551,108 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                 coupons:
  *                   type: object
  *                   properties:
+ *
  *                     used:
  *                       type: array
- *                       description: Coupons used by the authenticated user
+ *                       description: Coupons redeemed by the authenticated user
  *                       items:
  *                         type: object
  *                         properties:
  *                           _id:
  *                             type: string
  *                             example: 64f1a2b3c4d5e6f789012346
+ *
  *                           code:
  *                             type: string
  *                             example: SUMMER2026
+ *
  *                           planId:
  *                             type: string
- *                             example: plan_premium_monthly
- *                           giftedByUserId:
- *                             type: string
  *                             example: 64f1a2b3c4d5e6f789012347
+ *
+ *                           giftedByUserId:
+ *                             type: object
+ *                             nullable: true
+ *                             description: User who gifted the coupon
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012348
+ *                               firstName:
+ *                                 type: string
+ *                                 example: Jane
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Doe
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: jane.doe@example.com
+ *
  *                           usedByUserId:
- *                             type: string
- *                             example: 64f1a2b3c4d5e6f789012346
+ *                             type: object
+ *                             nullable: true
+ *                             description: User who redeemed the coupon
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012346
+ *                               firstName:
+ *                                 type: string
+ *                                 example: John
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Smith
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: john.smith@example.com
+ *
  *                           recipientEmail:
  *                             type: string
- *                             example: user@example.com
+ *                             format: email
+ *                             example: john.smith@example.com
+ *
  *                           recipientName:
  *                             type: string
- *                             example: John Doe
+ *                             example: John Smith
+ *
  *                           expiresAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-09-01T00:00:00.000Z
+ *
  *                           used:
  *                             type: boolean
  *                             example: true
+ *
  *                           reference:
  *                             type: string
  *                             example: COUPON-REF-12345
+ *
  *                           subscriptionCode:
  *                             type: string
  *                             nullable: true
  *                             example: SUB_123456
+ *
  *                           amount:
  *                             type: number
  *                             example: 5000
+ *
  *                           createdAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-07-31T10:15:30.000Z
+ *
  *                           updatedAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-08-01T08:20:10.000Z
+ *
  *                     usedCount:
  *                       type: integer
  *                       example: 2
+ *
  *
  *                     giftsSent:
  *                       type: array
@@ -3614,46 +3662,103 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                         properties:
  *                           _id:
  *                             type: string
- *                             example: 64f1a2b3c4d5e6f789012348
+ *                             example: 64f1a2b3c4d5e6f789012349
+ *
  *                           code:
  *                             type: string
  *                             example: GIFT2026
+ *
  *                           planId:
  *                             type: string
- *                             example: plan_premium_monthly
+ *                             example: 64f1a2b3c4d5e6f789012347
+ *
  *                           giftedByUserId:
- *                             type: string
- *                             example: 64f1a2b3c4d5e6f789012346
+ *                             type: object
+ *                             nullable: true
+ *                             description: User who gifted the coupon
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012346
+ *                               firstName:
+ *                                 type: string
+ *                                 example: John
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Smith
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: john.smith@example.com
+ *
+ *                           usedByUserId:
+ *                             type: object
+ *                             nullable: true
+ *                             description: User who redeemed the coupon
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012350
+ *                               firstName:
+ *                                 type: string
+ *                                 example: Jane
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Doe
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: jane.doe@example.com
+ *
  *                           recipientEmail:
  *                             type: string
- *                             example: friend@example.com
+ *                             format: email
+ *                             example: jane.doe@example.com
+ *
  *                           recipientName:
  *                             type: string
  *                             example: Jane Doe
+ *
  *                           phoneNumber:
  *                             type: string
  *                             example: "+2348012345678"
+ *
  *                           expiresAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-09-15T00:00:00.000Z
+ *
  *                           used:
  *                             type: boolean
  *                             example: false
+ *
+ *                           reference:
+ *                             type: string
+ *                             example: GIFT-REF-12345
+ *
+ *                           subscriptionCode:
+ *                             type: string
+ *                             nullable: true
+ *                             example: null
+ *
  *                           amount:
  *                             type: number
  *                             example: 10000
+ *
  *                           createdAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-08-01T10:15:30.000Z
+ *
  *                           updatedAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-08-01T10:15:30.000Z
+ *
  *                     giftsSentCount:
  *                       type: integer
  *                       example: 3
+ *
  *
  *                     giftsReceived:
  *                       type: array
@@ -3663,47 +3768,108 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                         properties:
  *                           _id:
  *                             type: string
- *                             example: 64f1a2b3c4d5e6f789012349
+ *                             example: 64f1a2b3c4d5e6f789012351
+ *
  *                           code:
  *                             type: string
  *                             example: FRIENDGIFT2026
+ *
  *                           planId:
  *                             type: string
- *                             example: plan_premium_monthly
+ *                             example: 64f1a2b3c4d5e6f789012347
+ *
  *                           giftedByUserId:
- *                             type: string
- *                             example: 64f1a2b3c4d5e6f789012350
+ *                             type: object
+ *                             nullable: true
+ *                             description: User who gifted the coupon
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012352
+ *                               firstName:
+ *                                 type: string
+ *                                 example: Michael
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Brown
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: michael.brown@example.com
+ *
+ *                           usedByUserId:
+ *                             type: object
+ *                             nullable: true
+ *                             description: User who redeemed the coupon
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012346
+ *                               firstName:
+ *                                 type: string
+ *                                 example: John
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Smith
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: john.smith@example.com
+ *
  *                           recipientEmail:
  *                             type: string
- *                             example: user@example.com
+ *                             format: email
+ *                             example: john.smith@example.com
+ *
  *                           recipientName:
  *                             type: string
- *                             example: John Doe
+ *                             example: John Smith
+ *
+ *                           phoneNumber:
+ *                             type: string
+ *                             example: "+2348012345678"
+ *
  *                           expiresAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-09-30T00:00:00.000Z
+ *
  *                           used:
  *                             type: boolean
  *                             example: false
+ *
+ *                           reference:
+ *                             type: string
+ *                             example: RECEIVED-REF-12345
+ *
+ *                           subscriptionCode:
+ *                             type: string
+ *                             nullable: true
+ *                             example: null
+ *
  *                           amount:
  *                             type: number
  *                             example: 7500
+ *
  *                           createdAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-08-05T10:15:30.000Z
+ *
  *                           updatedAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-08-05T10:15:30.000Z
+ *
  *                     giftsReceivedCount:
  *                       type: integer
  *                       example: 2
  *
+ *
  *                 subscription:
  *                   type: object
  *                   properties:
+ *
  *                     active:
  *                       type: boolean
  *                       description: Whether the user currently has an active subscription
@@ -3714,9 +3880,11 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                       nullable: true
  *                       description: The user's current active subscription
  *                       properties:
+ *
  *                         _id:
  *                           type: string
- *                           example: 64f1a2b3c4d5e6f789012351
+ *                           example: 64f1a2b3c4d5e6f789012353
+ *
  *                         user:
  *                           type: string
  *                           example: 64f1a2b3c4d5e6f789012346
@@ -3728,7 +3896,7 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                           properties:
  *                             _id:
  *                               type: string
- *                               example: 64f1a2b3c4d5e6f789012353
+ *                               example: 64f1a2b3c4d5e6f789012354
  *                             name:
  *                               type: string
  *                               example: Premium Plan
@@ -3737,13 +3905,13 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                               example: Access to premium coaching and support features
  *                             categories:
  *                               type: array
- *                               description: Available billing categories for this plan
+ *                               description: Available categories in the subscription plan
  *                               items:
  *                                 type: object
  *                                 properties:
  *                                   _id:
  *                                     type: string
- *                                     example: 64f1a2b3c4d5e6f789012354
+ *                                     example: 64f1a2b3c4d5e6f789012355
  *                                   duration:
  *                                     type: string
  *                                     enum:
@@ -3776,7 +3944,7 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                           properties:
  *                             _id:
  *                               type: string
- *                               example: 64f1a2b3c4d5e6f789012355
+ *                               example: 64f1a2b3c4d5e6f789012356
  *                             firstName:
  *                               type: string
  *                               example: John
@@ -3791,7 +3959,9 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                         categoryId:
  *                           type: string
  *                           nullable: true
- *                           example: 64f1a2b3c4d5e6f789012352
+ *                           description: ID of the selected subscription category
+ *                           example: 64f1a2b3c4d5e6f789012355
+ *
  *                         status:
  *                           type: string
  *                           enum:
@@ -3800,44 +3970,75 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                             - cancelled
  *                             - expired
  *                           example: active
+ *
  *                         startDate:
  *                           type: string
  *                           format: date-time
  *                           example: 2026-07-22T00:00:00.000Z
+ *
  *                         paystackSubscriptionId:
  *                           type: string
+ *                           nullable: true
  *                           example: SUB_123456789
+ *
  *                         subscriptionCode:
  *                           type: string
+ *                           nullable: true
  *                           example: I-123456789
+ *
+ *                         paystackAuthorizationToken:
+ *                           type: string
+ *                           nullable: true
+ *                           example: null
+ *
  *                         currentPeriodEnd:
  *                           type: string
  *                           format: date-time
+ *                           nullable: true
  *                           example: 2026-09-08T00:00:00.000Z
+ *
  *                         nextPaymentDate:
  *                           type: string
  *                           format: date-time
+ *                           nullable: true
  *                           example: 2026-09-08T00:00:00.000Z
+ *
  *                         cancelledAt:
  *                           type: string
  *                           format: date-time
  *                           nullable: true
  *                           example: null
+ *
  *                         lastPaymentAt:
  *                           type: string
  *                           format: date-time
  *                           nullable: true
  *                           example: 2026-08-08T00:00:00.000Z
+ *
  *                         isGift:
  *                           type: boolean
  *                           example: false
+ *
  *                         planCode:
  *                           type: string
+ *                           nullable: true
  *                           example: PREMIUM_MONTHLY
+ *
+ *                         authorizationCode:
+ *                           type: string
+ *                           nullable: true
+ *                           example: AUTH_123456789
+ *
+ *                         paystackEmailToken:
+ *                           type: string
+ *                           nullable: true
+ *                           example: null
+ *
  *                         createdAt:
  *                           type: string
  *                           format: date-time
  *                           example: 2026-07-22T00:00:00.000Z
+ *
  *                         updatedAt:
  *                           type: string
  *                           format: date-time
@@ -3854,9 +4055,11 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                       items:
  *                         type: object
  *                         properties:
+ *
  *                           _id:
  *                             type: string
- *                             example: 64f1a2b3c4d5e6f789012351
+ *                             example: 64f1a2b3c4d5e6f789012357
+ *
  *                           user:
  *                             type: string
  *                             example: 64f1a2b3c4d5e6f789012346
@@ -3868,7 +4071,7 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                             properties:
  *                               _id:
  *                                 type: string
- *                                 example: 64f1a2b3c4d5e6f789012353
+ *                                 example: 64f1a2b3c4d5e6f789012354
  *                               name:
  *                                 type: string
  *                                 example: Premium Plan
@@ -3877,13 +4080,12 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                                 example: Access to premium coaching and support features
  *                               categories:
  *                                 type: array
- *                                 description: Available billing categories for this plan
  *                                 items:
  *                                   type: object
  *                                   properties:
  *                                     _id:
  *                                       type: string
- *                                       example: 64f1a2b3c4d5e6f789012354
+ *                                       example: 64f1a2b3c4d5e6f789012355
  *                                     duration:
  *                                       type: string
  *                                       enum:
@@ -3916,7 +4118,7 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                             properties:
  *                               _id:
  *                                 type: string
- *                                 example: 64f1a2b3c4d5e6f789012355
+ *                                 example: 64f1a2b3c4d5e6f789012356
  *                               firstName:
  *                                 type: string
  *                                 example: John
@@ -3928,6 +4130,12 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                                 format: email
  *                                 example: john.smith@example.com
  *
+ *                           categoryId:
+ *                             type: string
+ *                             nullable: true
+ *                             description: ID of the selected subscription category
+ *                             example: 64f1a2b3c4d5e6f789012355
+ *
  *                           status:
  *                             type: string
  *                             enum:
@@ -3936,24 +4144,70 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                               - cancelled
  *                               - expired
  *                             example: expired
+ *
  *                           startDate:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-06-22T00:00:00.000Z
+ *
+ *                           paystackSubscriptionId:
+ *                             type: string
+ *                             nullable: true
+ *                             example: SUB_123456789
+ *
+ *                           subscriptionCode:
+ *                             type: string
+ *                             nullable: true
+ *                             example: I-123456789
+ *
  *                           currentPeriodEnd:
  *                             type: string
  *                             format: date-time
+ *                             nullable: true
  *                             example: 2026-07-22T00:00:00.000Z
+ *
+ *                           nextPaymentDate:
+ *                             type: string
+ *                             format: date-time
+ *                             nullable: true
+ *                             example: 2026-07-22T00:00:00.000Z
+ *
+ *                           cancelledAt:
+ *                             type: string
+ *                             format: date-time
+ *                             nullable: true
+ *                             example: null
+ *
+ *                           lastPaymentAt:
+ *                             type: string
+ *                             format: date-time
+ *                             nullable: true
+ *                             example: 2026-07-22T00:00:00.000Z
+ *
  *                           isGift:
  *                             type: boolean
  *                             example: false
+ *
  *                           planCode:
  *                             type: string
+ *                             nullable: true
  *                             example: PREMIUM_MONTHLY
+ *
+ *                           authorizationCode:
+ *                             type: string
+ *                             nullable: true
+ *                             example: AUTH_123456789
+ *
+ *                           paystackEmailToken:
+ *                             type: string
+ *                             nullable: true
+ *                             example: null
+ *
  *                           createdAt:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-06-22T00:00:00.000Z
+ *
  *                           updatedAt:
  *                             type: string
  *                             format: date-time
@@ -3996,7 +4250,6 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                   type: string
  *                   example: Internal server error
  */
-
 router.get(ROUTE_GET_SUBSCRIPTION_STATS, [auth], (req, res) => {
   const userController = new UserController();
   return userController.getSubscriptionStats(req, res);
