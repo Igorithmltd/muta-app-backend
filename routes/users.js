@@ -3720,14 +3720,74 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                         user:
  *                           type: string
  *                           example: 64f1a2b3c4d5e6f789012346
+ *
  *                         planId:
  *                           type: object
  *                           nullable: true
  *                           description: Populated subscription plan
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               example: 64f1a2b3c4d5e6f789012353
+ *                             name:
+ *                               type: string
+ *                               example: Premium Plan
+ *                             description:
+ *                               type: string
+ *                               example: Access to premium coaching and support features
+ *                             categories:
+ *                               type: array
+ *                               description: Available billing categories for this plan
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   _id:
+ *                                     type: string
+ *                                     example: 64f1a2b3c4d5e6f789012354
+ *                                   duration:
+ *                                     type: string
+ *                                     enum:
+ *                                       - monthly
+ *                                       - yearly
+ *                                     example: monthly
+ *                                   price:
+ *                                     type: number
+ *                                     example: 29.99
+ *                                   paystackSubscriptionId:
+ *                                     type: string
+ *                                     nullable: true
+ *                                     example: PSS_MONTHLY_123456
+ *                             features:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                               example:
+ *                                 - Unlimited coaching sessions
+ *                                 - Priority support
+ *                                 - Premium resources
+ *                             isActive:
+ *                               type: boolean
+ *                               example: true
+ *
  *                         coachId:
  *                           type: object
  *                           nullable: true
  *                           description: Populated coach
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               example: 64f1a2b3c4d5e6f789012355
+ *                             firstName:
+ *                               type: string
+ *                               example: John
+ *                             lastName:
+ *                               type: string
+ *                               example: Smith
+ *                             email:
+ *                               type: string
+ *                               format: email
+ *                               example: john.smith@example.com
+ *
  *                         categoryId:
  *                           type: string
  *                           nullable: true
@@ -3800,14 +3860,74 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                           user:
  *                             type: string
  *                             example: 64f1a2b3c4d5e6f789012346
+ *
  *                           planId:
  *                             type: object
  *                             nullable: true
  *                             description: Populated subscription plan
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012353
+ *                               name:
+ *                                 type: string
+ *                                 example: Premium Plan
+ *                               description:
+ *                                 type: string
+ *                                 example: Access to premium coaching and support features
+ *                               categories:
+ *                                 type: array
+ *                                 description: Available billing categories for this plan
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                     _id:
+ *                                       type: string
+ *                                       example: 64f1a2b3c4d5e6f789012354
+ *                                     duration:
+ *                                       type: string
+ *                                       enum:
+ *                                         - monthly
+ *                                         - yearly
+ *                                       example: monthly
+ *                                     price:
+ *                                       type: number
+ *                                       example: 29.99
+ *                                     paystackSubscriptionId:
+ *                                       type: string
+ *                                       nullable: true
+ *                                       example: PSS_MONTHLY_123456
+ *                               features:
+ *                                 type: array
+ *                                 items:
+ *                                   type: string
+ *                                 example:
+ *                                   - Unlimited coaching sessions
+ *                                   - Priority support
+ *                                   - Premium resources
+ *                               isActive:
+ *                                 type: boolean
+ *                                 example: true
+ *
  *                           coachId:
  *                             type: object
  *                             nullable: true
  *                             description: Populated coach
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 64f1a2b3c4d5e6f789012355
+ *                               firstName:
+ *                                 type: string
+ *                                 example: John
+ *                               lastName:
+ *                                 type: string
+ *                                 example: Smith
+ *                               email:
+ *                                 type: string
+ *                                 format: email
+ *                                 example: john.smith@example.com
+ *
  *                           status:
  *                             type: string
  *                             enum:
@@ -3876,6 +3996,7 @@ router.get(ROUTE_COUPON_BALANCE, [auth], (req, res) => {
  *                   type: string
  *                   example: Internal server error
  */
+
 router.get(ROUTE_GET_SUBSCRIPTION_STATS, [auth], (req, res) => {
   const userController = new UserController();
   return userController.getSubscriptionStats(req, res);
