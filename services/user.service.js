@@ -2785,10 +2785,16 @@ class UserService extends BaseService {
 
       // Validate coupon expiration for 10 days
 
-      const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
+      // const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
 
-      if (Date.now() - coupon.createdAt.getTime() > TEN_DAYS) {
-        return BaseService.sendFailedResponse({ error: "Coupon has expired" });
+      // if (Date.now() - coupon.createdAt.getTime() > coupon.expiresAt.getTime()) {
+      //   return BaseService.sendFailedResponse({ error: "Coupon has expired" });
+      // }
+
+      if (Date.now() > coupon.expiresAt.getTime()) {
+        return BaseService.sendFailedResponse({
+          error: "Coupon has expired",
+        });
       }
 
       // Validate coupon usage
