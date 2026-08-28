@@ -279,113 +279,425 @@ async function handleGiftSubscription(data, sender, metadata) {
     /* ==========================
        📧 EMAIL DELIVERY
     ========================== */
-    if (recipientEmail) {
-      const emailHtml = `
-  <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+  //   if (recipientEmail) {
+  //     const emailHtml = `
+  // <div style="margin:0; padding:0; background-color:#f0f9ff; font-family: Arial, sans-serif;">
+  //   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff; padding: 20px 0;">
+  //     <tr>
+  //       <td align="center">
+          
+  //         <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+            
+  //           <!-- Header -->
+  //           <tr>
+  //             <td style="background:#38bdf8; padding:20px; text-align:center;">
+  //               <h1 style="margin:0; color:#ffffff; font-size:20px;">
+  //                 You’ve Received a Gift 🎁
+  //               </h1>
+  //             </td>
+  //           </tr>
+
+  //           <!-- Body -->
+  //           <tr>
+  //             <td style="padding:30px 25px; color:#444;">
+                
+  //               <p style="margin:0 0 15px; font-size:16px;">
+  //                 Hey <strong>${recipientName || recipientEmail}</strong>! 🎉
+  //               </p>
+
+  //               <p style="margin:0 0 15px;">
+  //                 You’ve just been gifted a fitness boost by 
+  //                 <strong>${sender.firstName} ${sender.lastName}</strong>! 💪
+  //               </p>
+
+  //               <p style="margin:0 0 15px;">
+  //                 Muta Fitness is cheering you on — because someone believes in your goals and your glow-up! ✨
+  //               </p>
+
+  //               <!-- Coupon Box -->
+  //               <div style="text-align:center; margin:20px 0;">
+  //                 <span style="
+  //                   display:inline-block;
+  //                   padding:14px 24px;
+  //                   background:#e0f2fe;
+  //                   color:#0369a1;
+  //                   font-size:18px;
+  //                   font-weight:bold;
+  //                   border-radius:8px;
+  //                   letter-spacing:2px;
+  //                 ">
+  //                   ${couponCode}
+  //                 </span>
+  //               </div>
+
+  //               ${
+  //                 giftMessage
+  //                   ? `<p style="margin:15px 0; font-style:italic; color:#555;">
+  //                       "${giftMessage}"
+  //                     </p>`
+  //                   : ""
+  //               }
+
+  //               <p style="margin:20px 0;">
+  //                 Open your Muta app, claim your gift, and start your journey to a healthier, stronger, and happier YOU! 🏋🏽‍♀️
+  //               </p>
+
+  //               <!-- CTA Button -->
+  //               <div style="text-align:center; margin:25px 0;">
+  //                 <a href="https://muta.fit" style="
+  //                   display:inline-block;
+  //                   padding:12px 24px;
+  //                   background:#38bdf8;
+  //                   color:#ffffff;
+  //                   text-decoration:none;
+  //                   border-radius:25px;
+  //                   font-weight:bold;
+  //                   font-size:14px;
+  //                 ">
+  //                   Redeem Gift
+  //                 </a>
+  //               </div>
+
+  //               <p style="font-size:12px; color:#999; text-align:center;">
+  //                 If you have any issues redeeming your gift, please contact support.
+  //               </p>
+
+  //             </td>
+  //           </tr>
+
+  //           <!-- Footer -->
+  //           <tr>
+  //             <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
+  //               © ${new Date().getFullYear()} Muta Fitness. All rights reserved.
+  //             </td>
+  //           </tr>
+
+  //         </table>
+
+  //       </td>
+  //     </tr>
+  //   </table>
+  // </div>
+  //      `;
+
+  //     await sendEmail({
+  //       to: recipientEmail,
+  //       subject: "You received a gift subscription!",
+  //       html: emailHtml,
+  //     });
+  //   }
+
+  if (recipientEmail) {
+    const redeemUrl = `https://muta.fit/redeem-gift?code=${encodeURIComponent(
+      couponCode
+    )}&gifter=${sender.firstName}`;
+  
+    const emailHtml = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You've Received a MutaFit Premium Gift</title>
+  </head>
+  
+  <body style="
+    margin:0;
+    padding:0;
+    background-color:#0b0b0b;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#ffffff;
+  ">
+  
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="
+        background-color:#0b0b0b;
+        padding:40px 15px;
+      "
+    >
       <tr>
         <td align="center">
-          
-          <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
-            
-            <!-- Header -->
+  
+          <!-- Main Email Container -->
+          <table
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="
+              max-width:650px;
+              background-color:#111111;
+              border-radius:4px;
+              overflow:hidden;
+            "
+          >
+  
+            <!-- Logo -->
             <tr>
-              <td style="background:#38bdf8; padding:20px; text-align:center;">
-                <h1 style="margin:0; color:#ffffff; font-size:20px;">
-                  You’ve Received a Gift 🎁
-                </h1>
+              <td style="padding:45px 50px 30px 50px;">
+  
+                <div style="
+                  font-size:30px;
+                  line-height:1;
+                  font-weight:700;
+                  letter-spacing:-1px;
+                ">
+                  <span style="color:#087cff;">MUTA</span><span style="color:#ffffff;">FIT</span>
+                </div>
+  
               </td>
             </tr>
-
-            <!-- Body -->
+  
+            <!-- Heading -->
             <tr>
-              <td style="padding:30px 25px; color:#444;">
-                
-                <p style="margin:0 0 15px; font-size:16px;">
-                  Hey <strong>${recipientName || recipientEmail}</strong>! 🎉
+              <td style="padding:10px 50px 0 50px;">
+  
+                <h1 style="
+                  margin:0;
+                  color:#ffffff;
+                  font-size:42px;
+                  line-height:1.15;
+                  font-weight:400;
+                  letter-spacing:-1px;
+                ">
+                  You've Received a<br />
+                  MutaFit Premium<br />
+                  Gift
+                </h1>
+  
+              </td>
+            </tr>
+  
+            <!-- Greeting + Message -->
+            <tr>
+              <td style="padding:35px 50px 10px 50px;">
+  
+                <p style="
+                  margin:0 0 18px 0;
+                  font-size:17px;
+                  line-height:1.6;
+                  color:#d0d0d0;
+                ">
+                  Hello <strong style="color:#ffffff;">
+                    ${recipientName || recipientEmail}
+                  </strong>,
                 </p>
-
-                <p style="margin:0 0 15px;">
-                  You’ve just been gifted a fitness boost by 
-                  <strong>${sender.firstName} ${sender.lastName}</strong>! 💪
+  
+                <p style="
+                  margin:0 0 18px 0;
+                  font-size:17px;
+                  line-height:1.6;
+                  color:#d0d0d0;
+                ">
+                  Great news! Someone has gifted you a MutaFit Premium
+                  subscription to support your health, fitness, and
+                  wellness journey.
                 </p>
-
-                <p style="margin:0 0 15px;">
-                  Muta Fitness is cheering you on — because someone believes in your goals and your glow-up! ✨
+  
+                <p style="
+                  margin:0;
+                  font-size:17px;
+                  line-height:1.6;
+                  color:#d0d0d0;
+                ">
+                  <strong style="color:#ffffff;">
+                    ${sender.firstName} ${sender.lastName}
+                  </strong>
+                  believes in your goals and your journey. 💪
                 </p>
-
-                <!-- Coupon Box -->
-                <div style="text-align:center; margin:20px 0;">
-                  <span style="
-                    display:inline-block;
-                    padding:14px 24px;
-                    background:#e0f2fe;
-                    color:#0369a1;
-                    font-size:18px;
-                    font-weight:bold;
-                    border-radius:8px;
+  
+              </td>
+            </tr>
+  
+            <!-- Premium Description -->
+            <tr>
+              <td style="padding:20px 50px 10px 50px;">
+  
+                <p style="
+                  margin:0;
+                  font-size:17px;
+                  line-height:1.6;
+                  color:#d0d0d0;
+                ">
+                  With <strong style="color:#ffffff;">MutaFit Premium</strong>,
+                  you'll gain access to premium features, personalized
+                  experiences, and progress tracking tools to help you
+                  stay motivated and achieve your goals.
+                </p>
+  
+              </td>
+            </tr>
+  
+            <!-- Gift Message -->
+            ${
+              giftMessage
+                ? `
+            <tr>
+              <td style="padding:20px 50px 0 50px;">
+  
+                <div style="
+                  border-left:3px solid #087cff;
+                  padding:12px 18px;
+                  background:#171717;
+                ">
+                  <p style="
+                    margin:0;
+                    font-size:16px;
+                    line-height:1.6;
+                    color:#bdbdbd;
+                    font-style:italic;
+                  ">
+                    "${giftMessage}"
+                  </p>
+                </div>
+  
+              </td>
+            </tr>
+            `
+                : ""
+            }
+  
+            <!-- Gift Code -->
+            <tr>
+              <td style="padding:30px 50px 10px 50px;">
+  
+                <p style="
+                  margin:0 0 10px 0;
+                  font-size:14px;
+                  color:#888888;
+                ">
+                  Gift Code:
+                </p>
+  
+                <div style="
+                  background:#191919;
+                  border:1px solid #292929;
+                  border-radius:8px;
+                  padding:20px;
+                ">
+  
+                  <p style="
+                    margin:0;
+                    color:#ffffff;
+                    font-size:21px;
+                    font-weight:700;
                     letter-spacing:2px;
+                    word-break:break-all;
+                    text-align:center;
                   ">
                     ${couponCode}
-                  </span>
+                  </p>
+  
                 </div>
-
-                ${
-                  giftMessage
-                    ? `<p style="margin:15px 0; font-style:italic; color:#555;">
-                        "${giftMessage}"
-                      </p>`
-                    : ""
-                }
-
-                <p style="margin:20px 0;">
-                  Open your Muta app, claim your gift, and start your journey to a healthier, stronger, and happier YOU! 🏋🏽‍♀️
-                </p>
-
-                <!-- CTA Button -->
-                <div style="text-align:center; margin:25px 0;">
-                  <a href="https://muta.fit" style="
+  
+              </td>
+            </tr>
+  
+            <!-- CTA -->
+            <tr>
+              <td align="center" style="padding:30px 50px 20px 50px;">
+  
+                <a
+                  href="${redeemUrl}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="
                     display:inline-block;
-                    padding:12px 24px;
-                    background:#38bdf8;
+                    padding:17px 48px;
+                    background:#087cff;
                     color:#ffffff;
                     text-decoration:none;
-                    border-radius:25px;
-                    font-weight:bold;
-                    font-size:14px;
-                  ">
-                    Redeem Gift
-                  </a>
-                </div>
-
-                <p style="font-size:12px; color:#999; text-align:center;">
-                  If you have any issues redeeming your gift, please contact support.
-                </p>
-
+                    border-radius:8px;
+                    font-size:18px;
+                    font-weight:600;
+                    text-align:center;
+                  "
+                >
+                  View Gift
+                </a>
+  
               </td>
             </tr>
-
+  
+            <!-- Fallback URL -->
+            <tr>
+              <td style="padding:5px 50px 35px 50px;">
+  
+                <p style="
+                  margin:0;
+                  text-align:center;
+                  font-size:12px;
+                  line-height:1.5;
+                  color:#666666;
+                ">
+                  If the button doesn't work, copy and paste this link
+                  into your browser:
+                </p>
+  
+                <p style="
+                  margin:8px 0 0;
+                  text-align:center;
+                  font-size:11px;
+                  line-height:1.5;
+                  color:#087cff;
+                  word-break:break-all;
+                ">
+                  ${redeemUrl}
+                </p>
+  
+              </td>
+            </tr>
+  
             <!-- Footer -->
             <tr>
-              <td style="background:#e0f2fe; padding:15px; text-align:center; font-size:12px; color:#888;">
-                © ${new Date().getFullYear()} Muta Fitness. All rights reserved.
+              <td style="
+                padding:25px 50px;
+                border-top:1px solid #222222;
+              ">
+  
+                <p style="
+                  margin:0;
+                  text-align:center;
+                  font-size:13px;
+                  line-height:1.6;
+                  color:#666666;
+                ">
+                  Your journey to a healthier, fitter you starts here.
+                </p>
+  
+                <p style="
+                  margin:10px 0 0;
+                  text-align:center;
+                  font-size:12px;
+                  color:#555555;
+                ">
+                  © ${new Date().getFullYear()} MutaFit.
+                  All rights reserved.
+                </p>
+  
               </td>
             </tr>
-
+  
           </table>
-
+  
         </td>
       </tr>
     </table>
-  </div>
-       `;
-
-      await sendEmail({
-        to: recipientEmail,
-        subject: "You received a gift subscription!",
-        html: emailHtml,
-      });
-    }
+  
+  </body>
+  </html>
+    `;
+  
+    await sendEmail({
+      to: recipientEmail,
+      subject: "🎁 You've Received a MutaFit Premium Gift!",
+      html: emailHtml,
+    });
+  }
 
     /* ==========================
        📱 SMS DELIVERY
