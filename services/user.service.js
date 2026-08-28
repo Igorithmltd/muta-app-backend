@@ -2443,7 +2443,7 @@ class UserService extends BaseService {
         recipientEmail,
         used: false,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        amount: category.price
+        amount: category.price || 0
       });
 
       await sendEmail({
@@ -2877,7 +2877,7 @@ class UserService extends BaseService {
         coachId: coachId,
         currentPeriodEnd: coupon.expiresAt,
         isGift: true,
-        amount: category.price
+        amount: category.price || 0
       });
 
       // Mark coupon as used
