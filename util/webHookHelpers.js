@@ -261,6 +261,7 @@ async function handleGiftSubscription(data, sender, metadata) {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     }
 
+    console.log("coupon creation amount", metadata.amount)
     // Save coupon
     await CouponModel.create({
       code: couponCode,
