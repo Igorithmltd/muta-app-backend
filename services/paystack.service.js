@@ -146,11 +146,11 @@ class PaystackService extends BaseService {
         });
       }
 
-      if (recipientEmail && phoneNumber) {
-        return BaseService.sendFailedResponse({
-          error: "Provide only one gift delivery method (email OR phone)",
-        });
-      }
+      // if (recipientEmail && phoneNumber) {
+      //   return BaseService.sendFailedResponse({
+      //     error: "Provide only one gift delivery method (email OR phone)",
+      //   });
+      // }
 
       if (!isGift) {
         let subscriptions = [];

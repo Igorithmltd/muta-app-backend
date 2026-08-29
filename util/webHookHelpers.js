@@ -389,7 +389,7 @@ async function handleGiftSubscription(data, sender, metadata) {
   //   }
 
   if (recipientEmail) {
-    const redeemUrl = `https://muta.fit/redeem-gift?code=${encodeURIComponent(
+    const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${encodeURIComponent(
       couponCode
     )}&gifter=${sender.firstName}`;
   
