@@ -484,7 +484,7 @@ async function handleGiftSubscription(data, sender, metadata) {
                   color:#d0d0d0;
                 ">
                   Hello <strong style="color:#ffffff;">
-                    ${recipientName || recipientEmail}
+                    ${recipientName}
                   </strong>,
                 </p>
   
