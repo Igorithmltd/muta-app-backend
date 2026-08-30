@@ -142,12 +142,17 @@ class PaystackService extends BaseService {
       ---------------------*/
       if (isGift && !phoneNumber) {
         return BaseService.sendFailedResponse({
-          error: "Recepient phone number is required for gifts",
+          error: "Recipient phone number is required for gifts",
         });
       }
       if (isGift && !recipientEmail) {
         return BaseService.sendFailedResponse({
-          error: "Recepient email is required for gifts",
+          error: "Recipient email is required for gifts",
+        });
+      }
+      if (isGift && !recipientName) {
+        return BaseService.sendFailedResponse({
+          error: "Recipient name is required for gifts",
         });
       }
 
