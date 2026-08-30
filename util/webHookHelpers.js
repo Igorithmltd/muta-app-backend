@@ -695,7 +695,7 @@ async function handleGiftSubscription(data, sender, metadata) {
   
     await sendEmail({
       to: recipientEmail,
-      subject: "🎁 You've Received a MutaFit Premium Gift!",
+      subject: "You've Received a MutaFit Premium Gift!",
       html: emailHtml,
     });
   }
