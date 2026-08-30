@@ -508,7 +508,7 @@ async function handleGiftSubscription(data, sender, metadata) {
                   <strong style="color:#ffffff;">
                     ${sender.firstName} ${sender.lastName}
                   </strong>
-                  believes in your goals and your journey. 💪
+                  believes in your goals and your journey.
                 </p>
   
               </td>
