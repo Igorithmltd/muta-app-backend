@@ -402,51 +402,33 @@ class PaystackService extends BaseService {
 
     if (user.customerCode) {
       try {
-        console.log('📡 Fetching Paystack subscriptions...');
         const response = await paystackAxios.get(
           `/customer/${user.customerCode}`
         );
         
-        console.log('✅ Paystack API Response:', JSON.stringify(response.data, null, 2));
         
         const subscriptions = response.data?.data?.subscriptions || [];
-        console.log('📊 Subscriptions found:', subscriptions.length);
-        console.log('📊 Full subscriptions array:', JSON.stringify(subscriptions, null, 2));
 
         const activeSub = subscriptions.find((sub) => sub.status === "active");
-        console.log('🎯 Active subscription found:', activeSub ? 'Yes' : 'No');
         
         if (activeSub) {
           hasPaystackSub = true;
           paystackSub = activeSub;
-          console.log('✅ Paystack subscription is active:', activeSub);
-        } else {
-          console.log('❌ No active Paystack subscription found');
         }
       } catch (error) {
         console.error('❌ Paystack API Error:', error);
-        if (error.response) {
-          console.error('📨 Response status:', error.response.status);
-          console.error('📨 Response data:', error.response.data);
-        }
-        if (error.response?.status !== 404) {
-          console.error("Paystack check failed:", error);
-          // Don't throw - let the function continue to check DB
-        }
       }
     } else {
       console.log('⚠️ No customerCode found for user');
     }
 
-    console.log('🔍 Checking local database...');
+
     const dbSub = await SubscriptionModel.findOne({
       user: user._id,
       status: "active",
       endDate: { $gt: new Date() },
     });
     
-    console.log('📊 DB Subscription found:', dbSub ? 'Yes' : 'No');
-    console.log('📊 DB Subscription details:', dbSub);
 
     const result = {
       hasActiveSubscription: hasPaystackSub || !!dbSub,
@@ -455,7 +437,6 @@ class PaystackService extends BaseService {
       isSynced: hasPaystackSub === !!dbSub,
     };
     
-    console.log('🏁 Final result:', result);
     
     return result;
   }

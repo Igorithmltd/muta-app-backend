@@ -793,7 +793,7 @@ async function handleNormalSubscription(data) {
         participants: { $all: [user._id, metadata.coachId] },
       });
 
-      console.log({user1: user, user2: metadata.coachId})
+      console.log({user1: user, metadata})
 
       if (!chat) {
         chat = await ChatRoomModel.create({
