@@ -800,6 +800,8 @@ async function handleNormalSubscription(data) {
         });
       }
 
+      console.log({chat})
+
       return;
     } else {
       subscription.status = "active";
