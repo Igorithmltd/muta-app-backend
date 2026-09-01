@@ -760,15 +760,7 @@ async function handleNormalSubscription(data) {
     );
 
     if (!subscription) {
-      console.log(
-        "Subscription does not exist, creating new subscription from webhook"
-      );
-
-      // Optional: fallback values if you have a mapping table or default plan/coach
-      console.log(
-        new Date(),
-        "Creating handle normal subscription with start date"
-      );
+      console.log('subscription is not active')
 
       const duration = metadata.duration || "";
       const nextPaymentDate = generateNextPaymentDate(duration);
@@ -801,6 +793,8 @@ async function handleNormalSubscription(data) {
           participants: [user._id, metadata.coachId],
         });
         console.log({chat})
+      }else{
+        console.log('chat is found ooo')
       }
 
 
@@ -818,6 +812,24 @@ async function handleNormalSubscription(data) {
         (subscription.user = user._id),
         (subscription.lastPaymentAt = new Date(data.paid_at));
       await subscription.save();
+
+      let chat = await ChatRoomModel.findOne({
+        type: "private",
+        participants: { $all: [user._id, metadata.coachId] },
+      });
+
+
+      if (!chat) {
+        console.log('chat is being created')
+        chat = await ChatRoomModel.create({
+          type: "private",
+          participants: [user._id, metadata.coachId],
+        });
+        console.log({chat})
+      }else{
+        chat.participants = [user._id, metadata.coachId]
+        await chat.save()
+      }
     }
   } catch (error) {
     console.error("Error in handleNormalSubscription:", error);
