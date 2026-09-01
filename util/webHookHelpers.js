@@ -17,14 +17,12 @@ async function handleChargeSuccess(data) {
     const userEmail = data.customer?.email;
 
     if (!userEmail) {
-      console.log("No user email in charge.success");
       return;
     }
 
     // 1️⃣ Find user
     const user = await UserModel.findOne({ email: userEmail });
     if (!user) {
-      console.log("User not found for email:", userEmail);
       return;
     }
 
@@ -130,7 +128,6 @@ async function handlePaymentFailed(data) {
 }
 
 async function handleSubscriptionDisable(data) {
-  console.log(data, 'handleSubscriptionDisable')
   try {
     // await SubscriptionModel.findOneAndDelete(
     //   { subscriptionCode: data.subscription_code }
@@ -167,10 +164,6 @@ async function handleSubscriptionCreate(data) {
     await user.save()
 
     const subscription = await SubscriptionModel.findOne(filter);
-    console.log(
-      { paystackSubscriptionCode: planCode, subscription, filter },
-      "handleSubscriptionCreate"
-    );
 
     if (subscription) {
       subscription.subscriptionCode = data.subscription_code;
@@ -183,10 +176,6 @@ async function handleSubscriptionCreate(data) {
       subscription.paystackAuthorizationToken = authorizationCode;
 
       await subscription.save();
-      console.log(
-        "✅ Subscription updated with Paystack subscription_code:",
-        subscription.subscriptionCode
-      );
     } else {
       // console.log(new Date(), "Creating create subscription with start date");
       // await SubscriptionModel.create({
@@ -231,7 +220,6 @@ async function handleGiftSubscription(data, sender, metadata) {
     const reference = data?.reference ?? "";
 
     const { recipientEmail, phoneNumber, giftMessage, recipientName } = gift;
-    console.log({ metadata, gift }, "handleGiftSubscription");
 
     if (!planId || !categoryId) {
       console.warn("Invalid gift subscription metadata", metadata);
@@ -262,7 +250,6 @@ async function handleGiftSubscription(data, sender, metadata) {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     }
 
-    console.log("coupon creation amount", metadata.amount)
     // Save coupon
     await CouponModel.create({
       code: couponCode,
@@ -721,11 +708,6 @@ async function handleGiftSubscription(data, sender, metadata) {
         : `Your gift subscription was sent to ${phoneNumber}`,
     });
 
-    console.log("🎁 Gift subscription created", {
-      sender: sender.email,
-      recipientEmail,
-      phoneNumber,
-    });
   } catch (error) {
     console.error("Error in handleGiftSubscription:", error);
   }
@@ -761,7 +743,6 @@ async function handleNormalSubscription(data) {
     );
 
     if (!subscription) {
-      console.log('subscription is not active');
 
       const duration = metadata.duration || "";
       const nextPaymentDate = generateNextPaymentDate(duration);
@@ -786,7 +767,6 @@ async function handleNormalSubscription(data) {
       
       return;
     } else {
-      console.log('subscription is active');
       subscription.status = "active";
       subscription.paystackSubscriptionId = metadata.paystackSubscriptionCode || null;
       subscription.startDate = new Date(data.paid_at);
@@ -861,26 +841,15 @@ async function ensureChatRoom(userId, coachId) {
     const userObjectId = typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId;
     const coachObjectId = typeof coachId === 'string' ? new mongoose.Types.ObjectId(coachId) : coachId;
 
-    console.log('🔍 Looking for chat with:', {
-      user: userObjectId,
-      coach: coachObjectId,
-      type: 'private'
-    });
-
     // Try multiple query approaches
     let chat = await ChatRoomModel.findOne({
       type: "private",
       participants: { $all: [userObjectId, coachObjectId] },
     });
 
-    console.log('📊 Query result:', chat);
-    console.log('📊 Result type:', typeof chat);
-    console.log('📊 Is null?', chat === null);
-    console.log('📊 Is undefined?', chat === undefined);
 
     // If no chat found, try alternative queries
     if (!chat) {
-      console.log('❌ No chat found with $all, trying alternative queries...');
       
       // Alternative 1: Check if either participant exists
       chat = await ChatRoomModel.findOne({
@@ -892,7 +861,6 @@ async function ensureChatRoom(userId, coachId) {
       });
       
       if (chat) {
-        console.log('✅ Found chat with alternative query:', chat._id);
         // Ensure both participants are in the array
         if (!chat.participants.some(p => p.toString() === userObjectId.toString())) {
           chat.participants.push(userObjectId);
@@ -910,17 +878,14 @@ async function ensureChatRoom(userId, coachId) {
         participants: userObjectId
       }).lean();
       
-      console.log(`📊 User has ${userChats.length} private chats`);
       
       const coachChats = await ChatRoomModel.find({
         type: "private",
         participants: coachObjectId
       }).lean();
       
-      console.log(`📊 Coach has ${coachChats.length} private chats`);
       
       // Alternative 3: Create new chat
-      console.log('🆕 Creating new chat room...');
       chat = await ChatRoomModel.create({
         type: "private",
         participants: [userObjectId, coachObjectId],
@@ -928,12 +893,10 @@ async function ensureChatRoom(userId, coachId) {
         updatedAt: new Date()
       });
       
-      console.log('✅ Chat room created:', chat._id);
       return chat;
     }
 
     // Chat exists - ensure both participants are present
-    console.log('✅ Chat found:', chat._id);
     
     // Normalize participants array
     if (!Array.isArray(chat.participants)) {
@@ -949,17 +912,14 @@ async function ensureChatRoom(userId, coachId) {
     if (!participantStrings.includes(userString)) {
       chat.participants.push(userObjectId);
       updated = true;
-      console.log(`➕ Added user ${userString} to chat`);
     }
     if (!participantStrings.includes(coachString)) {
       chat.participants.push(coachObjectId);
       updated = true;
-      console.log(`➕ Added coach ${coachString} to chat`);
     }
     
     if (updated) {
       await chat.save();
-      console.log('✅ Chat participants updated');
     }
     
     return chat;
