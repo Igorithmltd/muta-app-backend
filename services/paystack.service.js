@@ -389,8 +389,6 @@ class PaystackService extends BaseService {
     }
   }
   async checkUserSubscription(user) {
-    console.log('🔍 Checking subscription for user:', user._id);
-    console.log('📋 Customer code:', user.customerCode);
     
     let hasPaystackSub = false;
     let paystackSub = null;

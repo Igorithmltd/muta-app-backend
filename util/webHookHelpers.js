@@ -793,19 +793,20 @@ async function handleNormalSubscription(data) {
         participants: { $all: [user._id, metadata.coachId] },
       });
 
-      console.log({user1: user, metadata})
 
       if (!chat) {
+        console.log('chat is being created')
         chat = await ChatRoomModel.create({
           type: "private",
           participants: [user._id, metadata.coachId],
         });
+        console.log({chat})
       }
 
-      console.log({chat})
 
       return;
     } else {
+      console.log('subscription is active')
       subscription.status = "active";
       (subscription.paystackSubscriptionId =
         metadata.paystackSubscriptionCode || null),
