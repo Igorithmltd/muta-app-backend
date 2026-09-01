@@ -204,7 +204,6 @@ class PaystackService extends BaseService {
 
         
         const subscriptionStatus = await this.checkUserSubscription(user);
-        console.log({s: subscriptionStatus.paystackSubscription.customer})
   
         // Check the CORRECT property that combines BOTH Paystack AND DB checks
         if (subscriptionStatus.hasActiveSubscription === true) {  // ✅ CORRECT
