@@ -202,7 +202,7 @@ class PaystackService extends BaseService {
         //   status: "active",
         // });
 
-        const subscriptionStatus = await checkUserSubscription(user);
+        const subscriptionStatus = await this.checkUserSubscription(user);
 
         if (!subscriptionStatus.isSynced) {
           // Handle sync issues here
@@ -212,7 +212,6 @@ class PaystackService extends BaseService {
         if (subscriptionStatus.hasActiveSubscription) {
           return BaseService.sendSuccessResponse({
             message: "Subscription already active",
-            data: subscriptionStatus,
           });
         }
 
