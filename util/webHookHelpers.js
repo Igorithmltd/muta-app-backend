@@ -737,10 +737,6 @@ async function handleNormalSubscription(data) {
     };
 
     let subscription = await SubscriptionModel.findOne(filter);
-    console.log(
-      { paystackSubscriptionCode: planCode, subscription, filter },
-      "handleNormalSubscription"
-    );
 
     if (!subscription) {
 
