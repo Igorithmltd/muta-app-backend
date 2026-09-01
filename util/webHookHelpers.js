@@ -760,7 +760,7 @@ async function handleNormalSubscription(data) {
     );
 
     if (!subscription) {
-      console.log('subscription is not active')
+      console.log('subscription is not active');
 
       const duration = metadata.duration || "";
       const nextPaymentDate = generateNextPaymentDate(duration);
@@ -780,56 +780,25 @@ async function handleNormalSubscription(data) {
         amount: metadata.amount
       });
 
-      let chat = await ChatRoomModel.findOne({
-        type: "private",
-        participants: { $all: [user._id, metadata.coachId] },
-      });
-
-
-      if (!chat) {
-        console.log('chat is being created')
-        chat = await ChatRoomModel.create({
-          type: "private",
-          participants: [user._id, metadata.coachId],
-        });
-        console.log({chat})
-      }else{
-        console.log('chat is found ooo')
-      }
-
-
+      // ✅ CHAT CREATION - Moved to a helper function
+      await ensureChatRoom(user._id, metadata.coachId);
+      
       return;
     } else {
-      console.log('subscription is active')
+      console.log('subscription is active');
       subscription.status = "active";
-      (subscription.paystackSubscriptionId =
-        metadata.paystackSubscriptionCode || null),
-        (subscription.startDate = new Date(data.paid_at)),
-        (subscription.coachId = metadata.coachId),
-        (subscription.categoryId = metadata.categoryId),
-        (subscription.planId = metadata.planId),
-        (subscription.amount = metadata.amount),
-        (subscription.user = user._id),
-        (subscription.lastPaymentAt = new Date(data.paid_at));
+      subscription.paystackSubscriptionId = metadata.paystackSubscriptionCode || null;
+      subscription.startDate = new Date(data.paid_at);
+      subscription.coachId = metadata.coachId;
+      subscription.categoryId = metadata.categoryId;
+      subscription.planId = metadata.planId;
+      subscription.amount = metadata.amount;
+      subscription.user = user._id;
+      subscription.lastPaymentAt = new Date(data.paid_at);
       await subscription.save();
 
-      let chat = await ChatRoomModel.findOne({
-        type: "private",
-        participants: { $all: [user._id, metadata.coachId] },
-      });
-
-
-      if (!chat) {
-        console.log('chat is being created')
-        chat = await ChatRoomModel.create({
-          type: "private",
-          participants: [user._id, metadata.coachId],
-        });
-        console.log({chat})
-      }else{
-        chat.participants = [user._id, metadata.coachId]
-        await chat.save()
-      }
+      // ✅ CHAT UPDATE - Moved to a helper function
+      await ensureChatRoom(user._id, metadata.coachId);
     }
   } catch (error) {
     console.error("Error in handleNormalSubscription:", error);
@@ -883,6 +852,121 @@ function generateNextPaymentDate(duration, startDate = new Date()) {
   if (duration === "yearly") next.setFullYear(next.getFullYear() + 1);
 
   return next.toISOString().replace("Z", "+00:00");
+}
+
+async function ensureChatRoom(userId, coachId) {
+  try {
+    // Convert to ObjectId for consistency
+    const userObjectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+    const coachObjectId = typeof coachId === 'string' ? new ObjectId(coachId) : coachId;
+
+    console.log('🔍 Looking for chat with:', {
+      user: userObjectId,
+      coach: coachObjectId,
+      type: 'private'
+    });
+
+    // Try multiple query approaches
+    let chat = await ChatRoomModel.findOne({
+      type: "private",
+      participants: { $all: [userObjectId, coachObjectId] },
+    });
+
+    console.log('📊 Query result:', chat);
+    console.log('📊 Result type:', typeof chat);
+    console.log('📊 Is null?', chat === null);
+    console.log('📊 Is undefined?', chat === undefined);
+
+    // If no chat found, try alternative queries
+    if (!chat) {
+      console.log('❌ No chat found with $all, trying alternative queries...');
+      
+      // Alternative 1: Check if either participant exists
+      chat = await ChatRoomModel.findOne({
+        type: "private",
+        $or: [
+          { participants: { $all: [userObjectId, coachObjectId] } },
+          { participants: { $all: [coachObjectId, userObjectId] } }
+        ]
+      });
+      
+      if (chat) {
+        console.log('✅ Found chat with alternative query:', chat._id);
+        // Ensure both participants are in the array
+        if (!chat.participants.some(p => p.toString() === userObjectId.toString())) {
+          chat.participants.push(userObjectId);
+        }
+        if (!chat.participants.some(p => p.toString() === coachObjectId.toString())) {
+          chat.participants.push(coachObjectId);
+        }
+        await chat.save();
+        return chat;
+      }
+      
+      // Alternative 2: Check individually
+      const userChats = await ChatRoomModel.find({
+        type: "private",
+        participants: userObjectId
+      }).lean();
+      
+      console.log(`📊 User has ${userChats.length} private chats`);
+      
+      const coachChats = await ChatRoomModel.find({
+        type: "private",
+        participants: coachObjectId
+      }).lean();
+      
+      console.log(`📊 Coach has ${coachChats.length} private chats`);
+      
+      // Alternative 3: Create new chat
+      console.log('🆕 Creating new chat room...');
+      chat = await ChatRoomModel.create({
+        type: "private",
+        participants: [userObjectId, coachObjectId],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      console.log('✅ Chat room created:', chat._id);
+      return chat;
+    }
+
+    // Chat exists - ensure both participants are present
+    console.log('✅ Chat found:', chat._id);
+    
+    // Normalize participants array
+    if (!Array.isArray(chat.participants)) {
+      chat.participants = [];
+    }
+    
+    // Ensure both participants are in the array (convert to strings for comparison)
+    const participantStrings = chat.participants.map(p => p.toString());
+    const userString = userObjectId.toString();
+    const coachString = coachObjectId.toString();
+    
+    let updated = false;
+    if (!participantStrings.includes(userString)) {
+      chat.participants.push(userObjectId);
+      updated = true;
+      console.log(`➕ Added user ${userString} to chat`);
+    }
+    if (!participantStrings.includes(coachString)) {
+      chat.participants.push(coachObjectId);
+      updated = true;
+      console.log(`➕ Added coach ${coachString} to chat`);
+    }
+    
+    if (updated) {
+      await chat.save();
+      console.log('✅ Chat participants updated');
+    }
+    
+    return chat;
+  } catch (error) {
+    console.error("❌ Error in ensureChatRoom:", error);
+    // Don't throw - we want subscription to succeed even if chat creation fails
+    return null;
+  }
 }
 
 module.exports = {
