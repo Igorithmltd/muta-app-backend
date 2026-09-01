@@ -68,6 +68,7 @@ class PaystackService extends BaseService {
         recipientName,
         phoneNumber,
         giftMessage,
+        coachId
       } = post;
 
       const user = await UserModel.findById(userId);
@@ -206,18 +207,11 @@ class PaystackService extends BaseService {
         const subscriptionStatus = await this.checkUserSubscription(user);
   
         // Check the CORRECT property that combines BOTH Paystack AND DB checks
-        if (subscriptionStatus.hasActiveSubscription === true) {  // ✅ CORRECT
+        if (subscriptionStatus.hasActiveSubscription === true) {
           return BaseService.sendSuccessResponse({
             message: "Subscription already active",
           });
         }
-
-        // if (existingSubscription) {
-        //   return BaseService.sendSuccessResponse({
-        //     message:
-        //       "Subscription already exists. Disable your current subscription",
-        //   });
-        // }
       }
 
       if (isGift) {
@@ -258,6 +252,7 @@ class PaystackService extends BaseService {
           payerId: userId,
           planId,
           categoryId,
+          ...(coachId && {coachId}),
           duration,
           paystackSubscriptionCode: paystackPlanCode,
           isGift,
