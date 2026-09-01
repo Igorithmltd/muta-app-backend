@@ -185,6 +185,7 @@ class PaystackService extends BaseService {
           }
         }
 
+        console.log({subscriptions})
         const hasActiveSubscription = subscriptions.some(
           (sub) => sub.status === "active"
         );
