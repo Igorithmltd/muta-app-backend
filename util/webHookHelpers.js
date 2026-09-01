@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const ChatRoomModel = require("../models/chatModel");
 const CouponModel = require("../models/coupon.model");
 const NotificationModel = require("../models/notification.model");
@@ -857,7 +858,7 @@ function generateNextPaymentDate(duration, startDate = new Date()) {
 async function ensureChatRoom(userId, coachId) {
   try {
     // Convert to ObjectId for consistency
-    const userObjectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+    const userObjectId = typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId;
     const coachObjectId = typeof coachId === 'string' ? new ObjectId(coachId) : coachId;
 
     console.log('🔍 Looking for chat with:', {
