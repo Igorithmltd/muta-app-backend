@@ -163,51 +163,65 @@ class PaystackService extends BaseService {
       // }
 
       if (!isGift) {
-        let subscriptions = [];
+        // let subscriptions = [];
 
-        if (user.customerCode) {
-          try {
-            const response = await paystackAxios.get(
-              `/customer/${user.customerCode}`
-            );
+        // if (user.customerCode) {
+        //   try {
+        //     const response = await paystackAxios.get(
+        //       `/customer/${user.customerCode}`
+        //     );
 
-            subscriptions = response.data?.data?.subscriptions || [];
-          } catch (error) {
-            console.log("Error from paystack customer check", error);
-            if (error.response?.status === 404) {
-              // Customer does not exist on Paystack → treat as no subscription
-              subscriptions = [];
-            } else {
-              return BaseService.sendFailedResponse({
-                error: "Error occured while attempting to subscribe",
-              });
-            }
-          }
+        //     subscriptions = response.data?.data?.subscriptions || [];
+        //   } catch (error) {
+        //     console.log("Error from paystack customer check", error);
+        //     if (error.response?.status === 404) {
+        //       // Customer does not exist on Paystack → treat as no subscription
+        //       subscriptions = [];
+        //     } else {
+        //       return BaseService.sendFailedResponse({
+        //         error: "Error occured while attempting to subscribe",
+        //       });
+        //     }
+        //   }
+        // }
+
+        // console.log({s: subscriptions[0]})
+        // const hasActiveSubscription = subscriptions.some(
+        //   (sub) => sub.status === "active"
+        // );
+
+        // if (hasActiveSubscription) {
+        //   return BaseService.sendSuccessResponse({
+        //     message: "Subscription already active",
+        //   });
+        // }
+
+        // // 🔥 Your DB check is still important (good job keeping it)
+        // const existingSubscription = await SubscriptionModel.findOne({
+        //   user: user._id,
+        //   status: "active",
+        // });
+
+        const subscriptionStatus = await checkUserSubscription(user);
+
+        if (!subscriptionStatus.isSynced) {
+          // Handle sync issues here
+          console.log("Subscription data out of sync:", subscriptionStatus);
         }
 
-        console.log({s: subscriptions[0]})
-        const hasActiveSubscription = subscriptions.some(
-          (sub) => sub.status === "active"
-        );
-
-        if (hasActiveSubscription) {
+        if (subscriptionStatus.hasActiveSubscription) {
           return BaseService.sendSuccessResponse({
             message: "Subscription already active",
+            data: subscriptionStatus,
           });
         }
 
-        // 🔥 Your DB check is still important (good job keeping it)
-        const existingSubscription = await SubscriptionModel.findOne({
-          user: user._id,
-          status: "active",
-        });
-
-        if (existingSubscription) {
-          return BaseService.sendSuccessResponse({
-            message:
-              "Subscription already exists. Disable your current subscription",
-          });
-        }
+        // if (existingSubscription) {
+        //   return BaseService.sendSuccessResponse({
+        //     message:
+        //       "Subscription already exists. Disable your current subscription",
+        //   });
+        // }
       }
 
       if (isGift) {
@@ -383,9 +397,42 @@ class PaystackService extends BaseService {
       };
     }
   }
-  isInputEmail(input) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(input.trim());
+  async checkUserSubscription(user) {
+    let hasPaystackSub = false;
+    let paystackSub = null;
+
+    if (user.customerCode) {
+      try {
+        const response = await paystackAxios.get(
+          `/customer/${user.customerCode}`
+        );
+        const subscriptions = response.data?.data?.subscriptions || [];
+
+        const activeSub = subscriptions.find((sub) => sub.status === "active");
+        if (activeSub) {
+          hasPaystackSub = true;
+          paystackSub = activeSub;
+        }
+      } catch (error) {
+        if (error.response?.status !== 404) {
+          console.error("Paystack check failed:", error);
+          // Consider throwing or handling based on your needs
+        }
+      }
+    }
+
+    const dbSub = await SubscriptionModel.findOne({
+      user: user._id,
+      status: "active",
+      endDate: { $gt: new Date() },
+    });
+
+    return {
+      hasActiveSubscription: hasPaystackSub || !!dbSub,
+      paystackSubscription: paystackSub,
+      dbSubscription: dbSub,
+      isSynced: hasPaystackSub === !!dbSub,
+    };
   }
 }
 
