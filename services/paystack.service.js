@@ -203,11 +203,10 @@ class PaystackService extends BaseService {
         // });
 
         const subscriptionStatus = await this.checkUserSubscription(user);
-        console.log({subscriptionStatus})
+        console.log({s: subscriptionStatus.paystackSubscription.customer})
 
         if (!subscriptionStatus.isSynced) {
           // Handle sync issues here
-          console.log("Subscription data out of sync:", subscriptionStatus);
         }
 
         if (subscriptionStatus.hasActiveSubscription) {
