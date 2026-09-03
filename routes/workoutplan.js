@@ -1201,6 +1201,13 @@ router.get(ROUTE_RECOMMENDED_WORKOUTPLANS, auth, (req, res) => {
  *     summary: Get all completed workoutplans
  *     tags:
  *       - Workoutplan
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: user id
  *     responses:
  *       200:
  *         description: List of workout plans returned successfully

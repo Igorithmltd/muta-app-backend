@@ -800,7 +800,7 @@ class WorkoutplanService extends BaseService {
   }
   async getCompletedWorkoutPlans(req) {
     try {
-      const userId = req.user.id;
+      const userId = req.query.userId;
 
       // Get plans that are either marked as completed OR have expired
       const completedPlans = await WorkoutPlanActionModel.find({

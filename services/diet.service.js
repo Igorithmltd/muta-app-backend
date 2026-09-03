@@ -845,7 +845,7 @@ class DietServicee extends BaseService {
   }
   async getCompletedPlans(req) {
     try {
-      const userId = req.user.id;
+      const userId = req.query.userId;
       const today = moment().startOf("day").toDate();
 
       // Get plans that are either marked as completed OR have expired

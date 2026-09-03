@@ -772,6 +772,13 @@ router.get(ROUTE_DASHBOARD_STAT, adminAuth, (req, res) => {
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: user id
  *     responses:
  *       200:
  *         description: Weight updated successfully, returns total weight loss
@@ -1881,6 +1888,13 @@ router.delete(ROUTE_DELETE_PLAN, adminAuth, (req, res) => {
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
+  *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: user id
  *     responses:
  *       200:
  *         description: Weight improvement tips returned successfully
@@ -1933,6 +1947,12 @@ router.put(ROUTE_LOG_SLEEP, auth, (req, res) => {
  *           type: number
  *           minimum: 30
  *         description: User's height in centimeters
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User id
  *     responses:
  *       200:
  *         description: Weight improvement tips returned successfully
@@ -2009,6 +2029,13 @@ router.put(ROUTE_LOG_WATER, auth, (req, res) => {
  *     tags: [Sleep]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: user id
  *     responses:
  *       200:
  *         description: Sleep data for the last 7 days
@@ -2047,6 +2074,13 @@ router.get(ROUTE_GET_SLEEP_LOGS, auth, (req, res) => {
  *     tags: [Water]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: user id
  *     responses:
  *       200:
  *         description: Today's water intake data

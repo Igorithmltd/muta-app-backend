@@ -1885,7 +1885,7 @@ class UserService extends BaseService {
     // | ≥ 40.0      | Obese (Class III) |
   }
   async getWeightImprovementTips(req) {
-    const userId = req.user.id;
+    const userId = req.query.userId;
     const user = await UserModel.findById(userId);
     if (empty(user) || empty(user.weight) || empty(user.height)) {
       return BaseService.sendFailedResponse({ error: "User not found" });
@@ -1903,7 +1903,7 @@ class UserService extends BaseService {
     return BaseService.sendSuccessResponse({ message: weightTips });
   }
   async getUserWeightLoss(req) {
-    const userId = req.user.id;
+    const userId = req.query.userId;
     const user = await UserModel.findById(userId);
     if (!user) {
       return BaseService.sendFailedResponse({ error: "User not found" });
@@ -3195,7 +3195,7 @@ class UserService extends BaseService {
   }
   async getSleepLog(req) {
     try {
-      const userId = req.user.id;
+      const userId = req.query.userId;
 
       const today = new Date();
       const past7 = [];
@@ -3245,7 +3245,7 @@ class UserService extends BaseService {
   }
   async getWaterLog(req) {
     try {
-      const userId = req.user.id;
+      const userId = req.query.userId;
 
       const today = new Date();
       const todayMidnight = new Date(

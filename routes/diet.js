@@ -1652,6 +1652,11 @@ router.get(ROUTE_SEARCH_DIET_BY_CATEGORY+"/:id", [auth], (req, res) => {
  *       - Diets
  *     parameters:
  *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: User id
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer
