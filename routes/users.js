@@ -3041,7 +3041,13 @@ router.post(ROUTE_SET_ACTIVITY_REMINDER, [auth], (req, res) => {
  *           enum: [1W, 1M, 6M, 1Y, ALL]
  *           example: 1W
  *         description: Time range for weight analysis (defaults to 1W)
- *
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 60d21b4667d0d8992e610c85
+ *         description: userId for the analysis
  *     responses:
  *       200:
  *         description: Weight analysis data
@@ -3128,9 +3134,16 @@ router.get(ROUTE_WEIGHT_ANALYSIS, [auth], (req, res) => {
  *           enum: [1W, 1M, 6M, 1Y, ALL]
  *           example: 1W
  *         description: Time range for weight analysis (defaults to 1W)
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 60d21b4667d0d8992e610c85
+ *         description: userId for the analysis
  *     responses:
  *       200:
- *         description: Weight analysis data
+ *         description: BmI analysis data
  *         content:
  *           application/json:
  *             schema:

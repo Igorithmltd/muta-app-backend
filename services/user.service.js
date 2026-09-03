@@ -4126,7 +4126,7 @@ class UserService extends BaseService {
 
   async weightAnalysis(req) {
     try {
-      const userId = req.user.id;
+      const userId = req.query.userId;
 
       const rangeKey = req.query.range || "1W";
       const config = ANALYSIS_RANGES[rangeKey];
@@ -4290,7 +4290,7 @@ class UserService extends BaseService {
 
   async bmiAnalysis(req) {
     try {
-      const userId = req.user.id;
+      const userId = req.query.userId;
 
       const rangeKey = req.query.range || "1W";
       const config = ANALYSIS_RANGES[rangeKey];
