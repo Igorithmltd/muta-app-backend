@@ -4263,6 +4263,8 @@ class UserService extends BaseService {
         trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
       }
 
+      const userBmi = calculateBMI(user.weight, user.height)
+
       /* ------------------------------------
        * 7️⃣ Response
        * ----------------------------------*/
@@ -4272,6 +4274,7 @@ class UserService extends BaseService {
           current_weight: UserService.round(current, 1),
           previous_weight: UserService.round(previous, 1),
           growth_percentage: UserService.round(growth, 1),
+          bmi: userBmi,
           trend_direction: trend,
         },
         graph_data: buckets.map((b) => ({

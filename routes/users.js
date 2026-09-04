@@ -3107,6 +3107,9 @@ router.post(ROUTE_SET_ACTIVITY_REMINDER, [auth], (req, res) => {
  *                     current_weight:
  *                       type: number
  *                       example: 72.4
+ *                     bmi:
+ *                       type: number
+ *                       example: 72
  *                     previous_weight:
  *                       type: number
  *                       example: 71.2
