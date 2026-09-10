@@ -692,7 +692,6 @@ async function handleGiftSubscription(data, sender, metadata) {
        📱 SMS DELIVERY
     ========================== */
     if (phoneNumber) {
-      // const message = ` 🎁 You received a gift subscription from ${sender.firstName}! Coupon: ${couponCode} Redeem it in the Muta app.`;
       const message = ` You received a gift subscription Coupon. Redeem it in the Muta app. Go to playstore and download MutaApp`;
       await otpSend(phoneNumber, message);
     }
