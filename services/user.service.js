@@ -4263,7 +4263,7 @@ class UserService extends BaseService {
         trend = growth > 0 ? "up" : growth < 0 ? "down" : "stable";
       }
 
-      const userBmi = calculateBMI(user.weight, user.height)
+      const userBmi = this.calculateBMI(user.weight, user.height)
 
       /* ------------------------------------
        * 7️⃣ Response
