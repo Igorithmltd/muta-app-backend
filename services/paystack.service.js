@@ -225,12 +225,12 @@ class PaystackService extends BaseService {
             user: gifteeUser._id,
           });
           console.log(existingGift, "existing gift");
-          if (existingGift) {
-            return BaseService.sendFailedResponse({
-              error:
-                "Recipient already has an active subscription for this plan",
-            });
-          }
+          // if (existingGift) {
+          //   return BaseService.sendFailedResponse({
+          //     error:
+          //       "Recipient already has an active subscription for this plan",
+          //   });
+          // }
         }
       }
 
