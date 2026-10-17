@@ -375,6 +375,7 @@ async function handleGiftSubscription(data, sender, metadata) {
   //       html: emailHtml,
   //     });
   //   }
+  console.log(emailHtml, "emailHtml");
 
   if (recipientEmail) {
     const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${encodeURIComponent(
