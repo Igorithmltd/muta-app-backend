@@ -994,9 +994,9 @@ class UserService extends BaseService {
         });
       }
 
-      if (userExists.otpExpiresAt < new Date()) {
-        return BaseService.sendFailedResponse({ error: "OTP expired" });
-      }
+      // if (userExists.otpExpiresAt < new Date()) {
+      //   return BaseService.sendFailedResponse({ error: "OTP expired" });
+      // }
 
       // if (await userExists.comparePassword(password)) {
       //   return BaseService.sendFailedResponse({
