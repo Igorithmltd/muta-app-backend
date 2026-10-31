@@ -349,6 +349,9 @@ async function handleGiftSubscription(data, sender, metadata) {
               <p style="margin:0 0 15px;">
                 Hello <strong>${recipientName}</strong>,
               </p>
+              <p style="margin:0 0 15px;">
+                <strong>${giftMessage}</strong>,
+              </p>
 
               <p style="margin:0 0 15px; line-height:1.6;">
                 Great news! Someone has gifted you a MutaFit Premium
@@ -418,11 +421,6 @@ async function handleGiftSubscription(data, sender, metadata) {
                 View Gift
               </a>
 
-            </td>
-          </tr>
-          <tr>
-            <td>
-               <p>${giftMessage}</p>
             </td>
           </tr>
 
