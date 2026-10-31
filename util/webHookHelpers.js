@@ -366,8 +366,8 @@ async function handleGiftSubscription(data, sender, metadata) {
                 to premium features, personalized experiences, and
                 progress tracking tools to help you stay motivated and
                 achieve your goals.
+                ${giftMessage ? `<br><br>Message from ${sender.firstName}: "${giftMessage}"` : ""}
               </p>
-
 
             </td>
           </tr>
