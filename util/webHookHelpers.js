@@ -446,17 +446,6 @@ async function handleGiftSubscription(data, sender, metadata) {
                 into your browser:
               </p>
 
-              <p style="
-                margin:8px 0 0;
-                font-size:12px;
-                line-height:1.5;
-                color:#0369a1;
-                text-align:center;
-                word-break:break-all;
-              ">
-                ${redeemUrl}
-              </p>
-
             </td>
           </tr>
 
