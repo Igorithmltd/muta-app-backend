@@ -366,8 +366,7 @@ async function handleGiftSubscription(data, sender, metadata) {
                 to premium features, personalized experiences, and
                 progress tracking tools to help you stay motivated and
                 achieve your goals.
-                ${giftMessage}
-              </p>
+                </p>
 
             </td>
           </tr>
@@ -419,6 +418,11 @@ async function handleGiftSubscription(data, sender, metadata) {
                 View Gift
               </a>
 
+            </td>
+          </tr>
+          <tr>
+            <td>
+               <p>${giftMessage}</p>
             </td>
           </tr>
 
