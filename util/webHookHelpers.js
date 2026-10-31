@@ -368,6 +368,7 @@ async function handleGiftSubscription(data, sender, metadata) {
                 achieve your goals.
               </p>
 
+              <p>
               ${
                 giftMessage
                   ? `
@@ -377,6 +378,7 @@ async function handleGiftSubscription(data, sender, metadata) {
                   `
                   : ""
               }
+              </p>
 
             </td>
           </tr>
