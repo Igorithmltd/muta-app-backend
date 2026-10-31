@@ -258,6 +258,10 @@ router.post(
  *                 type: string
  *                 example: "abc@gmail.com"
  *                 description: email of the recipient of the subscription
+ *               recipientName:
+ *                 type: string
+ *                 example: "promise"
+ *                 description: name of the recipient of the subscription
  *               phoneNumber:
  *                 type: string
  *                 example: "081111587342"

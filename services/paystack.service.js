@@ -224,7 +224,6 @@ class PaystackService extends BaseService {
             status: "active",
             user: gifteeUser._id,
           });
-          console.log(existingGift, "existing gift");
           // if (existingGift) {
           //   return BaseService.sendFailedResponse({
           //     error:

@@ -3494,7 +3494,6 @@ class UserService extends BaseService {
       // const message = otp;
 
       const otpResult = await otpSend(phoneNumber, otpMessage);
-      console.log({ otpResult });
 
       if (otpResult.success) {
         const expiresAt = new Date(Date.now() + EXPIRES_AT);
