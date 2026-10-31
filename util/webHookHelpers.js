@@ -277,29 +277,9 @@ async function handleGiftSubscription(data, sender, metadata) {
 
       const cleanCode = encodeURIComponent(couponCode);
       const cleanGifter = encodeURIComponent(sender.firstName);
+
       const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${cleanCode}&gifter=${cleanGifter}`;
       const currentYear = new Date().getFullYear();
-
-      const giftMessageBlock = giftMessage
-        ? `
-    <tr>
-      <td style="padding:0 25px 20px;">
-        <p style="
-          margin:0;
-          padding:12px;
-          background:#e0f2fe;
-          border-radius:6px;
-          color:#444;
-          font-size:14px;
-          line-height:1.6;
-          font-style:italic;
-        ">
-          "${giftMessage}"
-        </p>
-      </td>
-    </tr>
-  `
-        : "";
 
       const emailHtml = `
 <!DOCTYPE html>
@@ -381,18 +361,25 @@ async function handleGiftSubscription(data, sender, metadata) {
                 believes in your goals and your journey.
               </p>
 
-              <p style="margin:0 0 20px; line-height:1.6;">
+              <p style="margin:0 0 15px; line-height:1.6;">
                 With <strong>MutaFit Premium</strong>, you'll gain access
                 to premium features, personalized experiences, and
                 progress tracking tools to help you stay motivated and
                 achieve your goals.
               </p>
 
+              ${
+                giftMessage
+                  ? `
+                    <p style="margin:0 0 20px; line-height:1.6;">
+                      ${giftMessage}
+                    </p>
+                  `
+                  : ""
+              }
+
             </td>
           </tr>
-
-          <!-- Optional Gift Message -->
-          ${giftMessageBlock}
 
           <!-- Gift Code -->
           <tr>
@@ -426,6 +413,7 @@ async function handleGiftSubscription(data, sender, metadata) {
               <a
                 href="${redeemUrl}"
                 target="_blank"
+                rel="noopener noreferrer"
                 style="
                   display:inline-block;
                   padding:12px 25px;
@@ -443,12 +431,12 @@ async function handleGiftSubscription(data, sender, metadata) {
             </td>
           </tr>
 
-          <!-- Fallback URL -->
+          <!-- Fallback Instructions -->
           <tr>
             <td style="padding:0 25px 25px;">
 
               <p style="
-                margin:0 0 8px;
+                margin:0;
                 font-size:12px;
                 line-height:1.5;
                 color:#777;
@@ -456,6 +444,17 @@ async function handleGiftSubscription(data, sender, metadata) {
               ">
                 If the button doesn't work, copy and paste this link
                 into your browser:
+              </p>
+
+              <p style="
+                margin:8px 0 0;
+                font-size:12px;
+                line-height:1.5;
+                color:#0369a1;
+                text-align:center;
+                word-break:break-all;
+              ">
+                ${redeemUrl}
               </p>
 
             </td>
@@ -470,6 +469,7 @@ async function handleGiftSubscription(data, sender, metadata) {
               font-size:12px;
               color:#777;
             ">
+
               <p style="margin:0 0 8px;">
                 Your journey to a healthier, fitter you starts here.
               </p>
@@ -477,6 +477,7 @@ async function handleGiftSubscription(data, sender, metadata) {
               <p style="margin:0;">
                 © ${currentYear} MutaFit. All rights reserved.
               </p>
+
             </td>
           </tr>
 
@@ -497,16 +498,16 @@ async function handleGiftSubscription(data, sender, metadata) {
       });
     }
 
-  //   <p style="
-  //   margin:0;
-  //   font-size:12px;
-  //   line-height:1.5;
-  //   color:#0369a1;
-  //   text-align:center;
-  //   word-break:break-all;
-  // ">
-  //   ${redeemUrl}
-  // </p>
+    //   <p style="
+    //   margin:0;
+    //   font-size:12px;
+    //   line-height:1.5;
+    //   color:#0369a1;
+    //   text-align:center;
+    //   word-break:break-all;
+    // ">
+    //   ${redeemUrl}
+    // </p>
 
     /* ==========================
        📱 SMS DELIVERY
