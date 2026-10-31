@@ -143,7 +143,7 @@ async function handleSubscriptionCreate(data) {
     const email = data.customer.email;
     const planCode = data.plan.plan_code;
     const authorizationCode = data.authorization.authorization_code;
-    const customerCode = data.customer.customer_code || ""
+    const customerCode = data.customer.customer_code || "";
     // console.log(data, "handle subscription create");
 
     const user = await UserModel.findOne({ email });
@@ -160,15 +160,15 @@ async function handleSubscriptionCreate(data) {
       paystackAuthorizationToken: authorizationCode,
       paystackSubscriptionId: planCode,
     };
-    user.customerCode = customerCode
-    await user.save()
+    user.customerCode = customerCode;
+    await user.save();
 
     const subscription = await SubscriptionModel.findOne(filter);
 
     if (subscription) {
       subscription.subscriptionCode = data.subscription_code;
       subscription.paystackSubscriptionId = data.plan.plan_code;
-      subscription.paystackEmailToken = data.email_token | ""
+      subscription.paystackEmailToken = data.email_token | "";
       subscription.status = data.status || "active";
       subscription.nextPaymentDate = data.next_payment_date
         ? new Date(data.next_payment_date)
@@ -208,7 +208,7 @@ async function handleInvoiceFailed(data) {
 }
 
 async function handleGiftSubscription(data, sender, metadata) {
-  console.log('handle subscription***********')
+  console.log("handle subscription***********");
   try {
     const {
       planId,
@@ -250,8 +250,7 @@ async function handleGiftSubscription(data, sender, metadata) {
     } else if (duration === "yearly") {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     }
-  console.log('before coupon***********')
-
+    console.log("before coupon***********");
 
     // Save coupon
     await CouponModel.create({
@@ -267,313 +266,247 @@ async function handleGiftSubscription(data, sender, metadata) {
       used: false,
       reference,
     });
-  console.log('after coupon***********')
-
+    console.log("after coupon***********");
 
     /* ==========================
        📧 EMAIL DELIVERY
     ========================== */
 
-  if (recipientEmail) {
-    // Pre-encoded components for safety within the template literal
-    const cleanCode = encodeURIComponent(couponCode);
-    const cleanGifter = encodeURIComponent(sender.firstName);
-    const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${cleanCode}&gifter=${cleanGifter}`;
-    const currentYear = new Date().getFullYear();
-  
-    // Safely render the conditional gift message block
-    const giftMessageBlock = giftMessage
-      ? `
-      <tr>
-        <td class="mobile-padding" style="padding:20px 50px 0 50px;">
-          <div style="
-            border-left:3px solid #087cff;
-            padding:12px 18px;
-            background:#171717;
-          ">
-            <p style="
-              margin:0;
-              font-size:16px;
-              line-height:1.6;
-              color:#bdbdbd;
-              font-style:italic;
+    if (recipientEmail) {
+      // Pre-encoded components for safety within the template literal
+
+      const cleanCode = encodeURIComponent(couponCode);
+      const cleanGifter = encodeURIComponent(sender.firstName);
+      const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${cleanCode}&gifter=${cleanGifter}`;
+      const currentYear = new Date().getFullYear();
+
+      const giftMessageBlock = giftMessage
+        ? `
+    <tr>
+      <td style="padding:0 25px 20px;">
+        <p style="
+          margin:0;
+          padding:12px;
+          background:#e0f2fe;
+          border-radius:6px;
+          color:#444;
+          font-size:14px;
+          line-height:1.6;
+          font-style:italic;
+        ">
+          "${giftMessage}"
+        </p>
+      </td>
+    </tr>
+  `
+        : "";
+
+      const emailHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You've Received a MutaFit Premium Gift</title>
+</head>
+
+<body style="
+  margin:0;
+  padding:0;
+  background-color:#f0f9ff;
+  font-family:Arial, Helvetica, sans-serif;
+  color:#444;
+">
+
+  <table
+    width="100%"
+    cellpadding="0"
+    cellspacing="0"
+    border="0"
+    role="presentation"
+    style="background-color:#f0f9ff; padding:20px 0;"
+  >
+    <tr>
+      <td align="center">
+
+        <table
+          width="500"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          role="presentation"
+          style="
+            width:100%;
+            max-width:500px;
+            background:#ffffff;
+            border-radius:12px;
+            overflow:hidden;
+          "
+        >
+
+          <!-- Header -->
+          <tr>
+            <td style="
+              background:#38bdf8;
+              padding:20px;
+              text-align:center;
             ">
-              "${giftMessage}"
-            </p>
-          </div>
-        </td>
-      </tr>
-      `
-      : "";
-  
-    const emailHtml = `
-  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://w3.org">
-  <html xmlns="http://w3.org" lang="en">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>You've Received a MutaFit Premium Gift</title>
-    <style type="text/css">
-      @media screen and (max-width: 600px) {
-        .mobile-padding {
-          padding-left: 24px !important;
-          padding-right: 24px !important;
-        }
-        .mobile-header {
-          font-size: 32px !important;
-        }
-      }
-    </style>
-  </head>
-  
-  <body style="
-    margin:0;
-    padding:0;
-    background-color:#0b0b0b;
-    font-family:Arial, Helvetica, sans-serif;
-    color:#ffffff;
-    -webkit-text-size-adjust:100%;
-    -ms-text-size-adjust:100%;
-  ">
-  
-    <table
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      role="presentation"
-      style="
-        background-color:#0b0b0b;
-        padding:40px 15px;
-      "
-    >
-      <tr>
-        <td align="center">
-  
-          <table
-            width="100%"
-            cellpadding="0"
-            cellspacing="0"
-            border="0"
-            role="presentation"
-            style="
-              max-width:650px;
-              background-color:#111111;
-              border-radius:4px;
-              overflow:hidden;
-            "
-          >
-  
-            <!-- Logo -->
-            <tr>
-              <td class="mobile-padding" style="padding:45px 50px 30px 50px;">
-                <div style="
-                  font-size:30px;
-                  line-height:1;
-                  font-weight:700;
-                  letter-spacing:-1px;
-                ">
-                  <span style="color:#087cff;">MUTA</span><span style="color:#ffffff;">FIT</span>
-                </div>
-              </td>
-            </tr>
-  
-            <!-- Heading -->
-            <tr>
-              <td class="mobile-padding" style="padding:10px 50px 0 50px;">
-                <h1 class="mobile-header" style="
-                  margin:0;
-                  color:#ffffff;
-                  font-size:42px;
-                  line-height:1.15;
-                  font-weight:400;
-                  letter-spacing:-1px;
-                ">
-                  You've Received a<br />
-                  MutaFit Premium<br />
-                  Gift
-                </h1>
-              </td>
-            </tr>
-  
-            <!-- Greeting + Message -->
-            <tr>
-              <td class="mobile-padding" style="padding:35px 50px 10px 50px;">
-                <p style="
-                  margin:0 0 18px 0;
-                  font-size:17px;
-                  line-height:1.6;
-                  color:#d0d0d0;
-                ">
-                  Hello <strong style="color:#ffffff;">${recipientName}</strong>,
-                </p>
-                <p style="
-                  margin:0 0 18px 0;
-                  font-size:17px;
-                  line-height:1.6;
-                  color:#d0d0d0;
-                ">
-                  Great news! Someone has gifted you a MutaFit Premium
-                  subscription to support your health, fitness, and
-                  wellness journey.
-                </p>
-                <p style="
-                  margin:0;
-                  font-size:17px;
-                  line-height:1.6;
-                  color:#d0d0d0;
-                ">
-                  <strong style="color:#ffffff;">
-                    ${sender.firstName} ${sender.lastName}
-                  </strong>
-                  believes in your goals and your journey.
-                </p>
-              </td>
-            </tr>
-  
-            <!-- Premium Description -->
-            <tr>
-              <td class="mobile-padding" style="padding:20px 50px 10px 50px;">
-                <p style="
-                  margin:0;
-                  font-size:17px;
-                  line-height:1.6;
-                  color:#d0d0d0;
-                ">
-                  With <strong style="color:#ffffff;">MutaFit Premium</strong>,
-                  you'll gain access to premium features, personalized
-                  experiences, and progress tracking tools to help you
-                  stay motivated and achieve your goals.
-                </p>
-              </td>
-            </tr>
-  
-            <!-- Gift Message (Conditional Layout) -->
-            ${giftMessageBlock}
-  
-            <!-- Gift Code -->
-            <tr>
-              <td class="mobile-padding" style="padding:30px 50px 10px 50px;">
-                <p style="
-                  margin:0 0 10px 0;
-                  font-size:14px;
-                  color:#888888;
-                ">
-                  Gift Code:
-                </p>
-                <div style="
-                  background:#191919;
-                  border:1px solid #292929;
-                  border-radius:8px;
-                  padding:20px;
-                ">
-                  <p style="
-                    margin:0;
-                    color:#ffffff;
-                    font-size:21px;
-                    font-weight:700;
-                    letter-spacing:2px;
-                    word-break:break-all;
-                    text-align:center;
-                  ">
-                    ${couponCode}
-                  </p>
-                </div>
-              </td>
-            </tr>
-  
-            <!-- CTA Button Block -->
-            <tr>
-              <td class="mobile-padding" align="center" style="padding:30px 50px 20px 50px;">
-                <a
-                  href="${redeemUrl}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="
-                    display:inline-block;
-                    padding:17px 48px;
-                    background:#087cff;
-                    color:#ffffff;
-                    text-decoration:none;
-                    border-radius:8px;
-                    font-size:18px;
-                    font-weight:600;
-                    text-align:center;
-                  "
-                >
-                  View Gift
-                </a>
-              </td>
-            </tr>
-  
-            <!-- Fallback URL -->
-            <tr>
-              <td class="mobile-padding" style="padding:5px 50px 35px 50px;">
-                <p style="
-                  margin:0;
-                  text-align:center;
-                  font-size:12px;
-                  line-height:1.5;
-                  color:#666666;
-                ">
-                  If the button doesn't work, copy and paste this link
-                  into your browser:
-                </p>
-                <p style="
-                  margin:8px 0 0;
-                  text-align:center;
-                  font-size:11px;
-                  line-height:1.5;
-                  color:#087cff;
-                  word-break:break-all;
-                ">
-                  ${redeemUrl}
-                </p>
-              </td>
-            </tr>
-  
-            <!-- Footer -->
-            <tr>
-              <td class="mobile-padding" style="
-                padding:25px 50px;
-                border-top:1px solid #222222;
+              <h1 style="
+                margin:0;
+                color:#ffffff;
+                font-size:20px;
+                font-weight:bold;
               ">
-                <p style="
-                  margin:0;
-                  text-align:center;
-                  font-size:13px;
-                  line-height:1.6;
-                  color:#666666;
-                ">
-                  Your journey to a healthier, fitter you starts here.
-                </p>
-                <p style="
-                  margin:10px 0 0;
-                  text-align:center;
-                  font-size:12px;
-                  color:#555555;
-                ">
-                  © ${currentYear} MutaFit. All rights reserved.
-                </p>
-              </td>
-            </tr>
-  
-          </table>
-  
-        </td>
-      </tr>
-    </table>
-  
-  </body>
-  </html>`;
-  
-    await sendEmail({
-      to: recipientEmail,
-      subject: "You've Received a MutaFit Premium Gift!",
-      html: emailHtml,
-    });
-  }
-  
+                You've Received a MutaFit Premium Gift
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:30px 25px; color:#444;">
+
+              <p style="margin:0 0 15px;">
+                Hello <strong>${recipientName}</strong>,
+              </p>
+
+              <p style="margin:0 0 15px; line-height:1.6;">
+                Great news! Someone has gifted you a MutaFit Premium
+                subscription to support your health, fitness, and
+                wellness journey.
+              </p>
+
+              <p style="margin:0 0 15px; line-height:1.6;">
+                <strong>${sender.firstName} ${sender.lastName}</strong>
+                believes in your goals and your journey.
+              </p>
+
+              <p style="margin:0 0 20px; line-height:1.6;">
+                With <strong>MutaFit Premium</strong>, you'll gain access
+                to premium features, personalized experiences, and
+                progress tracking tools to help you stay motivated and
+                achieve your goals.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Optional Gift Message -->
+          ${giftMessageBlock}
+
+          <!-- Gift Code -->
+          <tr>
+            <td style="padding:0 25px 20px;">
+
+              <p style="margin:0 0 10px; font-size:14px;">
+                Gift Code:
+              </p>
+
+              <p style="
+                margin:0;
+                padding:12px;
+                background:#e0f2fe;
+                border-radius:6px;
+                color:#0369a1;
+                font-size:18px;
+                font-weight:bold;
+                text-align:center;
+                word-break:break-all;
+              ">
+                ${couponCode}
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Redemption Link -->
+          <tr>
+            <td style="padding:10px 25px 20px; text-align:center;">
+
+              <a
+                href="${redeemUrl}"
+                target="_blank"
+                style="
+                  display:inline-block;
+                  padding:12px 25px;
+                  background:#38bdf8;
+                  color:#ffffff;
+                  text-decoration:none;
+                  border-radius:6px;
+                  font-size:15px;
+                  font-weight:bold;
+                "
+              >
+                View Gift
+              </a>
+
+            </td>
+          </tr>
+
+          <!-- Fallback URL -->
+          <tr>
+            <td style="padding:0 25px 25px;">
+
+              <p style="
+                margin:0 0 8px;
+                font-size:12px;
+                line-height:1.5;
+                color:#777;
+                text-align:center;
+              ">
+                If the button doesn't work, copy and paste this link
+                into your browser:
+              </p>
+
+              <p style="
+                margin:0;
+                font-size:12px;
+                line-height:1.5;
+                color:#0369a1;
+                text-align:center;
+                word-break:break-all;
+              ">
+                ${redeemUrl}
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="
+              background:#e0f2fe;
+              padding:15px;
+              text-align:center;
+              font-size:12px;
+              color:#777;
+            ">
+              <p style="margin:0 0 8px;">
+                Your journey to a healthier, fitter you starts here.
+              </p>
+
+              <p style="margin:0;">
+                © ${currentYear} MutaFit. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+`;
+
+      await sendEmail({
+        to: recipientEmail,
+        subject: "You've Received a MutaFit Premium Gift!",
+        html: emailHtml,
+      });
+    }
 
     /* ==========================
        📱 SMS DELIVERY
@@ -593,7 +526,6 @@ async function handleGiftSubscription(data, sender, metadata) {
         ? `Your gift subscription was sent to ${recipientEmail}`
         : `Your gift subscription was sent to ${phoneNumber}`,
     });
-
   } catch (error) {
     console.error("Error in handleGiftSubscription:", error);
   }
@@ -625,7 +557,6 @@ async function handleNormalSubscription(data) {
     let subscription = await SubscriptionModel.findOne(filter);
 
     if (!subscription) {
-
       const duration = metadata.duration || "";
       const nextPaymentDate = generateNextPaymentDate(duration);
 
@@ -641,16 +572,17 @@ async function handleNormalSubscription(data) {
         status: "active",
         currentPeriodEnd: nextPaymentDate,
         nextPaymentDate: nextPaymentDate,
-        amount: metadata.amount
+        amount: metadata.amount,
       });
 
       // ✅ CHAT CREATION - Moved to a helper function
       await ensureChatRoom(user._id, metadata.coachId);
-      
+
       return;
     } else {
       subscription.status = "active";
-      subscription.paystackSubscriptionId = metadata.paystackSubscriptionCode || null;
+      subscription.paystackSubscriptionId =
+        metadata.paystackSubscriptionCode || null;
       subscription.startDate = new Date(data.paid_at);
       subscription.coachId = metadata.coachId;
       subscription.categoryId = metadata.categoryId;
@@ -720,8 +652,12 @@ function generateNextPaymentDate(duration, startDate = new Date()) {
 async function ensureChatRoom(userId, coachId) {
   try {
     // Convert to ObjectId for consistency
-    const userObjectId = typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId;
-    const coachObjectId = typeof coachId === 'string' ? new mongoose.Types.ObjectId(coachId) : coachId;
+    const userObjectId =
+      typeof userId === "string" ? new mongoose.Types.ObjectId(userId) : userId;
+    const coachObjectId =
+      typeof coachId === "string"
+        ? new mongoose.Types.ObjectId(coachId)
+        : coachId;
 
     // Try multiple query approaches
     let chat = await ChatRoomModel.findOne({
@@ -729,67 +665,71 @@ async function ensureChatRoom(userId, coachId) {
       participants: { $all: [userObjectId, coachObjectId] },
     });
 
-
     // If no chat found, try alternative queries
     if (!chat) {
-      
       // Alternative 1: Check if either participant exists
       chat = await ChatRoomModel.findOne({
         type: "private",
         $or: [
           { participants: { $all: [userObjectId, coachObjectId] } },
-          { participants: { $all: [coachObjectId, userObjectId] } }
-        ]
+          { participants: { $all: [coachObjectId, userObjectId] } },
+        ],
       });
-      
+
       if (chat) {
         // Ensure both participants are in the array
-        if (!chat.participants.some(p => p.toString() === userObjectId.toString())) {
+        if (
+          !chat.participants.some(
+            (p) => p.toString() === userObjectId.toString()
+          )
+        ) {
           chat.participants.push(userObjectId);
         }
-        if (!chat.participants.some(p => p.toString() === coachObjectId.toString())) {
+        if (
+          !chat.participants.some(
+            (p) => p.toString() === coachObjectId.toString()
+          )
+        ) {
           chat.participants.push(coachObjectId);
         }
         await chat.save();
         return chat;
       }
-      
+
       // Alternative 2: Check individually
       const userChats = await ChatRoomModel.find({
         type: "private",
-        participants: userObjectId
+        participants: userObjectId,
       }).lean();
-      
-      
+
       const coachChats = await ChatRoomModel.find({
         type: "private",
-        participants: coachObjectId
+        participants: coachObjectId,
       }).lean();
-      
-      
+
       // Alternative 3: Create new chat
       chat = await ChatRoomModel.create({
         type: "private",
         participants: [userObjectId, coachObjectId],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
-      
+
       return chat;
     }
 
     // Chat exists - ensure both participants are present
-    
+
     // Normalize participants array
     if (!Array.isArray(chat.participants)) {
       chat.participants = [];
     }
-    
+
     // Ensure both participants are in the array (convert to strings for comparison)
-    const participantStrings = chat.participants.map(p => p.toString());
+    const participantStrings = chat.participants.map((p) => p.toString());
     const userString = userObjectId.toString();
     const coachString = coachObjectId.toString();
-    
+
     let updated = false;
     if (!participantStrings.includes(userString)) {
       chat.participants.push(userObjectId);
@@ -799,11 +739,11 @@ async function ensureChatRoom(userId, coachId) {
       chat.participants.push(coachObjectId);
       updated = true;
     }
-    
+
     if (updated) {
       await chat.save();
     }
-    
+
     return chat;
   } catch (error) {
     console.error("❌ Error in ensureChatRoom:", error);
