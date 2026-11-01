@@ -22,22 +22,18 @@ const webhookFunction = async (req, res) => {
 
     switch (event.event) {
       case "charge.success":
-        console.log("📩 Paystack webhook 2");
         await handleChargeSuccess(event.data);
         break;
 
       case "subscription.create":
-        console.log("📩 Paystack webhook 3: subscription.create");
         await handleSubscriptionCreate(event.data);
         break;
 
       case "invoice.payment_failed":
-        console.log("📩 Paystack webhook 4");
         await handleInvoiceFailed(event.data);
         break;
 
       case "subscription.disable":
-        console.log("📩 Paystack webhook 5");
         await handleSubscriptionDisable(event.data);
         break;
 
