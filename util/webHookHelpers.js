@@ -268,219 +268,249 @@ async function handleGiftSubscription(data, sender, metadata) {
           ========================== */
 
     if (recipientEmail) {
-      // Pre-encoded components for safety within the template literal
+      // Escape dynamic values before inserting them into HTML.
+      const escapeHtml = (value = "") =>
+        String(value).replace(
+          /[&<>"']/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[char])
+        );
 
+      // Encode URL parameters.
       const cleanCode = encodeURIComponent(couponCode);
       const cleanGifter = encodeURIComponent(sender.firstName);
 
       const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${cleanCode}&gifter=${cleanGifter}`;
+
       const currentYear = new Date().getFullYear();
 
+      // Safely prepare dynamic content.
+      const safeRecipientName = escapeHtml(recipientName);
+      const safeFirstName = escapeHtml(sender.firstName);
+      const safeLastName = escapeHtml(sender.lastName);
+      const safeCouponCode = escapeHtml(couponCode);
+
+      const safeGiftMessage = giftMessage ? escapeHtml(giftMessage.trim()) : "";
+
       const emailHtml = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>You've Received a MutaFit Premium Gift</title>
-      </head>
+              <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>You've Received a MutaFit Premium Gift</title>
+              </head>
 
-      <body style="
-        margin:0;
-        padding:0;
-        background-color:#f0f9ff;
-        font-family:Arial, Helvetica, sans-serif;
-        color:#444;
-      ">
+              <body style="
+                margin:0;
+                padding:0;
+                background-color:#f0f9ff;
+                font-family:Arial, Helvetica, sans-serif;
+                color:#444;
+              ">
 
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          border="0"
-          role="presentation"
-          style="background-color:#f0f9ff; padding:20px 0;"
-        >
-          <tr>
-            <td align="center">
+                <table
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  role="presentation"
+                  style="background-color:#f0f9ff; padding:20px 0;"
+                >
+                  <tr>
+                    <td align="center">
 
-              <table
-                width="500"
-                cellpadding="0"
-                cellspacing="0"
-                border="0"
-                role="presentation"
-                style="
-                  width:100%;
-                  max-width:500px;
-                  background:#ffffff;
-                  border-radius:12px;
-                  overflow:hidden;
-                "
-              >
+                      <table
+                        width="500"
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        role="presentation"
+                        style="
+                          width:100%;
+                          max-width:500px;
+                          background:#ffffff;
+                          border-radius:12px;
+                          overflow:hidden;
+                        "
+                      >
 
-                <!-- Header -->
-                <tr>
-                  <td style="
-                    background:#38bdf8;
-                    padding:20px;
-                    text-align:center;
-                  ">
-                    <h1 style="
-                      margin:0;
-                      color:#ffffff;
-                      font-size:20px;
-                      font-weight:bold;
-                    ">
-                      You've Received a MutaFit Premium Gift
-                    </h1>
-                  </td>
-                </tr>
+                        <!-- Header -->
+                        <tr>
+                          <td style="
+                            background:#38bdf8;
+                            padding:20px;
+                            text-align:center;
+                          ">
+                            <h1 style="
+                              margin:0;
+                              color:#ffffff;
+                              font-size:20px;
+                              font-weight:bold;
+                            ">
+                              You've Received a MutaFit Premium Gift
+                            </h1>
+                          </td>
+                        </tr>
 
-                <!-- Body -->
-                <tr>
-                  <td style="padding:30px 25px; color:#444;">
+                        <!-- Main Email Content -->
+                        <tr>
+                          <td style="padding:30px 25px; color:#444;">
 
-                    <p style="margin:0 0 15px;">
-                      Hello <strong>${recipientName}</strong>,
-                    </p>
+                            <p style="margin:0 0 15px;">
+                              Hello <strong>${safeRecipientName}</strong>,
+                            </p>
 
-                    <p style="margin:0 0 15px; line-height:1.6;">
-                      Great news! Someone has gifted you a MutaFit Premium
-                      subscription to support your health, fitness, and
-                      wellness journey.
-                    </p>
+                            <p style="margin:0 0 15px; line-height:1.6;">
+                              Great news! Someone has gifted you a MutaFit Premium
+                              subscription to support your health, fitness, and
+                              wellness journey.
+                            </p>
 
-                    <p style="margin:0 0 15px; line-height:1.6;">
-                      <strong>${sender.firstName} ${sender.lastName}</strong>
-                      believes in your goals and your journey.
-                    </p>
+                            <p style="margin:0 0 15px; line-height:1.6;">
+                              <strong>${safeFirstName} ${safeLastName}</strong>
+                              believes in your goals and your journey.
+                            </p>
 
-                    <p style="margin:0 0 15px; line-height:1.6;">
-                      With <strong>MutaFit Premium</strong>, you'll gain access
-                      to premium features, personalized experiences, and
-                      progress tracking tools to help you stay motivated and
-                      achieve your goals.
-                      </p>
+                            <p style="margin:0 0 15px; line-height:1.6;">
+                              With <strong>MutaFit Premium</strong>, you'll gain access
+                              to premium features, personalized experiences, and
+                              progress tracking tools to help you stay motivated and
+                              achieve your goals.
+                            </p>
 
-                  </td>
-                </tr>
+                            ${
+                              safeGiftMessage
+                                ? `
+                                  <p style="margin:0 0 15px; line-height:1.6;">
+                                    ${safeGiftMessage}
+                                  </p>
+                                `
+                                : ""
+                            }
 
-                <!-- Gift Code -->
-                <tr>
-                  <td style="padding:0 25px 20px;">
+                          </td>
+                        </tr>
 
-                    <p style="margin:0 0 10px; font-size:14px;">
-                      Gift Code:
-                    </p>
+                        <!-- Gift Code -->
+                        <tr>
+                          <td style="padding:0 25px 20px;">
 
-                    <p style="
-                      margin:0;
-                      padding:12px;
-                      background:#e0f2fe;
-                      border-radius:6px;
-                      color:#0369a1;
-                      font-size:18px;
-                      font-weight:bold;
-                      text-align:center;
-                      word-break:break-all;
-                    ">
-                      ${couponCode}
-                    </p>
-                    <p style="
-                      margin:0;
-                      padding:12px;
-                      background:#e0f2fe;
-                      border-radius:6px;
-                      color:#0369a1;
-                      font-size:15px;
-                      font-weight:bold;
-                      text-align:center;
-                      word-break:break-all;
-                    ">
-                      ${giftMessage || ""}
-                    </p>
+                            <p style="margin:0 0 10px; font-size:14px;">
+                              Gift Code:
+                            </p>
 
-                  </td>
-                </tr>
+                            <p style="
+                              margin:0;
+                              padding:12px;
+                              background:#e0f2fe;
+                              border-radius:6px;
+                              color:#0369a1;
+                              font-size:18px;
+                              font-weight:bold;
+                              text-align:center;
+                              word-break:break-all;
+                            ">
+                              ${safeCouponCode}
+                            </p>
 
-                <!-- Redemption Link -->
-                <tr>
-                  <td style="padding:10px 25px 20px; text-align:center;">
+                          </td>
+                        </tr>
 
-                    <a
-                      href="${redeemUrl}"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style="
-                        display:inline-block;
-                        padding:12px 25px;
-                        background:#38bdf8;
-                        color:#ffffff;
-                        text-decoration:none;
-                        border-radius:6px;
-                        font-size:15px;
-                        font-weight:bold;
-                      "
-                    >
-                      View Gift
-                    </a>
+                        <!-- Redemption Button -->
+                        <tr>
+                          <td style="padding:10px 25px 20px; text-align:center;">
 
-                  </td>
-                </tr>
+                            <a
+                              href="${redeemUrl}"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style="
+                                display:inline-block;
+                                padding:12px 25px;
+                                background:#38bdf8;
+                                color:#ffffff;
+                                text-decoration:none;
+                                border-radius:6px;
+                                font-size:15px;
+                                font-weight:bold;
+                              "
+                            >
+                              View Gift
+                            </a>
 
-                <!-- Fallback Instructions -->
-                <tr>
-                  <td style="padding:0 25px 25px;">
+                          </td>
+                        </tr>
 
-                    <p style="
-                      margin:0;
-                      font-size:12px;
-                      line-height:1.5;
-                      color:#777;
-                      text-align:center;
-                    ">
-                      If the button doesn't work, copy and paste this link
-                      into your browser:
-                    </p>
+                        <!-- Fallback Instructions -->
+                        <tr>
+                          <td style="padding:0 25px 25px;">
 
-                  </td>
-                </tr>
+                            <p style="
+                              margin:0;
+                              font-size:12px;
+                              line-height:1.5;
+                              color:#777;
+                              text-align:center;
+                            ">
+                              If the button doesn't work, copy and paste this link
+                              into your browser:
+                            </p>
 
-                <!-- Footer -->
-                <tr>
-                  <td style="
-                    background:#e0f2fe;
-                    padding:15px;
-                    text-align:center;
-                    font-size:12px;
-                    color:#777;
-                  ">
+                            <p style="
+                              margin:8px 0 0;
+                              font-size:12px;
+                              line-height:1.5;
+                              color:#0369a1;
+                              text-align:center;
+                              word-break:break-all;
+                            ">
+                              ${escapeHtml(redeemUrl)}
+                            </p>
 
-                    <p style="margin:0 0 8px;">
-                      Your journey to a healthier, fitter you starts here.
-                    </p>
+                          </td>
+                        </tr>
 
-                    <p style="margin:0;">
-                      © ${currentYear} MutaFit. All rights reserved.
-                    </p>
+                        <!-- Footer -->
+                        <tr>
+                          <td style="
+                            background:#e0f2fe;
+                            padding:15px;
+                            text-align:center;
+                            font-size:12px;
+                            color:#777;
+                          ">
 
-                  </td>
-                </tr>
+                            <p style="margin:0 0 8px;">
+                              Your journey to a healthier, fitter you starts here.
+                            </p>
 
-              </table>
+                            <p style="margin:0;">
+                              © ${currentYear} MutaFit. All rights reserved.
+                            </p>
 
-            </td>
-          </tr>
-        </table>
+                          </td>
+                        </tr>
 
-      </body>
-      </html>
-      `;
+                      </table>
+
+                    </td>
+                  </tr>
+                </table>
+
+              </body>
+              </html>
+              `;
 
       await sendEmail({
         to: recipientEmail,
-        subject: "You've Received a MutaFit Premium Gift!",
+        subject: "You've Received a MutaFit Premium Gift",
         html: emailHtml,
       });
     }
