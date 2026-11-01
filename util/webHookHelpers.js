@@ -272,7 +272,6 @@ async function handleGiftSubscription(data, sender, metadata) {
 
       const cleanCode = encodeURIComponent(couponCode);
       const cleanGifter = encodeURIComponent(sender.firstName);
-      const gifMes = encodeURIComponent(giftMessage);
 
       const redeemUrl = `https://muta.fit/subscription/redeem-gift?code=${cleanCode}&gifter=${cleanGifter}`;
       const currentYear = new Date().getFullYear();
@@ -399,7 +398,7 @@ async function handleGiftSubscription(data, sender, metadata) {
                       text-align:center;
                       word-break:break-all;
                     ">
-                      ${gifMes}
+                      ${giftMessage || ""}
                     </p>
 
                   </td>
