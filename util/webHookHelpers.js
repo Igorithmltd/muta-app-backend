@@ -208,7 +208,6 @@ async function handleInvoiceFailed(data) {
 }
 
 async function handleGiftSubscription(data, sender, metadata) {
-  console.log("handle subscription***********");
   try {
     const {
       planId,
@@ -250,7 +249,6 @@ async function handleGiftSubscription(data, sender, metadata) {
     } else if (duration === "yearly") {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     }
-    console.log("before coupon***********");
 
     // Save coupon
     await CouponModel.create({
@@ -266,7 +264,6 @@ async function handleGiftSubscription(data, sender, metadata) {
       used: false,
       reference,
     });
-    console.log("after coupon***********");
 
     /* ==========================
        📧 EMAIL DELIVERY
@@ -348,9 +345,6 @@ async function handleGiftSubscription(data, sender, metadata) {
 
               <p style="margin:0 0 15px;">
                 Hello <strong>${recipientName}</strong>,
-              </p>
-              <p style="margin:0 0 15px;">
-                <strong>${giftMessage}</strong>,
               </p>
 
               <p style="margin:0 0 15px; line-height:1.6;">
