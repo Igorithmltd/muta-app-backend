@@ -16,13 +16,6 @@ const otpSend = async (phoneNumber, message, session = null) => {
         channel: "generic", // Options: generic, dnd, whatsapp
         type: "plain",
         sms: message,
-
-        // message_type: "NUMERIC",
-        // pin_attempts: 3,
-        // pin_time_to_live: 5,
-        // pin_length: 6,
-        // pin_placeholder: "< 123456 >",
-        // message_text: "Your verification code is < 123456 >"
       }
     );
 

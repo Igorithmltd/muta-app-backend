@@ -2831,7 +2831,7 @@ class UserService extends BaseService {
 
       if (existingSub) {
         return BaseService.sendFailedResponse({
-          error: "User already has an active subscription",
+          error: "You already has an active subscription",
         });
       }
 
