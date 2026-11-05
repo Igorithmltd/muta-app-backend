@@ -240,18 +240,20 @@ async function handleGiftSubscription(data, sender, metadata) {
 
     // Calculate expiry
     const now = new Date();
-    let expiresAt = new Date(now);
+    let expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
 
-    if (duration === "monthly") {
-      expiresAt.setMonth(expiresAt.getMonth() + 1);
-    } else if (duration === "yearly") {
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-    }
+    // const now = new Date();
+    // let expiresAt = new Date(now);
+
+    // if (duration === "monthly") {
+    //   expiresAt.setMonth(expiresAt.getMonth() + 1);
+    // } else if (duration === "yearly") {
+    //   expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    // }
 
     // Save coupon
     await CouponModel.create({
       code: couponCode,
-      // coachId,
       planId: paystackSubscriptionCode,
       giftedByUserId: sender._id,
       recipientEmail: recipientEmail || null,
