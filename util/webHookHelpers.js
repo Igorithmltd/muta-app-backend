@@ -239,12 +239,11 @@ async function handleGiftSubscription(data, sender, metadata) {
       "MUTAG-" + Math.random().toString(36).slice(2, 10).toUpperCase();
 
     // Calculate expiry
+
     const now = new Date();
-    let expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+    let expiresAt = new Date(now);
 
-    // const now = new Date();
-    // let expiresAt = new Date(now);
-
+    expiresAt.setMonth(expiresAt.getMonth() + 3);
     // if (duration === "monthly") {
     //   expiresAt.setMonth(expiresAt.getMonth() + 1);
     // } else if (duration === "yearly") {
